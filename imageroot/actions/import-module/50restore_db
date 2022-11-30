@@ -1,0 +1,33 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2022 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+set -e
+exec 1>&2 # Redirect any output to the journal (stderr)
+
+# Override the image /docker-entrypoint-initdb.d contents, to restore the
+# DB dump file:
+podman run \
+    --rm \
+    --detach \
+    --network=none \
+    --volume=./initdb.d:/docker-entrypoint-initdb.d:z \
+    --volume=pgdata:/var/lib/postgresql/data \
+    --replace --name=restore_db \
+    "${WEBTOP_POSTGRES_IMAGE}"
+
+# Run an infinite loop because the .sql file loading time is
+# unpredictable.
+echo "Restoring webtop5 DB..."
+podman exec -i restore_db bash -s <<'EOF'
+while ! exec &>/dev/null 3<>/dev/tcp/127.0.0.1/5432 ; do
+    sleep 1
+done
+EOF
+echo "Completed."
+
+podman stop restore_db
+rm -rfv initdb.d # cleanup
