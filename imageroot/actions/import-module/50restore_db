@@ -5,29 +5,28 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
-set -e
+set -e -o pipefail
 exec 1>&2 # Redirect any output to the journal (stderr)
+
+# Prepare an initialization script that restores the dump file
+mkdir -vp initdb.d
+cat - >initdb.d/webtop5_restore.sh <<'EOS'
+# Read dump file from standard input:
+pg_restore --no-owner --no-privileges -U postgres -d webtop5
+# Print additional information:
+psql --version
+# The script is sourced, override entrypoint args and exit:
+set -- true
+EOS
+trap 'rm -rfv webtop5.dump initdb.d/' EXIT
 
 # Override the image /docker-entrypoint-initdb.d contents, to restore the
 # DB dump file:
-podman run \
+cat webtop5.dump | podman run \
     --rm \
-    --detach \
+    --interactive \
     --network=none \
     --volume=./initdb.d:/docker-entrypoint-initdb.d:z \
     --volume=pgdata:/var/lib/postgresql/data \
     --replace --name=restore_db \
     "${WEBTOP_POSTGRES_IMAGE}"
-
-# Run an infinite loop because the .sql file loading time is
-# unpredictable.
-echo "Restoring webtop5 DB..."
-podman exec -i restore_db bash -s <<'EOF'
-while ! exec &>/dev/null 3<>/dev/tcp/127.0.0.1/5432 ; do
-    sleep 1
-done
-EOF
-echo "Completed."
-
-podman stop restore_db
-rm -rfv initdb.d # cleanup
