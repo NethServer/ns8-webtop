@@ -22,6 +22,7 @@ ExecStart=/usr/bin/podman run \
     --cgroups=no-conmon \
     --volume=pgdata:/var/lib/postgresql/data \
     --replace --name=%N \
+    --env=POSTGRES_HOST_AUTH_METHOD=trust \
     ${WEBTOP_POSTGRES_IMAGE}
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/postgres.ctr-id -t 10
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/postgres.ctr-id
