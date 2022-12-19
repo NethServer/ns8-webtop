@@ -12,6 +12,5 @@ import webtop
 
 event_input = json.load(sys.stdin)
 
-if (event_input['module_uuid'] == os.getenv('MAIL_MODULE_UUID')
-    and event_input['reason'] != 'destroy-module'):
+if (event_input['module_uuid'] == os.getenv('MAIL_MODULE_UUID'):
     webtop.configure_module(event_input['module_id'], os.environ) # Ignore exit code
