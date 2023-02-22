@@ -1,1 +1,95 @@
-{}
+{
+    "common": {
+        "required": "",
+        "work_in_progress": "",
+        "processing": ""
+    },
+    "status": {
+        "node": "",
+        "created": "",
+        "mount": "",
+        "no_services": "",
+        "app_volumes": "",
+        "no_volumes": "",
+        "services": "",
+        "size": "",
+        "no_images": "",
+        "installation_node": "",
+        "app_images": "",
+        "app_instance": "",
+        "name": "",
+        "title": ""
+    },
+    "settings": {
+        "select_locale": "",
+        "LOCALE_en_US": "",
+        "LOCALE_de_DE": "",
+        "LOCALE_es_ES": "",
+        "LOCALE_hr_HR": "",
+        "mail_server_fqdn": "",
+        "default_timezone_for_webtop_users": "",
+        "enabled": "",
+        "select_webdav_loglevel": "",
+        "debug_loglevel": "",
+        "min_webapp_memory": "",
+        "LOG_WARNING": "",
+        "choose_timezone": "",
+        "LOCALE_fr_FR": "",
+        "LOG_CRITICAL": "",
+        "max_webapp_memory": "",
+        "LOG_ALERT": "",
+        "LOCALE_hu_HU": "",
+        "LOG_ERROR": "",
+        "default_locale_for_webtop_users": "",
+        "instance_configuration": "",
+        "request_https_certificate": "",
+        "timezone": "",
+        "webdav_debug": "",
+        "save": "",
+        "LOG_INFO": "",
+        "select_zpush_loglevel": "",
+        "webtop_fqdn": "",
+        "LOCALE_it_IT": "",
+        "choose_mail_server": "",
+        "title": "",
+        "LOG_DEBUG": "",
+        "configuring": "",
+        "webapp_debug": "",
+        "disabled": "",
+        "choose_the_mail_server_to_use": "",
+        "LOG_EMERGENCY": "",
+        "LOG_NOTICE": "",
+        "domain_already_used_in_traefik": "",
+        "advanced": ""
+    },
+    "action": {
+        "get-name": "",
+        "configure-module": "",
+        "list-backup-repositories": "",
+        "list-backups": "",
+        "get-status": "",
+        "get-configuration": "",
+        "list-installed-modules": "",
+        "get-module-info": ""
+    },
+    "error": {
+        "404": "",
+        "cannot_retrieve_UI_options": "",
+        "choose_min_webapp_memory_MB": "",
+        "403": "",
+        "401": "",
+        "error": "",
+        "generic_error": "",
+        "validation_error": "",
+        "cannot_retrieve_module_info": "",
+        "network_error": "",
+        "cannot_retrieve_installed_modules": "",
+        "network_timeout": ""
+    },
+    "about": {
+        "title": ""
+    },
+    "task": {
+        "cannot_create_task": ""
+    }
+}
