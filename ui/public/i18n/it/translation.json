@@ -9,14 +9,14 @@
         "created": "Creato",
         "mount": "",
         "no_services": "Nessun servizio",
-        "app_volumes": "",
+        "app_volumes": "Volume app|Volumi app",
         "no_volumes": "Nessun volume",
         "services": "Servizio | Servizi",
         "size": "Dimensione",
         "no_images": "Nessuna immagine",
         "installation_node": "",
-        "app_images": "",
-        "app_instance": "",
+        "app_images": "Immagine app|Immagini app",
+        "app_instance": "Istanza app",
         "name": "Nome",
         "title": "Stato"
     },
@@ -81,15 +81,15 @@
         "error": "Errore",
         "generic_error": "",
         "validation_error": "Errore di validazione",
-        "cannot_retrieve_module_info": "",
+        "cannot_retrieve_module_info": "Impossibile recuperare info modulo",
         "network_error": "Errore di rete",
-        "cannot_retrieve_installed_modules": "",
+        "cannot_retrieve_installed_modules": "Impossibile elencare moduli installati",
         "network_timeout": ""
     },
     "about": {
-        "title": ""
+        "title": "Informazioni"
     },
     "task": {
-        "cannot_create_task": ""
+        "cannot_create_task": "Impossibile eseguire task [action]"
     }
 }
