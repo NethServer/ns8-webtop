@@ -1,20 +1,20 @@
 {
     "common": {
         "required": "Obbligatorio",
-        "work_in_progress": "",
-        "processing": ""
+        "work_in_progress": "In lavorazione",
+        "processing": "Elaborazione in corso..."
     },
     "status": {
         "node": "Nodo",
         "created": "Creato",
-        "mount": "",
+        "mount": "Percorso di mount",
         "no_services": "Nessun servizio",
         "app_volumes": "Volume app|Volumi app",
         "no_volumes": "Nessun volume",
         "services": "Servizio | Servizi",
         "size": "Dimensione",
         "no_images": "Nessuna immagine",
-        "installation_node": "",
+        "installation_node": "Nodo",
         "app_images": "Immagine app|Immagini app",
         "app_instance": "Istanza app",
         "name": "Nome",
@@ -63,14 +63,14 @@
         "advanced": ""
     },
     "action": {
-        "get-name": "",
+        "get-name": "Visualizza nome",
         "configure-module": "Configura modulo",
-        "list-backup-repositories": "",
-        "list-backups": "",
-        "get-status": "",
-        "get-configuration": "",
-        "list-installed-modules": "",
-        "get-module-info": ""
+        "list-backup-repositories": "Elenca repository di backup",
+        "list-backups": "Elenca backup",
+        "get-status": "Visualizza stato",
+        "get-configuration": "Visualizza configurazione",
+        "list-installed-modules": "Elenca moduli installati",
+        "get-module-info": "Visualizza info modulo"
     },
     "error": {
         "404": "Risorsa non trovata",
