@@ -76,20 +76,20 @@
         "404": "Risorsa non trovata",
         "cannot_retrieve_UI_options": "",
         "choose_min_webapp_memory_MB": "",
-        "403": "",
-        "401": "",
+        "403": "Operazione non autorizzata",
+        "401": "Autenticazione non valida",
         "error": "Errore",
-        "generic_error": "",
+        "generic_error": "Qualcosa è andato storto",
         "validation_error": "Errore di validazione",
         "cannot_retrieve_module_info": "Impossibile recuperare info modulo",
         "network_error": "Errore di rete",
         "cannot_retrieve_installed_modules": "Impossibile elencare moduli installati",
-        "network_timeout": ""
+        "network_timeout": "Timeout di rete"
     },
     "about": {
         "title": "Informazioni"
     },
     "task": {
-        "cannot_create_task": "Impossibile eseguire task [action]"
+        "cannot_create_task": "Impossibile eseguire task {action}"
     }
 }
