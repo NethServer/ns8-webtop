@@ -23,6 +23,7 @@ ExecStart=/usr/bin/podman run \
     --volume=pgdata:/var/lib/postgresql/data \
     --replace --name=%N \
     ${WEBTOP_POSTGRES_IMAGE}
+ExecStartPost=/usr/bin/bash -c "while ! podman  exec postgres pg_isready ;  do sleep 5 ; done"
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/postgres.ctr-id -t 10
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/postgres.ctr-id
 PIDFile=%t/postgres.pid
