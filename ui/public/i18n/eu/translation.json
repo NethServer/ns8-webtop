@@ -50,7 +50,7 @@
         "select_locale": "Default locale"
     },
     "common": {
-        "required": "Required",
+        "required": "Beharrezkoa",
         "work_in_progress": "Work in progress",
         "processing": "Processing..."
     },
