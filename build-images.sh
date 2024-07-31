@@ -103,7 +103,7 @@ images+=("${repobase}/${reponame}")
 
 #Create webtop-webdav container
 reponame="webtop-webdav"
-container=$(buildah from docker.io/library/php:7.3-fpm-alpine)
+container=$(buildah from docker.io/library/php:7.4-fpm-alpine)
 buildah add ${container} ${PWD}/webtop5-build/webtop-dav-server-$webtop_version.tgz /usr/share/webtop/webdav/
 buildah run ${container} sh -c "mv \$PHP_INI_DIR/php.ini-production \$PHP_INI_DIR/php.ini"
 # Commit the image
@@ -114,7 +114,7 @@ images+=("${repobase}/${reponame}")
 
 #Create webtop-z-push container
 reponame="webtop-z-push"
-container=$(buildah from docker.io/library/php:7.3-fpm-alpine)
+container=$(buildah from docker.io/library/php:7.4-fpm-alpine)
 buildah copy --from=docker.io/mlocati/php-extension-installer:1.5.37 ${container} /usr/bin/install-php-extensions /usr/local/bin/
 buildah run ${container} sh -c "install-php-extensions imap"
 buildah add ${container} ${PWD}/webtop5-build/webtop-eas-server-$webtop_version.tgz /usr/share/webtop/z-push/
