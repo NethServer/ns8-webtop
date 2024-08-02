@@ -22,7 +22,7 @@ ExecStart=/usr/bin/podman run \
 			 -Dmail.mime.address.strict=false -Dwebtop.etc.dir=/etc/webtop \
 			 -Duser.timezone=${WEBTOP_TIMEZONE}" \
     --volume=webtop-home:/var/lib/nethserver/webtop \
-    --volume=./webtop.properties:/etc/webtop/webtop.properties:Z \
+    --volume=./webtop.properties:/etc/webtop/webtop.properties:z \
     --pod=webtop \
     --detach \
     --conmon-pidfile=%t/webapp.pid \
