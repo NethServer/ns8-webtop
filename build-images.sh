@@ -56,7 +56,7 @@ cleanup_list+=("${webapp_tmp_dir}")
 
 #Create webtop-webapp container
 reponame="webtop-webapp"
-container=$(buildah from docker.io/library/tomcat:8-jre8)
+container=$(buildah from docker.io/library/tomcat:10-jre8)
 buildah add ${container} ${webapp_tmp_dir}/webtop /usr/local/tomcat/webapps/webtop/
 buildah add ${container} ${jcharset_tmp_dir}/jcharset-2.0/lib/jcharset-2.0.jar /usr/local/tomcat/webapps/webtop/lib/
 buildah add ${container} ${PWD}/webtop5-build/ListTimeZones.class /usr/share/webtop/
