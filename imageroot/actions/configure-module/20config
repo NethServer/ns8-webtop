@@ -279,7 +279,8 @@ if "MAIL_MODULE" in os.environ and ("mail_module" not in data or data["mail_modu
     user_domain_name = rdb.hget(f'module/{data["mail_module"]}/srv/tcp/imap', "user_domain") or ""
     user_domain = agent.ldapproxy.Ldapproxy().get_domain(user_domain_name) or {}
 
-    if user_domain["port"] != os.environ["USER_DOMAIN_PORT"]:
+    print(f"DEBUG: Configuring {user_domain_name}", file=sys.stderr)
+    if 'port' in user_domain and user_domain["port"] != os.environ["USER_DOMAIN_PORT"]:
         agent.bind_user_domains([user_domain_name])
         domain_setup(user_domain_name, user_domain)
         agent.set_env("RESTART_WEBAPP", "1")
