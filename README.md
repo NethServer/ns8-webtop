@@ -89,8 +89,7 @@ scripts and timer-based systemd services for automation.
      updated contacts.
 
 Both scripts use environment variables (`PHONEBOOK_DB_HOST`,
-`PHONEBOOK_DB_PASSWORD`) for connecting to the databases. The sync process to
-run daily at 23:00.
+`PHONEBOOK_DB_PASSWORD`) for connecting to the databases. The sync process runs daily at 23:00.
 
 ### Manual Configuration Steps
 
