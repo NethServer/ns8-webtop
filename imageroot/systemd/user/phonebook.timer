@@ -1,5 +1,5 @@
 [Unit]
-Description=Syncthing Phonebook
+Description=Sync Phonebook
 PartOf=webtop.service
 
 [Timer]
