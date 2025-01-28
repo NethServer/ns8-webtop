@@ -48,8 +48,8 @@ jcharset_tmp_dir=$(mktemp -d)
 cleanup_list+=("${jcharset_tmp_dir}")
 (
     cd "${jcharset_tmp_dir}"
-    curl -Ss -O https://www.freeutils.net/source/jcharset/jcharset-2.0-distribution.zip
-    python -mzipfile -e jcharset-2.0-distribution.zip .
+    echo "Downloading jcharset-2.0.jar..."
+    curl -O https://distfeed.nethserver.org/webtop/jcharset-2.0.jar
 )
 
 webapp_tmp_dir=$(mktemp -d)
@@ -68,7 +68,7 @@ reponame="webtop-webapp"
 container=$(buildah from docker.io/library/tomcat:8-jre8)
 buildah add ${container} ${webapp_tmp_dir}/webtop /usr/local/tomcat/webapps/webtop/
 buildah add ${container} ${PWD}/webtop5-build/webtop-login/ /usr/local/tomcat/webapps/webtop/WEB-INF/classes/
-buildah add ${container} ${jcharset_tmp_dir}/jcharset-2.0/lib/jcharset-2.0.jar /usr/local/tomcat/webapps/webtop/lib/
+buildah add ${container} ${jcharset_tmp_dir}/jcharset-2.0.jar /usr/local/tomcat/webapps/webtop/lib/
 buildah add ${container} ${PWD}/webtop5-build/ListTimeZones.class /usr/share/webtop/
 buildah add ${container} ${PWD}/webtop5-build/WebtopPassEncode.class /usr/share/webtop/
 buildah add ${container} ${PWD}/zfaker/wrappers/php /usr/share/webtop/bin/php
@@ -159,6 +159,16 @@ fi
 
 echo "Build static UI files with node..."
 buildah run --env="NODE_OPTIONS=--openssl-legacy-provider" nodebuilder-webtop sh -c "cd /usr/src/ui && yarn install && yarn build"
+
+# Download tmce plugin jar: plugin is encrypted with GPG, the password is 'subscription'
+tmce_jar_url="https://distfeed.nethserver.org/webtop/webtop-tmceplugins-6.3.1.0.jar.gpg"
+tmce_jar_path="${PWD}/webtop-tmceplugins-6.3.1.0.jar.gpg"
+echo "Downloading encrypted tmce plugin jar from ${tmce_jar_url}..."
+curl --fail -L -o "${tmce_jar_path}" "${tmce_jar_url}"
+
+# Add tmce plugin jar to the image
+mkdir -p imageroot/plugins
+mv "${tmce_jar_path}" imageroot/plugins/webtop-tmceplugins.jar.gpg
 
 # Add imageroot directory to the container image
 buildah add "${container}" imageroot /imageroot
