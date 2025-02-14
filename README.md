@@ -94,7 +94,8 @@ Both scripts use environment variables (`PHONEBOOK_DB_HOST`,
 ### Manual Configuration Steps
 
 Follow these steps to manually configure and use the phonebook synchronization:
-1. Set the environment variables for the phonebook database connection.
+1. Set the environment variables for the phonebook database connection in the
+   file `phonebook.env` located in the module state directory:
   - **`PHONEBOOK_DB_HOST`**: The hostname or IP address of the phonebook
     database, formatted as `host:port`.
   - **`PHONEBOOK_DB_PASSWORD`**: The password for the phonebook database user.
