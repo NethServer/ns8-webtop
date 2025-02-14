@@ -7,9 +7,8 @@ Environment=PODMAN_SYSTEMD_UNIT=%n
 EnvironmentFile=%S/state/environment
 WorkingDirectory=%S/state
 ExecStartPre=/bin/rm -f %t/%N.pid %t/%N.ctr-id
-ExecStart=/usr/bin/podman run \
-    --env=PHONEBOOK_DB_HOST=${PHONEBOOK_DB_HOST} \
-    --env=PHONEBOOK_DB_PASSWORD=${PHONEBOOK_DB_PASSWORD} \
+ExecStart=runagent podman run \
+    --env-file=./phonebook.env \
     --pod=webtop \
     --detach \
     --conmon-pidfile=%t/%N.pid \
