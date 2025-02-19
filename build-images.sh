@@ -185,7 +185,8 @@ buildah config --entrypoint=/ \
     ${repobase}/webtop-postgres:${IMAGETAG:-latest} \
     ${repobase}/webtop-apache:${IMAGETAG:-latest} \
     ${repobase}/webtop-webdav:${IMAGETAG:-latest} \
-    ${repobase}/webtop-z-push:${IMAGETAG:-latest}" \
+    ${repobase}/webtop-z-push:${IMAGETAG:-latest} \
+    ${repobase}/webtop-phonebook:${IMAGETAG:-latest}" \
     "${container}"
 # Commit the image
 buildah commit "${container}" "${repobase}/${reponame}"
