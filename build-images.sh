@@ -65,7 +65,7 @@ tar -C "${pecbridge_tmp_dir}" -x -v -z -f pecbridge-*.tar.gz
 
 #Create webtop-webapp container
 reponame="webtop-webapp"
-container=$(buildah from docker.io/library/tomcat:8-jre8)
+container=$(buildah from docker.io/library/tomcat:9-jre8)
 buildah add ${container} ${webapp_tmp_dir}/webtop /usr/local/tomcat/webapps/webtop/
 buildah add ${container} ${PWD}/webtop5-build/webtop-login/ /usr/local/tomcat/webapps/webtop/WEB-INF/classes/
 buildah add ${container} ${jcharset_tmp_dir}/jcharset-2.0.jar /opt/java/openjdk/lib/ext/
