@@ -126,7 +126,7 @@ images+=("${repobase}/${reponame}")
 #Create webtop-z-push container
 reponame="webtop-z-push"
 container=$(buildah from docker.io/library/php:7.3-fpm-alpine)
-buildah copy --from=docker.io/mlocati/php-extension-installer:1.5.37 ${container} /usr/bin/install-php-extensions /usr/local/bin/
+buildah copy --from=docker.io/mlocati/php-extension-installer:1.5.52 ${container} /usr/bin/install-php-extensions /usr/local/bin/
 buildah run ${container} sh -c "install-php-extensions imap"
 buildah add ${container} ${PWD}/webtop5-build/webtop-eas-server-$webtop_version.tgz /usr/share/webtop/z-push/
 buildah add ${container} ${PWD}/zfaker/src/ /usr/share/webtop/zfacker/
