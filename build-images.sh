@@ -21,7 +21,7 @@ sha256sum -c CHECKSUM
 # Reuse existing webtopbuilder container, to speed up builds
 if ! buildah containers --format "{{.ContainerName}}" | grep -q webtopbuilder; then
     echo "Pulling maven runtime..."
-    buildah from --name webtopbuilder-tmp docker.io/library/maven:3.6-openjdk-8
+    buildah from --name webtopbuilder-tmp docker.io/library/maven:3.8-openjdk-8
     buildah run webtopbuilder-tmp  apt-get  update
     buildah run webtopbuilder-tmp  apt-get  install -y  nodejs make
     buildah commit --rm webtopbuilder-tmp webtopbuilder-image
