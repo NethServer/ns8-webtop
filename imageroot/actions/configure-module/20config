@@ -230,6 +230,7 @@ if "mail_module" in data and "mail_domain" in data:
         agent.set_env("MAIL_MODULE", mail_module)
         agent.set_env("MAIL_DOMAIN", mail_domain)
         agent.set_env("RESTART_WEBAPP", "1")
+        agent.set_env("RESTART_POD", "1")
 
 # In case of module move/migrate/restore, restart webtop
 if "MAIL_MODULE" in os.environ and ("mail_module" not in data or data["mail_module"] == os.getenv("MAIL_MODULE")) :
