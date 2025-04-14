@@ -219,7 +219,6 @@ if "mail_module" in data and "mail_domain" in data:
     agent.set_env("MAIL_DOMAIN", mail_domain)
 
 
-# In case of module move/migrate/restore, restart webtop
 if "webapp" in data:
     if "debug" in data["webapp"]:
             agent.set_env("WEBAPP_JS_DEBUG", data["webapp"]["debug"])
