@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- Tomcat: Revert back original Tomcat (< 8.0.30) behaviour in redirects -->
-<Context useRelativeRedirects="false">
-	<!-- Tomcat: Disable session persistence across Tomcat restarts -->
-	<Manager pathname="" />
-<!-- Tomcat: Load .jar from customs folder -->
-<Loader className="org.apache.catalina.loader.VirtualWebappLoader"
-	virtualClasspath="/usr/local/tomcat/webapps/webtop/WEB-INF/customs/" />
-</Context>
