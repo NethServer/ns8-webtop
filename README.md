@@ -69,6 +69,15 @@ modify the contents of the `./templates` directory directly, as they will
 be overwritten during the next application update. Files under
 `./state/webtop.properties.d/` are retained and are also added to backup.
 
+### Customs jar files
+
+Webtop is a java platform and you can add and run your custom jar files. For this purpose you will find a custom-jars folder in the home of webtop
+
+drop your custom java files in `/home/webtop1/.config/state/custom-jars` and restart webtop
+
+    runagent -m webtop1 systemctl --user restart webtop
+
+
 ## Phonebook feature
 
 The phonebook synchronization system allows you to manage contacts between
