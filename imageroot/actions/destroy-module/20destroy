@@ -30,6 +30,27 @@ response = agent.tasks.run(
         'instance': os.environ['MODULE_ID']
     },
 )
+# Check if traefik configuration has been successfull
+agent.assert_exp(response['exit_code'] == 0)
 
+# Remove traefik route for Thunderbird autoconfig
+response = agent.tasks.run(
+    agent_id=default_traefik_id,
+    action='delete-route',
+    data={
+        'instance': 'autoconfig-' + os.environ['MODULE_ID']
+    },
+)
+# Check if traefik configuration has been successfull
+agent.assert_exp(response['exit_code'] == 0)
+
+# Remove traefik route for outlook autodiscover
+response = agent.tasks.run(
+    agent_id=default_traefik_id,
+    action='delete-route',
+    data={
+        'instance': 'autodiscover-' + os.environ['MODULE_ID']
+    },
+)
 # Check if traefik configuration has been successfull
 agent.assert_exp(response['exit_code'] == 0)

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- This file is used to verify the domain ownership for Let's Encrypt SSL certificate generation. -->
+
+<head>
+    <meta charset="UTF-8">
+    <title>WebTop Autoconfiguration for mail domain: {{ domain }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(120deg, #f0f4f9 0%, #e0e7ef 100%);
+            color: #222;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 60px auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 32px rgba(42, 93, 159, 0.10);
+            padding: 48px 40px 40px 40px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2a5d9f;
+            font-size: 2.2em;
+            margin-bottom: 0.5em;
+        }
+
+        p {
+            color: #444;
+            margin-bottom: 2.5em;
+            font-size: 1.15em;
+        }
+
+        .clients-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 auto 1.5em auto;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            gap: 2em;
+            max-width: 600px;
+        }
+
+        .clients-list li {
+            background: #eaf2fb;
+            color: #2a5d9f;
+            border-radius: 8px;
+            padding: 1em 2.5em;
+            font-weight: 600;
+            font-size: 1.25em;
+            box-shadow: 0 2px 8px rgba(42, 93, 159, 0.08);
+            letter-spacing: 0.01em;
+            transition: background 0.2s;
+        }
+
+        .clients-list li:hover {
+            background: #d0e2f7;
+        }
+
+        .footer {
+            margin-top: 2.5em;
+            font-size: 1.05em;
+            color: #2a5d9f;
+        }
+
+        @media (max-width: 700px) {
+            .container {
+                padding: 24px 8px;
+            }
+
+            .clients-list {
+                flex-direction: column;
+                gap: 1em;
+            }
+
+            .clients-list li {
+                padding: 0.8em 1em;
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>WebTop Autoconfiguration<br>for <span style="color:#1a3e6e;">{{ domain }}</span></h1>
+        <p>
+            This page is used for email client autoconfiguration.<br>
+            If you reached this page manually, no further action is required.
+        </p>
+        <h2 style="color:#2a5d9f; font-size:1.35em; margin-bottom:1em;">Supported Email Clients</h2>
+        <ul class="clients-list">
+            <li>Thunderbird</li>
+            <li>Outlook</li>
+            <li>K9</li>
+        </ul>
+        <div class="footer">
+            &copy; 2025 WebTop Autoconfiguration &mdash; <a href="https://www.nethesis.it/" target="_blank"
+                style="color:inherit;text-decoration:underline;">Nethesis S.r.l.</a>
+        </div>
+    </div>
+</body>
+
+</html>
