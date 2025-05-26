@@ -41,10 +41,9 @@
             padding: 0;
             margin: 0 auto 1.5em auto;
             display: flex;
-            flex-direction: row;
-            justify-content: center;
-            gap: 2em;
-            max-width: 600px;
+            flex-direction: column;
+            gap: 1.5em;
+            max-width: 700px;
         }
 
         .clients-list li {
@@ -57,10 +56,20 @@
             box-shadow: 0 2px 8px rgba(42, 93, 159, 0.08);
             letter-spacing: 0.01em;
             transition: background 0.2s;
+            word-break: break-all;
+            text-align: left;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .clients-list li:hover {
             background: #d0e2f7;
+        }
+
+        .clients-list a {
+            color: #2a5d9f;
+            text-decoration: underline;
+            word-break: break-all;
         }
 
         .footer {
@@ -72,11 +81,6 @@
         @media (max-width: 700px) {
             .container {
                 padding: 24px 8px;
-            }
-
-            .clients-list {
-                flex-direction: column;
-                gap: 1em;
             }
 
             .clients-list li {
@@ -91,19 +95,37 @@
     <div class="container">
         <h1>WebTop Autoconfiguration<br>for <span style="color:#1a3e6e;">{{ domain }}</span></h1>
         <p>
-            This page is used for email client autoconfiguration.<br>
+            This page provides automatic configuration for supported email clients.<br>
             If you reached this page manually, no further action is required.
         </p>
-        <h2 style="color:#2a5d9f; font-size:1.35em; margin-bottom:1em;">Supported Email Clients</h2>
+        <h2 style="color:#2a5d9f; font-size:1.35em; margin-bottom:1em;">Autoconfiguration Endpoints</h2>
         <ul class="clients-list">
-            <li>Thunderbird</li>
-            <li>Outlook</li>
-            <li>K9</li>
+            <li>
+                <strong>Thunderbird</strong><br>
+                Uses: <a href="https://autoconfig.{{ domain }}/mail/config-v1.1.xml" target="_blank">
+                    autoconfig.{{ domain }}/mail/config-v1.1.xml
+                </a>
+                <br>
+                <span style="font-size:0.95em;color:#555;">This is the configuration file used by Thunderbird and
+                    compatible clients for automatic setup.</span>
+            </li>
+            <li>
+                <strong>Outlook</strong><br>
+                Uses: <a href="https://autodiscover.{{ domain }}/autodiscover/autodiscover.xml" target="_blank">
+                    autodiscover.{{ domain }}/autodiscover/autodiscover.xml
+                </a>
+                <br>
+                <span style="font-size:0.95em;color:#555;">This is the configuration endpoint used by Microsoft Outlook
+                    for automatic account discovery.</span>
+            </li>
         </ul>
         <div class="footer">
-            &copy; 2025 WebTop Autoconfiguration &mdash; <a href="https://www.nethesis.it/" target="_blank"
-                style="color:inherit;text-decoration:underline;">Nethesis S.r.l.</a>
+            &copy; <span id="year"></span> WebTop Autoconfiguration &mdash; <a href="https://www.nethesis.it/"
+                target="_blank" style="color:inherit;text-decoration:underline;">Nethesis S.r.l.</a>
         </div>
+        <script>
+            document.getElementById('year').textContent = new Date().getFullYear();
+        </script>
     </div>
 </body>
 
