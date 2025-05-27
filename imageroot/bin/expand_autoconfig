@@ -12,12 +12,12 @@
 #Exit immediately if a command exits with a non-zero status.
 set -e 
 
-# Wait for MAIL_DOMAIN and WEBTOP_HOSTNAME to be set (timeout after 30s)
+# Wait for MAIL_DOMAIN to be set (timeout after 30s)
 for i in {1..15}; do
-    if [[ -n "$MAIL_DOMAIN" && -n "$WEBTOP_HOSTNAME" ]]; then
+    if [[ -n "$MAIL_DOMAIN" ]]; then
         break
     fi
-    echo "Waiting for MAIL_DOMAIN and WEBTOP_HOSTNAME to be set..."
+    echo "Waiting for MAIL_DOMAIN to be set..."
     sleep 2
 done
 
@@ -26,12 +26,7 @@ if [[ -z "$MAIL_DOMAIN" ]]; then
     exit 1
 fi
 
-if [[ -z "$WEBTOP_HOSTNAME" ]]; then
-    echo "WEBTOP_HOSTNAME variable is not set"
-    exit 1
-fi
-
-mkdir -p {autoconfiguration,vhosts}
+mkdir -p {autoconfiguration}
 
 
 # thunderbird autoconfiguration
@@ -43,15 +38,3 @@ sed "s/{{ domain }}/$MAIL_DOMAIN/g" "$INPUT_FILE" > "$OUTPUT_FILE"
 INPUT_FILE="../templates/autoconfiguration/autodiscover.xml"
 OUTPUT_FILE="./autoconfiguration/autodiscover.xml"
 sed "s/{{ domain }}/$MAIL_DOMAIN/g" "$INPUT_FILE" > "$OUTPUT_FILE"
-
-# index.html for Let's Encrypt requirements
-# This file is used to verify the domain ownership for Let's Encrypt SSL certificate generation.
-INPUT_FILE="../templates/autoconfiguration/index.html"
-OUTPUT_FILE="./autoconfiguration/index.html"
-sed "s/{{ domain }}/$MAIL_DOMAIN/g" "$INPUT_FILE" > "$OUTPUT_FILE"
-
-# vhost of apache container
-INPUT_FILE="../templates/autoconfiguration/autoconfiguration.conf"
-OUTPUT_FILE="./vhosts/autoconfiguration.conf"
-sed "s/{{ domain }}/$MAIL_DOMAIN/g" "$INPUT_FILE" > "$OUTPUT_FILE"
-
