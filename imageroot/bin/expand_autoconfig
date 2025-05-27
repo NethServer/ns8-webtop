@@ -26,7 +26,7 @@ if [[ -z "$MAIL_DOMAIN" ]]; then
     exit 1
 fi
 
-mkdir -p {autoconfiguration}
+mkdir -p autoconfiguration
 
 
 # thunderbird autoconfiguration
