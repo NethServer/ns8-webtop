@@ -20,11 +20,7 @@ ExecStart=/usr/bin/podman run \
     --cidfile=%t/apache.ctr-id \
     --cgroups=no-conmon \
     --replace --name=%N \
-    --volume ./autoconfiguration/autodiscover.xml:/usr/share/webtop/autoconfiguration/autodiscover/autodiscover.xml:Z \
-    --volume ./autoconfiguration/config-v1.1.xml:/usr/share/webtop/autoconfiguration/mail/config-v1.1.xml:Z \
-    --volume ./autoconfiguration/index.html:/usr/share/webtop/autoconfiguration/index.html:Z \
-    --volume ./vhosts/autoconfiguration.conf:/vhosts/autoconfiguration.conf:Z \
-    --volume ./vhosts/webapp.conf:/vhosts/webapp.conf:Z \
+    --volume ./autoconfiguration:/usr/share/webtop/autoconfiguration:Z \
     ${WEBTOP_APACHE_IMAGE}
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/apache.ctr-id -t 10
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/apache.ctr-id

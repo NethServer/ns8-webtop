@@ -55,7 +55,3 @@ INPUT_FILE="../templates/autoconfiguration/autoconfiguration.conf"
 OUTPUT_FILE="./vhosts/autoconfiguration.conf"
 sed "s/{{ domain }}/$MAIL_DOMAIN/g" "$INPUT_FILE" > "$OUTPUT_FILE"
 
-# webapp configuration
-INPUT_FILE="../templates/autoconfiguration/webapp.conf"
-OUTPUT_FILE="./vhosts/webapp.conf"
-sed "s/{{ webtop_hostname }}/$WEBTOP_HOSTNAME/g" "$INPUT_FILE" > "$OUTPUT_FILE"
