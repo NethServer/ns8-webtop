@@ -5,29 +5,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
-#Expand Autoconfiguration Template
+# Expand Autoconfiguration Template
+# This script expands the autoconfiguration templates for Thunderbird and Outlook
 
-
-
-#Exit immediately if a command exits with a non-zero status.
 set -e 
-
-# Wait for MAIL_DOMAIN to be set (timeout after 30s)
-for i in {1..15}; do
-    if [[ -n "$MAIL_DOMAIN" ]]; then
-        break
-    fi
-    echo "Waiting for MAIL_DOMAIN to be set..."
-    sleep 2
-done
-
-if [[ -z "$MAIL_DOMAIN" ]]; then
-    echo "MAIL_DOMAIN variable is not set"
-    exit 1
-fi
-
-mkdir -p autoconfiguration
-
 
 # thunderbird autoconfiguration
 INPUT_FILE="../templates/autoconfiguration/config-v1.1.xml"

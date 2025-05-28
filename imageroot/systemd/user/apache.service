@@ -12,7 +12,7 @@ EnvironmentFile=%S/state/environment
 WorkingDirectory=%S/state
 Restart=always
 ExecStartPre=/bin/rm -f %t/apache.pid %t/apache.ctr-id
-ExecStartPre=/usr/local/bin/runagent expand_autoconfig
+ExecStartPre=/usr/bin/mkdir -vp autoconfiguration
 ExecStart=/usr/bin/podman run \
     --pod=webtop \
     --detach \
