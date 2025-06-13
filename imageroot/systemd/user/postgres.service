@@ -11,6 +11,7 @@ After=webtop.service
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
 EnvironmentFile=%S/state/environment
+EnvironmentFile=%S/state/secrets.env
 WorkingDirectory=%S/state
 Restart=always
 # wait-postgres-init should complete in 5 minutes,
@@ -24,6 +25,9 @@ ExecStart=/usr/bin/podman run \
     --cidfile=%t/postgres.ctr-id \
     --cgroups=no-conmon \
     --volume=pgdata:/var/lib/postgresql/data \
+    --env POSTGRES_DB="webtop5" \
+    --env POSTGRES_USER="postgres" \
+    --env POSTGRES_PASSWORD=${POSTGRES_TOKEN} \
     --replace --name=%N \
     ${WEBTOP_POSTGRES_IMAGE}
 ExecStartPost=runagent wait-postgres-init
