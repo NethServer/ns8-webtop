@@ -7,4 +7,8 @@
 
 set -e
 
-podman exec postgres pg_dump -U postgres --format=c webtop5 > webtop5.dump
+# Read POSTGRES_TOKEN from secrets.env
+POSTGRES_TOKEN=$(grep "^POSTGRES_TOKEN=" secrets.env | cut -d= -f2)
+
+# Run pg_dump with the password
+podman exec -e PGPASSWORD="$POSTGRES_TOKEN" postgres pg_dump -U postgres --format=c webtop5 > webtop5.dump
