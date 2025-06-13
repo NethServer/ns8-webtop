@@ -13,15 +13,17 @@
 set -e -o pipefail
 exec 1>&2 # Redirect any output to the journal (stderr)
 
+# Read POSTGRES_TOKEN from secrets.env
+POSTGRES_TOKEN=$(grep "^POSTGRES_TOKEN=" secrets.env | cut -d= -f2)
+
 # Prepare an initialization script that restores the dump file
 mkdir -vp initdb.d
 cat - >initdb.d/webtop5_restore.sh <<'EOS'
 # Read dump file from standard input:
-pg_restore --no-owner --no-privileges -U postgres -d webtop5
-# Print additional information:
-psql --version
-# The script is sourced, override entrypoint args and exit:
-set -- true
+pg_restore --clean --if-exists --no-owner --no-privileges -U postgres -d webtop5
+ec=$?
+docker_temp_server_stop
+exit $ec
 EOS
 
 # Override the image /docker-entrypoint-initdb.d contents, to restore the
@@ -30,6 +32,8 @@ podman run \
     --rm \
     --interactive \
     --network=none \
+    --env POSTGRES_USER="postgres" \
+    --env POSTGRES_PASSWORD=${POSTGRES_TOKEN} \
     --volume=./initdb.d:/docker-entrypoint-initdb.d:z \
     --volume=pgdata:/var/lib/postgresql/data \
     --replace --name=restore_db \
