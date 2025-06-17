@@ -13,8 +13,8 @@
 set -e -o pipefail
 exec 1>&2 # Redirect any output to the journal (stderr)
 
-# Read POSTGRES_TOKEN from secrets.env
-POSTGRES_TOKEN=$(grep "^POSTGRES_TOKEN=" secrets.env | cut -d= -f2)
+# Read POSTGRES_PASSWORD from secrets.env
+POSTGRES_PASSWORD=$(grep "^POSTGRES_PASSWORD=" secrets.env | cut -d= -f2)
 
 # Prepare an initialization script that restores the dump file
 mkdir -vp initdb.d
@@ -33,7 +33,7 @@ podman run \
     --interactive \
     --network=none \
     --env POSTGRES_USER="postgres" \
-    --env POSTGRES_PASSWORD=${POSTGRES_TOKEN} \
+    --env POSTGRES_PASSWORD=${POSTGRES_PASSWORD} \
     --volume=./initdb.d:/docker-entrypoint-initdb.d:z \
     --volume=pgdata:/var/lib/postgresql/data \
     --replace --name=restore_db \

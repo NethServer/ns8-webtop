@@ -15,8 +15,8 @@ try:
 except FileNotFoundError:
     # Generate a new API token
     alphabet = string.ascii_letters + string.digits
-    postgres_token = ''.join([secrets.choice(alphabet) for i in range(32)])
+    postgres_password = secrets.token_urlsafe(32)
     secrets_env = {
-        "POSTGRES_TOKEN": postgres_token,
+        "POSTGRES_PASSWORD": postgres_password,
     }
     agent.write_envfile("secrets.env", secrets_env)
