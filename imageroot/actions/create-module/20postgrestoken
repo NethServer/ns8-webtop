@@ -14,7 +14,6 @@ try:
     secrets_env = agent.read_envfile("secrets.env")
 except FileNotFoundError:
     # Generate a new API token
-    alphabet = string.ascii_letters + string.digits
     postgres_password = secrets.token_urlsafe(32)
     secrets_env = {
         "POSTGRES_PASSWORD": postgres_password,
