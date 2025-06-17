@@ -25,10 +25,35 @@ if [[ "$POSTGRES_VERSION" =~ ^9\.[0-9\.]+$ ]]; then # look after 9.2.23
         ../actions/create-module/20postgrestoken
     fi
     echo "Postgres: database upgrade from 9 to 17"
-    # Postgres 9 is still running
+    # Postgres 9 is still running we want to be sure no data is written, we stop the service
+    echo "Stopping webtop service"
+    systemctl stop --user webtop.service
+    POSTGRES_PASSWORD=$(grep "^POSTGRES_PASSWORD=" secrets.env | cut -d= -f2)
+    if [ -z "$POSTGRES_PASSWORD" ]; then
+        echo "POSTGRES_PASSWORD not found in secrets.env, exiting"
+        exit 1
+    fi
+    # start a new postgres container with version 9
+    podman run -d --rm --replace \
+        --network=none \
+        --env POSTGRES_USER="postgres" \
+        --env POSTGRES_PASSWORD=${POSTGRES_PASSWORD} \
+        --volume=pgdata:/var/lib/postgresql/data \
+        --name=postgres \
+        docker.io/library/postgres:${POSTGRES_VERSION}
+    echo "Waiting for postgres container to be ready"
+    ../bin/wait-postgres-init # wait for postgres to be ready
+    echo "Postgres container is ready"
+    echo "Dumping webtop5 database from postgres container"
     podman exec postgres pg_dump -U postgres --format=c webtop5 > webtop5.dump
-    echo "Stopping webtop"
-    systemctl stop --user webtop
+    if [ -f webtop5.dump ]; then
+        echo "Dumped webtop5 database to webtop5.dump"
+    else
+        echo "Failed to dump webtop5 database"
+        exit 1
+    fi
+    echo "Stopping postgres container"
+    podman stop postgres
     echo "Remove the v9 postgres volume"
     podman volume rm -f pgdata
     echo "Restoring webtop postgres database"
