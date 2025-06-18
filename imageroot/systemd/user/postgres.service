@@ -27,7 +27,7 @@ ExecStart=/usr/bin/podman run \
     --volume=pgdata:/var/lib/postgresql/data \
     --env POSTGRES_DB="webtop5" \
     --env POSTGRES_USER="postgres" \
-    --env POSTGRES_PASSWORD \
+    --env POSTGRES_PASSWORD=${POSTGRES_PASSWORD} \
     --replace --name=%N \
     ${WEBTOP_POSTGRES_IMAGE}
 ExecStartPost=runagent wait-postgres-init
