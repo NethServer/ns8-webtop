@@ -11,4 +11,4 @@ set -e
 POSTGRES_PASSWORD=$(grep "^POSTGRES_PASSWORD=" secrets.env | cut -d= -f2)
 
 # Run pg_dump with the password
-podman exec -e PGPASSWORD="$POSTGRES_PASSWORD" postgres pg_dump -U postgres --format=c webtop5 > webtop5.dump
+podman exec --env POSTGRES_PASSWORD postgres pg_dump -U postgres --format=c webtop5 > webtop5.dump

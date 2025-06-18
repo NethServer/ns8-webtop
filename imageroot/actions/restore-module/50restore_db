@@ -33,7 +33,7 @@ podman run \
     --interactive \
     --network=none \
     --env POSTGRES_USER="postgres" \
-    --env POSTGRES_PASSWORD=${POSTGRES_PASSWORD} \
+    --env POSTGRES_PASSWORD \
     --volume=./initdb.d:/docker-entrypoint-initdb.d:z \
     --volume=pgdata:/var/lib/postgresql/data \
     --replace --name=restore_db \
