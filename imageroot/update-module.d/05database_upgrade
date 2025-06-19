@@ -30,7 +30,7 @@ if [[ "$POSTGRES_VERSION" =~ ^9\.[0-9\.]+$ ]]; then # look after 9.2.23
     echo "Stopping webapp service for maintenance mode (to avoid data loss)"
     systemctl stop --user webapp.service
     echo "Dumping webtop5 database from postgres container"
-    if podman exec postgres pg_dump -U postgres --format=c webtop5 > webtop5.dump; then
+    if ../bin/module-dump-state; then
         echo "Dumped webtop5 database to webtop5.dump"
     else
         echo "Failed to dump webtop5 database"
