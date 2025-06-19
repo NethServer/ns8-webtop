@@ -13,9 +13,6 @@
 set -e -o pipefail
 exec 1>&2 # Redirect any output to the journal (stderr)
 
-# Read POSTGRES_PASSWORD from secrets.env
-POSTGRES_PASSWORD=$(grep "^POSTGRES_PASSWORD=" secrets.env | cut -d= -f2)
-
 # Prepare an initialization script that restores the dump file
 mkdir -vp initdb.d
 cat - >initdb.d/webtop5_restore.sh <<'EOS'
@@ -33,7 +30,7 @@ podman run \
     --interactive \
     --network=none \
     --env POSTGRES_USER="postgres" \
-    --env POSTGRES_PASSWORD=${POSTGRES_PASSWORD} \
+    --env-file=secrets.env \
     --volume=./initdb.d:/docker-entrypoint-initdb.d:z \
     --volume=pgdata:/var/lib/postgresql/data \
     --replace --name=restore_db \
