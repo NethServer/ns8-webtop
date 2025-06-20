@@ -29,7 +29,6 @@ podman run \
     --rm \
     --interactive \
     --network=none \
-    --env POSTGRES_USER="postgres" \
     --env-file=secrets.env \
     --volume=./initdb.d:/docker-entrypoint-initdb.d:z \
     --volume=pgdata:/var/lib/postgresql/data \
