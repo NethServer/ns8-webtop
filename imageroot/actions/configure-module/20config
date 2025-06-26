@@ -43,7 +43,6 @@ response = agent.tasks.run(
 # Check if traefik configuration has been successfull
 agent.assert_exp(response['exit_code'] == 0)
 
-# autoconfig and autodiscover routes must been done manually by the sysadmin
 
 public_url = 'https://' + data["hostname"] + '/webtop'
 dav_url = 'https://' + data["hostname"] + '/webtop-dav/server.php'
