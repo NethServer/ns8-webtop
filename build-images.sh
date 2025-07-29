@@ -22,6 +22,7 @@ sha256sum -c CHECKSUM
 if ! buildah containers --format "{{.ContainerName}}" | grep -q webtopbuilder; then
     echo "Pulling maven runtime..."
     buildah from --name webtopbuilder-tmp docker.io/library/maven:3.6-openjdk-8
+    buildah run webtopbuilder-tmp  sed -i 's/deb.debian.org\|security.debian.org/archive.debian.org/' /etc/apt/sources.list
     buildah run webtopbuilder-tmp  apt-get  update
     buildah run webtopbuilder-tmp  apt-get  install -y  nodejs make
     buildah commit --rm webtopbuilder-tmp webtopbuilder-image
@@ -65,7 +66,7 @@ tar -C "${pecbridge_tmp_dir}" -x -v -z -f pecbridge-*.tar.gz
 
 #Create webtop-webapp container
 reponame="webtop-webapp"
-container=$(buildah from docker.io/library/tomcat:9.0.106-jre8)
+container=$(buildah from docker.io/library/tomcat:9.0.107-jre8)
 buildah add ${container} ${webapp_tmp_dir}/webtop /usr/local/tomcat/webapps/webtop/
 buildah add ${container} ${PWD}/webtop5-build/context.xml /usr/local/tomcat/webapps/webtop/META-INF/context.xml
 buildah add ${container} ${PWD}/webtop5-build/webtop-login/ /usr/local/tomcat/webapps/webtop/WEB-INF/classes/
@@ -182,6 +183,7 @@ buildah config --entrypoint=/ \
     --label="org.nethserver.authorizations=traefik@node:routeadm mail@any:mailadm cluster:accountconsumer nethvoice@any:pbookreader" \
     --label="org.nethserver.tcp-ports-demand=1" \
     --label="org.nethserver.rootfull=0" \
+    --label="org.nethserver.min-from=1.4.4" \
     --label="org.nethserver.images=${repobase}/webtop-webapp:${IMAGETAG:-latest} \
     ${repobase}/webtop-postgres:${IMAGETAG:-latest} \
     ${repobase}/webtop-apache:${IMAGETAG:-latest} \
