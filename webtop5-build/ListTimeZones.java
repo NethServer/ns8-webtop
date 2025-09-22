@@ -14,7 +14,7 @@ public class ListTimeZones {
     // Valid IANA areas as defined in the IANA Time Zone Database
     private static final Set<String> VALID_IANA_AREAS = new HashSet<>(Arrays.asList(
         "Africa",
-        "America", 
+        "America",
         "Antarctica",
         "Arctic",
         "Asia",
