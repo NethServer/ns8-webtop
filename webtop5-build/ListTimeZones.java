@@ -28,13 +28,10 @@ public class ListTimeZones {
     
     public static void main(String[] args) {
         // Get all timezone IDs and filter for IANA-compatible names
-        List<String> ianaTimezones = Arrays.stream(TimeZone.getAvailableIDs())
+        Arrays.stream(TimeZone.getAvailableIDs())
             .filter(ListTimeZones::isIanaCompatible)
             .sorted()
-            .collect(Collectors.toList());
-        for (String timezone : ianaTimezones) {
-            System.out.println(timezone);
-        }
+            .forEach(System.out::println);
     }
     
     /**
