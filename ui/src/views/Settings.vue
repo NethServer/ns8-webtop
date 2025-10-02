@@ -44,7 +44,7 @@
               ref="hostname"
             >
             </cv-text-input>
-            <cv-toggle
+            <NsToggle
               value="letsEncrypt"
               :label="$t('settings.request_https_certificate')"
               v-model="isLetsEncryptEnabled"
@@ -55,13 +55,33 @@
               "
               class="mg-bottom"
             >
+              <template #tooltip>
+                <div class="mg-bottom-sm">
+                  {{ $t("settings.lets_encrypt_tips") }}
+                </div>
+                <div class="mg-bottom-sm">
+                  <cv-link @click="goToCertificates">
+                    {{ $t("settings.go_to_tls_certificates") }}
+                  </cv-link>
+                </div>
+              </template>
               <template slot="text-left">{{
                 $t("settings.disabled")
               }}</template>
               <template slot="text-right">{{
                 $t("settings.enabled")
               }}</template>
-            </cv-toggle>
+            </NsToggle>
+            <cv-row v-if="letsEncryptIsEnabled && !isLetsEncryptEnabled">
+              <cv-column>
+                <NsInlineNotification
+                  kind="warning"
+                  :title="$t('settings.lets_encrypt_disabled_warning')"
+                  :description="$t('settings.lets_encrypt_disabled_warning_description')"
+                  :showCloseButton="false"
+                />
+              </cv-column>
+            </cv-row>
             <cv-row v-if="mail_modules_id.length === 0">
               <cv-column>
                 <NsInlineNotification
@@ -394,6 +414,31 @@
                 />
               </cv-column>
             </cv-row>
+            <cv-row>
+              <cv-column>
+                <NsInlineNotification
+                  v-if="validationErrorDetails.length"
+                  kind="error"
+                  :title="
+                    $t('settings.cannot_obtain_certificate', {
+                      hostname: hostname,
+                    })
+                  "
+                  :showCloseButton="false"
+                >
+                  <template #description>
+                    <div class="flex flex-col gap-2">
+                      <p
+                        v-for="(detail, index) in validationErrorDetails"
+                        :key="index"
+                      >
+                        {{ detail }}
+                      </p>
+                    </div>
+                  </template>
+                </NsInlineNotification>
+              </cv-column>
+            </cv-row>
             <NsButton
               kind="primary"
               :icon="Save20"
@@ -440,9 +485,11 @@ export default {
       q: {
         page: "settings",
       },
+      validationErrorDetails: [],
       urlCheckInterval: null,
       hostname: "",
       isLetsEncryptEnabled: false,
+      letsEncryptIsEnabled: false,
       mail_module: "",
       mail_domain: "",
       mail_modules_id: [],
@@ -520,6 +567,9 @@ export default {
     next();
   },
   methods: {
+    goToCertificates() {
+      this.core.$router.push("/settings/tls-certificates");
+    },
     async listWidgetOptions() {
       this.loading.getDefaults = true;
       const taskAction = "get-defaults";
@@ -640,6 +690,7 @@ export default {
       const config = taskResult.output;
       this.hostname = config.hostname;
       this.isLetsEncryptEnabled = config.request_https_certificate;
+      this.letsEncryptIsEnabled = config.request_https_certificate;
       this.upload_max_filesize = config.upload_max_filesize;
       this.webapp = config.webapp;
       this.webapp.min_memory = String(config.webapp.min_memory);
@@ -677,7 +728,7 @@ export default {
     },
     validateConfigureModule() {
       this.clearErrors(this);
-
+      this.validationErrorDetails = [];
       let isValidationOk = true;
       if (!this.hostname) {
         this.error.hostname = "common.required";
@@ -720,12 +771,19 @@ export default {
 
       for (const validationError of validationErrors) {
         const param = validationError.parameter;
-        // set i18n error message
-        this.error[param] = this.$t("settings." + validationError.error);
+        if (validationError.details && validationError.error === "newcert_acme_error") {
+          // show inline error notification with details for acme error
+          this.validationErrorDetails = validationError.details
+            .split("\n")
+            .filter((detail) => detail.trim() !== "");
+        } else {
+          // set i18n error message
+          this.error[param] = this.$t("settings." + validationError.error);
 
-        if (!focusAlreadySet) {
-          this.focusElement(param);
-          focusAlreadySet = true;
+          if (!focusAlreadySet) {
+            this.focusElement(param);
+            focusAlreadySet = true;
+          }
         }
       }
     },
