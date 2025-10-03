@@ -28,6 +28,14 @@
             "type": "boolean",
             "title": "Request a valid HTTPS certificate"
         },
+        "lets_encrypt_check": {
+            "type": "boolean",
+            "title": "Check if Let's Encrypt certificate has been issued"
+        },
+        "lets_encrypt_cleanup": {
+            "type": "boolean",
+            "title": "Cleanup obsolete Let's Encrypt certificate"
+        },
 	"locale": {
             "type": "string",
             "title": "Default locale for WebTop users",
