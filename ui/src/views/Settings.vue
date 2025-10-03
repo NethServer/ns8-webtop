@@ -29,7 +29,10 @@
             :line-count="15"
             width="80%"
           ></cv-skeleton-text>
-          <cv-form v-show="!(loading.getConfiguration || loading.getDefaults)" @submit.prevent="configureModule">
+          <cv-form
+            v-show="!(loading.getConfiguration || loading.getDefaults)"
+            @submit.prevent="configureModule"
+          >
             <cv-text-input
               :label="$t('settings.webtop_fqdn')"
               placeholder="webtop.example.org"
@@ -77,7 +80,9 @@
                 <NsInlineNotification
                   kind="warning"
                   :title="$t('settings.lets_encrypt_disabled_warning')"
-                  :description="$t('settings.lets_encrypt_disabled_warning_description')"
+                  :description="
+                    $t('settings.lets_encrypt_disabled_warning_description')
+                  "
                   :showCloseButton="false"
                 />
               </cv-column>
@@ -87,7 +92,9 @@
                 <NsInlineNotification
                   kind="warning"
                   :title="$t('settings.mail_module_misconfigured')"
-                  :description="$t('settings.no_available_mail_domain_check_users')"
+                  :description="
+                    $t('settings.no_available_mail_domain_check_users')
+                  "
                   :showCloseButton="false"
                 />
               </cv-column>
@@ -130,7 +137,7 @@
                 loading.getConfiguration ||
                 loading.configureModule ||
                 loading.getDefaults ||
-                ! mail_module
+                !mail_module
               "
               tooltipAlignment="start"
               tooltipDirection="top"
@@ -366,7 +373,9 @@
                   </cv-dropdown>
                   <NsTextInput
                     :label="$t('settings.pecbridge_admin_mail')"
-                    :placeholder="$t('settings.pecbridge_admin_mail_placeholder')"
+                    :placeholder="
+                      $t('settings.pecbridge_admin_mail_placeholder')
+                    "
                     v-model.trim="pecbridge_admin_mail"
                     class="mg-bottom"
                     :invalid-message="$t(error.pecbridge_admin_mail)"
@@ -617,12 +626,14 @@ export default {
       const config = taskResult.output;
       this.mail_modules_id = config.mail_modules_id;
       // Extract hostnames from mail_module_id values
-      const mailHostnames = config.mail_modules_id.map(item => item.value.split(',')[1]);
+      const mailHostnames = config.mail_modules_id.map(
+        (item) => item.value.split(",")[1]
+      );
 
       // Filter ejabberd_module_id based on matching hostnames
-       this.ejabberd_modules_id = config.ejabberd_modules_id.filter(item => {
-          const ejabberdHostname = item.value.split(',')[1];
-          return mailHostnames.includes(ejabberdHostname);
+      this.ejabberd_modules_id = config.ejabberd_modules_id.filter((item) => {
+        const ejabberdHostname = item.value.split(",")[1];
+        return mailHostnames.includes(ejabberdHostname);
       });
 
       this.ejabberd_modules_id.unshift({
@@ -632,7 +643,7 @@ export default {
       });
 
       // Phonebook instances
-      this.phonebook_options = config.phonebook_modules_id
+      this.phonebook_options = config.phonebook_modules_id;
       this.phonebook_options.unshift({
         name: "-",
         label: this.$t("settings.no_phonebook_instance"),
@@ -705,18 +716,19 @@ export default {
         const mail_module_tmp = config.mail_module;
         const mail_domain_tmp = config.mail_domain;
         if (mail_module_tmp && mail_domain_tmp) {
-          this.mail_module = mail_module_tmp + ',' + mail_domain_tmp;
+          this.mail_module = mail_module_tmp + "," + mail_domain_tmp;
         } else {
           this.mail_module = "";
         }
         const ejabberd_module_tmp = config.ejabberd_module;
         const ejabberd_domain_tmp = config.ejabberd_domain;
         if (ejabberd_module_tmp && ejabberd_domain_tmp) {
-          this.ejabberd_module = ejabberd_module_tmp + ',' + ejabberd_domain_tmp;
+          this.ejabberd_module =
+            ejabberd_module_tmp + "," + ejabberd_domain_tmp;
         } else {
           this.ejabberd_module = "-";
         }
-        this.timezone = config.timezone === '-' ? '' : config.timezone;
+        this.timezone = config.timezone === "-" ? "" : config.timezone;
         // if mail_modules_id is empty, set default value
         if (this.mail_modules_id.length === 0) {
           // we want to avoid to save the form, there is no users set in the mail domain
@@ -771,7 +783,10 @@ export default {
 
       for (const validationError of validationErrors) {
         const param = validationError.parameter;
-        if (validationError.details && validationError.error === "newcert_acme_error") {
+        if (
+          validationError.details &&
+          validationError.error === "newcert_acme_error"
+        ) {
           // show inline error notification with details for acme error
           this.validationErrorDetails = validationError.details
             .split("\n")
@@ -814,11 +829,12 @@ export default {
         `${taskAction}-completed-${eventId}`,
         this.configureModuleCompleted
       );
-      const tmparray = this.mail_module.split(',');
+      const tmparray = this.mail_module.split(",");
       const mail_module_tmp = tmparray[0];
       const mail_domain_tmp = tmparray[1];
-      const tmp_ejabberd = this.ejabberd_module.split(',');
-      const ejabberd_module_tmp = tmp_ejabberd[0] !== '-' ? tmp_ejabberd[0] || "" : "";
+      const tmp_ejabberd = this.ejabberd_module.split(",");
+      const ejabberd_module_tmp =
+        tmp_ejabberd[0] !== "-" ? tmp_ejabberd[0] || "" : "";
       const ejabberd_domain_tmp = tmp_ejabberd[1] || "";
       const res = await to(
         this.createModuleTaskForApp(this.instanceName, {
@@ -845,7 +861,8 @@ export default {
               loglevel: this.zpush.loglevel,
             },
             pecbridge_admin_mail: this.pecbridge_admin_mail,
-            phonebook_instance: this.phonebook_instance == '-' ? '' : this.phonebook_instance,
+            phonebook_instance:
+              this.phonebook_instance == "-" ? "" : this.phonebook_instance,
           },
           extra: {
             title: this.$t("settings.instance_configuration", {
