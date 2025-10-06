@@ -390,6 +390,16 @@
                 </template>
               </cv-accordion-item>
             </cv-accordion>
+            <cv-row v-if="error.getStatus">
+              <cv-column>
+                <NsInlineNotification
+                  kind="error"
+                  :title="$t('action.get-status')"
+                  :description="error.getStatus"
+                  :showCloseButton="false"
+                />
+              </cv-column>
+            </cv-row>
             <cv-row v-if="error.configureModule">
               <cv-column>
                 <NsInlineNotification
