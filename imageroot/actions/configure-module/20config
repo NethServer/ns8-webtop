@@ -32,8 +32,8 @@ response = agent.tasks.run(
         'http2https': True,
         'lets_encrypt': data["request_https_certificate"],
         'host': data["hostname"],
-        'lets_encrypt_check': True if data["request_https_certificate"] else False,
-        'lets_encrypt_cleanup': True if data["request_https_certificate"] else False,
+        'lets_encrypt_check': True,
+        'lets_encrypt_cleanup': True,
     }
 )
 
