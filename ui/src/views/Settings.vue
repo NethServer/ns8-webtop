@@ -23,14 +23,14 @@
       <cv-column>
         <cv-tile light>
           <cv-skeleton-text
-            v-show="loading.getConfiguration || loading.getDefaults"
+            v-show="stillLoading"
             heading
             paragraph
             :line-count="15"
             width="80%"
           ></cv-skeleton-text>
           <cv-form
-            v-show="!(loading.getConfiguration || loading.getDefaults)"
+            v-show="!stillLoading"
             @submit.prevent="configureModule"
           >
             <cv-text-input
@@ -39,11 +39,7 @@
               v-model.trim="hostname"
               class="mg-bottom"
               :invalid-message="$t(error.hostname)"
-              :disabled="
-                loading.getConfiguration ||
-                loading.configureModule ||
-                loading.getDefaults
-              "
+              :disabled="stillLoading"
               ref="hostname"
             >
             </cv-text-input>
@@ -51,11 +47,7 @@
               value="letsEncrypt"
               :label="$t('settings.request_https_certificate')"
               v-model="isLetsEncryptEnabled"
-              :disabled="
-                loading.getConfiguration ||
-                loading.configureModule ||
-                loading.getDefaults
-              "
+              :disabled="stillLoading"
               class="mg-bottom"
             >
               <template #tooltip>
@@ -81,7 +73,9 @@
                   kind="warning"
                   :title="$t('settings.lets_encrypt_disabled_warning')"
                   :description="
-                    $t('settings.lets_encrypt_disabled_warning_description')
+                    $t('settings.lets_encrypt_disabled_warning_description', {
+                      node: this.status.node,
+                    })
                   "
                   :showCloseButton="false"
                 />
@@ -109,11 +103,7 @@
               :acceptUserInput="false"
               :showItemType="true"
               :invalid-message="$t(error.mail_module)"
-              :disabled="
-                loading.getConfiguration ||
-                loading.configureModule ||
-                loading.getDefaults
-              "
+              :disabled="stillLoading"
               tooltipAlignment="start"
               tooltipDirection="top"
               ref="mail_module"
@@ -133,12 +123,7 @@
               :acceptUserInput="false"
               :showItemType="true"
               :invalid-message="$t(error.ejabberd_module)"
-              :disabled="
-                loading.getConfiguration ||
-                loading.configureModule ||
-                loading.getDefaults ||
-                !mail_module
-              "
+              :disabled="stillLoading || !mail_module"
               tooltipAlignment="start"
               tooltipDirection="top"
               ref="ejabberd_module"
@@ -157,11 +142,7 @@
               :hide-selected="false"
               :invalid-message="$t(error.locale)"
               :label="$t('settings.select_locale')"
-              :disabled="
-                loading.getConfiguration ||
-                loading.configureModule ||
-                loading.getDefaults
-              "
+              :disabled="stillLoading"
             >
               <cv-dropdown-item value="it_IT">{{
                 $t("settings.LOCALE_it_IT")
@@ -196,11 +177,7 @@
               :acceptUserInput="false"
               :showItemType="true"
               :invalid-message="$t(error.accepted_timezone_list)"
-              :disabled="
-                loading.getConfiguration ||
-                loading.configureModule ||
-                loading.getDefaults
-              "
+              :disabled="stillLoading"
               tooltipAlignment="start"
               tooltipDirection="top"
               ref="accepted_timezone_list"
@@ -452,11 +429,7 @@
               kind="primary"
               :icon="Save20"
               :loading="loading.configureModule"
-              :disabled="
-                loading.getConfiguration ||
-                loading.configureModule ||
-                loading.getDefaults
-              "
+              :disabled="stillLoading"
               >{{ $t("settings.save") }}</NsButton
             >
           </cv-form>
@@ -494,6 +467,7 @@ export default {
       q: {
         page: "settings",
       },
+      status: {},
       validationErrorDetails: [],
       urlCheckInterval: null,
       hostname: "",
@@ -529,10 +503,12 @@ export default {
         getConfiguration: false,
         configureModule: false,
         getDefaults: false,
+        getStatus: false,
       },
       error: {
         getConfiguration: "",
         configureModule: "",
+        getStatus: "",
         hostname: "",
         request_https_certificate: "",
         mail_module: "",
@@ -560,10 +536,17 @@ export default {
   },
   computed: {
     ...mapState(["instanceName", "core", "appName"]),
+    stillLoading() {
+      return (
+        this.loading.getConfiguration ||
+        this.loading.configureModule ||
+        this.loading.getDefaults ||
+        this.loading.getStatus
+      );
+    },
   },
   created() {
-    this.listWidgetOptions();
-    // this.getConfiguration();
+    this.getStatus();
   },
   beforeRouteEnter(to, from, next) {
     next((vm) => {
@@ -578,6 +561,54 @@ export default {
   methods: {
     goToCertificates() {
       this.core.$router.push("/settings/tls-certificates");
+    },
+    async getStatus() {
+      this.loading.getStatus = true;
+      this.error.getStatus = "";
+      const taskAction = "get-status";
+      const eventId = this.getUuid();
+
+      // register to task error
+      this.core.$root.$once(
+        `${taskAction}-aborted-${eventId}`,
+        this.getStatusAborted
+      );
+
+      // register to task completion
+      this.core.$root.$once(
+        `${taskAction}-completed-${eventId}`,
+        this.getStatusCompleted
+      );
+
+      const res = await to(
+        this.createModuleTaskForApp(this.instanceName, {
+          action: taskAction,
+          extra: {
+            title: this.$t("action." + taskAction),
+            isNotificationHidden: true,
+            eventId,
+          },
+        })
+      );
+      const err = res[0];
+
+      if (err) {
+        console.error(`error creating task ${taskAction}`, err);
+        this.error.getStatus = this.getErrorMessage(err);
+        this.loading.getStatus = false;
+        return;
+      }
+    },
+    getStatusAborted(taskResult, taskContext) {
+      console.error(`${taskContext.action} aborted`, taskResult);
+      this.error.getStatus = this.$t("error.generic_error");
+      this.loading.getStatus = false;
+      this.listWidgetOptions();
+    },
+    getStatusCompleted(taskContext, taskResult) {
+      this.status = taskResult.output;
+      this.loading.getStatus = false;
+      this.listWidgetOptions();
     },
     async listWidgetOptions() {
       this.loading.getDefaults = true;
@@ -865,7 +896,7 @@ export default {
               this.phonebook_instance == "-" ? "" : this.phonebook_instance,
           },
           extra: {
-            title: this.$t("settings.instance_configuration", {
+            title: this.$t("settings.", {
               instance: this.instanceName,
             }),
             description: this.$t("settings.configuring"),
