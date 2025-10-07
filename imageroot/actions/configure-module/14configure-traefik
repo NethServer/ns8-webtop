@@ -29,21 +29,4 @@ set_route_data = {
 if 'request_https_certificate' in data:
     set_route_data['lets_encrypt'] = data['request_https_certificate']
 
-response = agent.tasks.run(
-    agent_id=agent.resolve_agent_id('traefik@node'),
-    action='set-route',
-    data=set_route_data
-)
-
-# Check for ACME certificate error and set validation stop
-for item in response['output']:
-    if item.get('error') == 'newcert_acme_error':
-        agent.set_status('validation-failed')
-        json.dump([{'field':'host','parameter':'names','value': data["hostname"],'error':'newcert_acme_error', 'details': item.get('details')}], fp=sys.stdout)
-        sys.exit(4)
-
-# Check if traefik configuration has been successful
-agent.assert_exp(response['exit_code'] == 0)
-
-# Update environment variable (after traefik configuration)
-agent.set_env("WEBTOP_REQUEST_HTTPS_CERTIFICATE", data.get("request_https_certificate", "false"))
+agent.set_route(set_route_data)
