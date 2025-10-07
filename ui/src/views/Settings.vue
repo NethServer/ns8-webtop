@@ -29,10 +29,7 @@
             :line-count="15"
             width="80%"
           ></cv-skeleton-text>
-          <cv-form
-            v-show="!stillLoading"
-            @submit.prevent="configureModule"
-          >
+          <cv-form v-show="!stillLoading" @submit.prevent="configureModule">
             <cv-text-input
               :label="$t('settings.webtop_fqdn')"
               placeholder="webtop.example.org"
@@ -415,11 +412,7 @@
                 <NsInlineNotification
                   v-if="validationErrorDetails.length"
                   kind="error"
-                  :title="
-                    $t('settings.cannot_obtain_certificate', {
-                      hostname: hostname,
-                    })
-                  "
+                  :title="$t('settings.details_of_error')"
                   :showCloseButton="false"
                 >
                   <template #description>
@@ -557,6 +550,7 @@ export default {
   },
   created() {
     this.getStatus();
+    this.listWidgetOptions();
   },
   beforeRouteEnter(to, from, next) {
     next((vm) => {
@@ -613,12 +607,10 @@ export default {
       console.error(`${taskContext.action} aborted`, taskResult);
       this.error.getStatus = this.$t("error.generic_error");
       this.loading.getStatus = false;
-      this.listWidgetOptions();
     },
     getStatusCompleted(taskContext, taskResult) {
       this.status = taskResult.output;
       this.loading.getStatus = false;
-      this.listWidgetOptions();
     },
     async listWidgetOptions() {
       this.loading.getDefaults = true;
@@ -824,22 +816,12 @@ export default {
 
       for (const validationError of validationErrors) {
         const param = validationError.parameter;
-        if (
-          validationError.details &&
-          validationError.error === "newcert_acme_error"
-        ) {
-          // show inline error notification with details for acme error
-          this.validationErrorDetails = validationError.details
-            .split("\n")
-            .filter((detail) => detail.trim() !== "");
-        } else {
-          // set i18n error message
-          this.error[param] = this.$t("settings." + validationError.error);
+        // set i18n error message
+        this.error[param] = this.$t("settings." + validationError.error);
 
-          if (!focusAlreadySet) {
-            this.focusElement(param);
-            focusAlreadySet = true;
-          }
+        if (!focusAlreadySet) {
+          this.focusElement(param);
+          focusAlreadySet = true;
         }
       }
     },
@@ -906,7 +888,7 @@ export default {
               this.phonebook_instance == "-" ? "" : this.phonebook_instance,
           },
           extra: {
-            title: this.$t("settings.", {
+            title: this.$t("settings.instance_configuration", {
               instance: this.instanceName,
             }),
             description: this.$t("settings.configuring"),
@@ -925,7 +907,33 @@ export default {
     },
     configureModuleAborted(taskResult, taskContext) {
       console.error(`${taskContext.action} aborted`, taskResult);
-      this.error.configureModule = this.$t("error.generic_error");
+      let results = taskResult.output;
+      // if results is a string, try to parse it as JSON
+      if (typeof results === "string") {
+        try {
+          results = JSON.parse(results.replace(/'/g, '"'));
+        } catch (err) {
+          console.error("ACME payload parse error", err);
+          this.loading.configureModule = false;
+          return;
+        }
+      }
+      // if results is not an array, return
+      if (!Array.isArray(results)) {
+        this.loading.configureModule = false;
+        this.error.configureModule = this.$t("error.generic_error");
+        return;
+      }
+      // parse results for acme error details, else show generic error
+      for (const result of results) {
+        if (result.details) {
+          this.validationErrorDetails = result.details
+            .split("\n")
+            .filter((detail) => detail.trim() !== "");
+        } else {
+          this.error.configureModule = this.$t("error.generic_error");
+        }
+      }
       this.loading.configureModule = false;
     },
     configureModuleCompleted() {
