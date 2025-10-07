@@ -77,7 +77,7 @@
         "choose_phonebook_instance": "Choose a NethVoice instance in the list",
         "no_phonebook_instance": "Disable Phonebook synchronization",
         "lets_encrypt_tips": "This option enables automatic request of a Let's Encrypt TLS certificate for this application. You can manage the certificate afterward in Settings > TLS certificates.",
-        "cannot_obtain_certificate": "Cannot obtain a Let's Encrypt certificate for {hostname}",
+        "details_of_error": "Details of the error:",
         "go_to_tls_certificates": "Go to TLS certificates",
         "lets_encrypt_disabled_warning_description": "The application will be temporarily unavailable, and HTTP clients connected to node {node} will experience a brief disconnection",
         "lets_encrypt_disabled_warning": "Traefik will be restarted"
@@ -91,6 +91,7 @@
     "action": {
         "get-status": "Get status",
         "get-configuration": "Get configuration",
+        "get-defaults": "Get defaults",
         "configure-module": "Configure module",
         "get-module-info": "Get module info",
         "get-name": "Get name",
