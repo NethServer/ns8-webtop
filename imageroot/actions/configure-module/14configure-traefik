@@ -14,10 +14,7 @@ import agent
 # If parsing fails, output everything to stderr
 data = json.load(sys.stdin)
 
-# Connect to redis
-rdb = agent.redis_connect()
-
-# Configure Traefik to route WebTop's host requests to the webtop module
+## Configure set-route
 set_route_data = {
     'instance': os.environ['MODULE_ID'],
     'url':  'http://127.0.0.1:' + os.environ["TCP_PORT"],
