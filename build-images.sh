@@ -181,7 +181,7 @@ buildah add "${container}" ui/dist /ui
 # Setup the entrypoint, ask to reserve one TCP port with the label and set a rootless container
 buildah config --entrypoint=/ \
     --label="org.nethserver.authorizations=traefik@node:routeadm mail@any:mailadm cluster:accountconsumer nethvoice@any:pbookreader" \
-    --label="org.nethserver.min-core=3.12.1-0" \
+    --label="org.nethserver.min-core=3.12.2-0" \
     --label="org.nethserver.tcp-ports-demand=1" \
     --label="org.nethserver.rootfull=0" \
     --label="org.nethserver.min-from=1.4.4" \
