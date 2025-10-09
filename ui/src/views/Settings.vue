@@ -49,11 +49,15 @@
             >
               <template #tooltip>
                 <div class="mg-bottom-sm">
-                  {{ $t("settings.lets_encrypt_tips") }}
+                  {{ core.$t("settings_tls_certificates.lets_encrypt_tips") }}
                 </div>
                 <div class="mg-bottom-sm">
                   <cv-link @click="goToCertificates">
-                    {{ $t("settings.go_to_tls_certificates") }}
+                    {{
+                      core.$t(
+                        "settings_tls_certificates.go_to_tls_certificates"
+                      )
+                    }}
                   </cv-link>
                 </div>
               </template>
@@ -68,13 +72,20 @@
               <cv-column>
                 <NsInlineNotification
                   kind="warning"
-                  :title="$t('settings.lets_encrypt_disabled_warning')"
+                  :title="
+                    core.$t(
+                      'settings_tls_certificates.lets_encrypt_disabled_warning'
+                    )
+                  "
                   :description="
-                    $t('settings.lets_encrypt_disabled_warning_description', {
-                      node: this.status.node_ui_name
-                        ? this.status.node_ui_name
-                        : this.status.node,
-                    })
+                    core.$t(
+                      'settings_tls_certificates.lets_encrypt_disabled_warning_description',
+                      {
+                        node: this.status.node_ui_name
+                          ? this.status.node_ui_name
+                          : this.status.node,
+                      }
+                    )
                   "
                   :showCloseButton="false"
                 />
@@ -414,7 +425,11 @@
                 <NsInlineNotification
                   v-if="validationErrorDetails.length"
                   kind="error"
-                  :title="$t('settings.cannot_obtain_certificate')"
+                  :title="
+                    core.$t(
+                      'settings_tls_certificates.cannot_obtain_certificate'
+                    )
+                  "
                   :showCloseButton="false"
                 >
                   <template #description>
