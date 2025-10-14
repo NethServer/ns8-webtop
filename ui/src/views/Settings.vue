@@ -42,22 +42,18 @@
             </cv-text-input>
             <NsToggle
               value="letsEncrypt"
-              :label="$t('settings.request_https_certificate')"
+              :label="core.$t('apps_lets_encrypt.request_https_certificate')"
               v-model="isLetsEncryptEnabled"
               :disabled="stillLoading"
               class="mg-bottom"
             >
               <template #tooltip>
                 <div class="mg-bottom-sm">
-                  {{ core.$t("settings_tls_certificates.lets_encrypt_tips") }}
+                  {{ core.$t("apps_lets_encrypt.lets_encrypt_tips") }}
                 </div>
                 <div class="mg-bottom-sm">
                   <cv-link @click="goToCertificates">
-                    {{
-                      core.$t(
-                        "settings_tls_certificates.go_to_tls_certificates"
-                      )
-                    }}
+                    {{ core.$t("apps_lets_encrypt.go_to_tls_certificates") }}
                   </cv-link>
                 </div>
               </template>
@@ -73,13 +69,11 @@
                 <NsInlineNotification
                   kind="warning"
                   :title="
-                    core.$t(
-                      'settings_tls_certificates.lets_encrypt_disabled_warning'
-                    )
+                    core.$t('apps_lets_encrypt.lets_encrypt_disabled_warning')
                   "
                   :description="
                     core.$t(
-                      'settings_tls_certificates.lets_encrypt_disabled_warning_description',
+                      'apps_lets_encrypt.lets_encrypt_disabled_warning_description',
                       {
                         node: this.status.node_ui_name
                           ? this.status.node_ui_name
@@ -426,9 +420,7 @@
                   v-if="validationErrorDetails.length"
                   kind="error"
                   :title="
-                    core.$t(
-                      'settings_tls_certificates.cannot_obtain_certificate'
-                    )
+                    core.$t('apps_lets_encrypt.cannot_obtain_certificate')
                   "
                   :showCloseButton="false"
                 >
