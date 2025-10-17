@@ -415,9 +415,8 @@
               </cv-column>
             </cv-row>
             <cv-row>
-              <cv-column>
+              <cv-column v-if="validationErrorDetails.length">
                 <NsInlineNotification
-                  v-if="validationErrorDetails.length"
                   kind="error"
                   :title="
                     core.$t('apps_lets_encrypt.cannot_obtain_certificate')
