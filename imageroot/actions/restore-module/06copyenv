@@ -14,5 +14,25 @@ import json
 import agent
 
 request = json.load(sys.stdin)
-agent.set_env('MAIL_MODULE_UUID', request['environment']['MAIL_MODULE_UUID'])
-agent.set_env('Z_PUSH_USE_LEGACY_FOLDER_IDS', request['environment']['Z_PUSH_USE_LEGACY_FOLDER_IDS'])
+original_environment = request['environment']
+
+for evar in [
+    'MAIL_MODULE_UUID',
+    'Z_PUSH_USE_LEGACY_FOLDER_IDS',
+    'EJABBERD_DOMAIN',
+    'EJABBERD_MODULE',
+    'MAIL_DOMAIN',
+    'MAIL_MODULE',
+    'PECBRIDGE_ADMIN_MAIL',
+    'PHONEBOOK_INSTANCE',
+    'WEBAPP_JS_DEBUG',
+    'WEBAPP_MAX_MEMORY',
+    'WEBAPP_MIN_MEMORY',
+    'WEBDAV_DEBUG',
+    'WEBDAV_LOG_LEVEL',
+    'WEBTOP_HOSTNAME',
+    'WEBTOP_LOCALE',
+    'WEBTOP_TIMEZONE',
+    'Z_PUSH_LOG_LEVEL',
+    ]:
+    agent.set_env(evar, original_environment[evar])
