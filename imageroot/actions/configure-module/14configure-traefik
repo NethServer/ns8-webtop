@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2025 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import sys
+import os
+import agent
+
+# Try to parse the stdin as JSON.
+# If parsing fails, output everything to stderr
+data = json.load(sys.stdin)
+
+## Configure set-route
+set_route_data = {
+    'instance': os.environ['MODULE_ID'],
+    'url':  'http://127.0.0.1:' + os.environ["TCP_PORT"],
+    'http2https': True,
+    'host': data["hostname"],
+    'lets_encrypt_check': True,
+    'lets_encrypt_cleanup': True,
+}
+if 'request_https_certificate' in data:
+    set_route_data['lets_encrypt'] = data['request_https_certificate']
+
+agent.set_route(set_route_data)

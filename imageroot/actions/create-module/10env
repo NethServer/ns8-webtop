@@ -9,7 +9,6 @@ import agent
 
 agent.set_env('WEBTOP_TIMEZONE', '-')
 agent.set_env('WEBTOP_LOCALE', 'en_US')
-agent.set_env('WEBTOP_REQUEST_HTTPS_CERTIFICATE', 'False')
 agent.set_env('WEBDAV_DEBUG', 'False')
 agent.set_env('WEBDAV_LOG_LEVEL', 'ERROR')
 agent.set_env('Z_PUSH_LOG_LEVEL', 'ERROR')

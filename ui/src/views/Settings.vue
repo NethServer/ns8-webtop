@@ -23,51 +23,76 @@
       <cv-column>
         <cv-tile light>
           <cv-skeleton-text
-            v-show="loading.getConfiguration || loading.getDefaults"
+            v-show="stillLoading"
             heading
             paragraph
             :line-count="15"
             width="80%"
           ></cv-skeleton-text>
-          <cv-form v-show="!(loading.getConfiguration || loading.getDefaults)" @submit.prevent="configureModule">
+          <cv-form v-show="!stillLoading" @submit.prevent="configureModule">
             <cv-text-input
               :label="$t('settings.webtop_fqdn')"
               placeholder="webtop.example.org"
               v-model.trim="hostname"
               class="mg-bottom"
               :invalid-message="$t(error.hostname)"
-              :disabled="
-                loading.getConfiguration ||
-                loading.configureModule ||
-                loading.getDefaults
-              "
+              :disabled="stillLoading"
               ref="hostname"
             >
             </cv-text-input>
-            <cv-toggle
+            <NsToggle
               value="letsEncrypt"
-              :label="$t('settings.request_https_certificate')"
+              :label="core.$t('apps_lets_encrypt.request_https_certificate')"
               v-model="isLetsEncryptEnabled"
-              :disabled="
-                loading.getConfiguration ||
-                loading.configureModule ||
-                loading.getDefaults
-              "
+              :disabled="stillLoading"
               class="mg-bottom"
             >
+              <template #tooltip>
+                <div class="mg-bottom-sm">
+                  {{ core.$t("apps_lets_encrypt.lets_encrypt_tips") }}
+                </div>
+                <div class="mg-bottom-sm">
+                  <cv-link @click="goToCertificates">
+                    {{ core.$t("apps_lets_encrypt.go_to_tls_certificates") }}
+                  </cv-link>
+                </div>
+              </template>
               <template slot="text-left">{{
                 $t("settings.disabled")
               }}</template>
               <template slot="text-right">{{
                 $t("settings.enabled")
               }}</template>
-            </cv-toggle>
+            </NsToggle>
+            <cv-row v-if="isLetsEncryptCurrentlyEnabled && !isLetsEncryptEnabled">
+              <cv-column>
+                <NsInlineNotification
+                  kind="warning"
+                  :title="
+                    core.$t('apps_lets_encrypt.lets_encrypt_disabled_warning')
+                  "
+                  :description="
+                    core.$t(
+                      'apps_lets_encrypt.lets_encrypt_disabled_warning_description',
+                      {
+                        node: this.status.node_ui_name
+                          ? this.status.node_ui_name
+                          : this.status.node,
+                      }
+                    )
+                  "
+                  :showCloseButton="false"
+                />
+              </cv-column>
+            </cv-row>
             <cv-row v-if="mail_modules_id.length === 0">
               <cv-column>
                 <NsInlineNotification
                   kind="warning"
                   :title="$t('settings.mail_module_misconfigured')"
-                  :description="$t('settings.no_available_mail_domain_check_users')"
+                  :description="
+                    $t('settings.no_available_mail_domain_check_users')
+                  "
                   :showCloseButton="false"
                 />
               </cv-column>
@@ -82,11 +107,7 @@
               :acceptUserInput="false"
               :showItemType="true"
               :invalid-message="$t(error.mail_module)"
-              :disabled="
-                loading.getConfiguration ||
-                loading.configureModule ||
-                loading.getDefaults
-              "
+              :disabled="stillLoading"
               tooltipAlignment="start"
               tooltipDirection="top"
               ref="mail_module"
@@ -106,12 +127,7 @@
               :acceptUserInput="false"
               :showItemType="true"
               :invalid-message="$t(error.ejabberd_module)"
-              :disabled="
-                loading.getConfiguration ||
-                loading.configureModule ||
-                loading.getDefaults ||
-                ! mail_module
-              "
+              :disabled="stillLoading || !mail_module"
               tooltipAlignment="start"
               tooltipDirection="top"
               ref="ejabberd_module"
@@ -130,11 +146,7 @@
               :hide-selected="false"
               :invalid-message="$t(error.locale)"
               :label="$t('settings.select_locale')"
-              :disabled="
-                loading.getConfiguration ||
-                loading.configureModule ||
-                loading.getDefaults
-              "
+              :disabled="stillLoading"
             >
               <cv-dropdown-item value="it_IT">{{
                 $t("settings.LOCALE_it_IT")
@@ -169,11 +181,7 @@
               :acceptUserInput="false"
               :showItemType="true"
               :invalid-message="$t(error.accepted_timezone_list)"
-              :disabled="
-                loading.getConfiguration ||
-                loading.configureModule ||
-                loading.getDefaults
-              "
+              :disabled="stillLoading"
               tooltipAlignment="start"
               tooltipDirection="top"
               ref="accepted_timezone_list"
@@ -346,7 +354,9 @@
                   </cv-dropdown>
                   <NsTextInput
                     :label="$t('settings.pecbridge_admin_mail')"
-                    :placeholder="$t('settings.pecbridge_admin_mail_placeholder')"
+                    :placeholder="
+                      $t('settings.pecbridge_admin_mail_placeholder')
+                    "
                     v-model.trim="pecbridge_admin_mail"
                     class="mg-bottom"
                     :invalid-message="$t(error.pecbridge_admin_mail)"
@@ -384,6 +394,16 @@
                 </template>
               </cv-accordion-item>
             </cv-accordion>
+            <cv-row v-if="error.getStatus">
+              <cv-column>
+                <NsInlineNotification
+                  kind="error"
+                  :title="$t('action.get-status')"
+                  :description="error.getStatus"
+                  :showCloseButton="false"
+                />
+              </cv-column>
+            </cv-row>
             <cv-row v-if="error.configureModule">
               <cv-column>
                 <NsInlineNotification
@@ -394,15 +414,33 @@
                 />
               </cv-column>
             </cv-row>
+            <cv-row>
+              <cv-column v-if="validationErrorDetails.length">
+                <NsInlineNotification
+                  kind="error"
+                  :title="
+                    core.$t('apps_lets_encrypt.cannot_obtain_certificate')
+                  "
+                  :showCloseButton="false"
+                >
+                  <template #description>
+                    <div class="flex flex-col gap-2">
+                      <p
+                        v-for="(detail, index) in validationErrorDetails"
+                        :key="index"
+                      >
+                        {{ detail }}
+                      </p>
+                    </div>
+                  </template>
+                </NsInlineNotification>
+              </cv-column>
+            </cv-row>
             <NsButton
               kind="primary"
               :icon="Save20"
               :loading="loading.configureModule"
-              :disabled="
-                loading.getConfiguration ||
-                loading.configureModule ||
-                loading.getDefaults
-              "
+              :disabled="stillLoading"
               >{{ $t("settings.save") }}</NsButton
             >
           </cv-form>
@@ -440,9 +478,12 @@ export default {
       q: {
         page: "settings",
       },
+      status: {},
+      validationErrorDetails: [],
       urlCheckInterval: null,
       hostname: "",
       isLetsEncryptEnabled: false,
+      isLetsEncryptCurrentlyEnabled: false,
       mail_module: "",
       mail_domain: "",
       mail_modules_id: [],
@@ -473,10 +514,12 @@ export default {
         getConfiguration: false,
         configureModule: false,
         getDefaults: false,
+        getStatus: false,
       },
       error: {
         getConfiguration: "",
         configureModule: "",
+        getStatus: "",
         hostname: "",
         request_https_certificate: "",
         mail_module: "",
@@ -504,10 +547,18 @@ export default {
   },
   computed: {
     ...mapState(["instanceName", "core", "appName"]),
+    stillLoading() {
+      return (
+        this.loading.getConfiguration ||
+        this.loading.configureModule ||
+        this.loading.getDefaults ||
+        this.loading.getStatus
+      );
+    },
   },
   created() {
+    this.getStatus();
     this.listWidgetOptions();
-    // this.getConfiguration();
   },
   beforeRouteEnter(to, from, next) {
     next((vm) => {
@@ -520,6 +571,55 @@ export default {
     next();
   },
   methods: {
+    goToCertificates() {
+      this.core.$router.push("/settings/tls-certificates");
+    },
+    async getStatus() {
+      this.loading.getStatus = true;
+      this.error.getStatus = "";
+      const taskAction = "get-status";
+      const eventId = this.getUuid();
+
+      // register to task error
+      this.core.$root.$once(
+        `${taskAction}-aborted-${eventId}`,
+        this.getStatusAborted
+      );
+
+      // register to task completion
+      this.core.$root.$once(
+        `${taskAction}-completed-${eventId}`,
+        this.getStatusCompleted
+      );
+
+      const res = await to(
+        this.createModuleTaskForApp(this.instanceName, {
+          action: taskAction,
+          extra: {
+            title: this.$t("action." + taskAction),
+            isNotificationHidden: true,
+            eventId,
+          },
+        })
+      );
+      const err = res[0];
+
+      if (err) {
+        console.error(`error creating task ${taskAction}`, err);
+        this.error.getStatus = this.getErrorMessage(err);
+        this.loading.getStatus = false;
+        return;
+      }
+    },
+    getStatusAborted(taskResult, taskContext) {
+      console.error(`${taskContext.action} aborted`, taskResult);
+      this.error.getStatus = this.$t("error.generic_error");
+      this.loading.getStatus = false;
+    },
+    getStatusCompleted(taskContext, taskResult) {
+      this.status = taskResult.output;
+      this.loading.getStatus = false;
+    },
     async listWidgetOptions() {
       this.loading.getDefaults = true;
       const taskAction = "get-defaults";
@@ -567,12 +667,14 @@ export default {
       const config = taskResult.output;
       this.mail_modules_id = config.mail_modules_id;
       // Extract hostnames from mail_module_id values
-      const mailHostnames = config.mail_modules_id.map(item => item.value.split(',')[1]);
+      const mailHostnames = config.mail_modules_id.map(
+        (item) => item.value.split(",")[1]
+      );
 
       // Filter ejabberd_module_id based on matching hostnames
-       this.ejabberd_modules_id = config.ejabberd_modules_id.filter(item => {
-          const ejabberdHostname = item.value.split(',')[1];
-          return mailHostnames.includes(ejabberdHostname);
+      this.ejabberd_modules_id = config.ejabberd_modules_id.filter((item) => {
+        const ejabberdHostname = item.value.split(",")[1];
+        return mailHostnames.includes(ejabberdHostname);
       });
 
       this.ejabberd_modules_id.unshift({
@@ -582,7 +684,7 @@ export default {
       });
 
       // Phonebook instances
-      this.phonebook_options = config.phonebook_modules_id
+      this.phonebook_options = config.phonebook_modules_id;
       this.phonebook_options.unshift({
         name: "-",
         label: this.$t("settings.no_phonebook_instance"),
@@ -640,6 +742,7 @@ export default {
       const config = taskResult.output;
       this.hostname = config.hostname;
       this.isLetsEncryptEnabled = config.request_https_certificate;
+      this.isLetsEncryptCurrentlyEnabled = config.request_https_certificate;
       this.upload_max_filesize = config.upload_max_filesize;
       this.webapp = config.webapp;
       this.webapp.min_memory = String(config.webapp.min_memory);
@@ -654,18 +757,19 @@ export default {
         const mail_module_tmp = config.mail_module;
         const mail_domain_tmp = config.mail_domain;
         if (mail_module_tmp && mail_domain_tmp) {
-          this.mail_module = mail_module_tmp + ',' + mail_domain_tmp;
+          this.mail_module = mail_module_tmp + "," + mail_domain_tmp;
         } else {
           this.mail_module = "";
         }
         const ejabberd_module_tmp = config.ejabberd_module;
         const ejabberd_domain_tmp = config.ejabberd_domain;
         if (ejabberd_module_tmp && ejabberd_domain_tmp) {
-          this.ejabberd_module = ejabberd_module_tmp + ',' + ejabberd_domain_tmp;
+          this.ejabberd_module =
+            ejabberd_module_tmp + "," + ejabberd_domain_tmp;
         } else {
           this.ejabberd_module = "-";
         }
-        this.timezone = config.timezone === '-' ? '' : config.timezone;
+        this.timezone = config.timezone === "-" ? "" : config.timezone;
         // if mail_modules_id is empty, set default value
         if (this.mail_modules_id.length === 0) {
           // we want to avoid to save the form, there is no users set in the mail domain
@@ -677,7 +781,7 @@ export default {
     },
     validateConfigureModule() {
       this.clearErrors(this);
-
+      this.validationErrorDetails = [];
       let isValidationOk = true;
       if (!this.hostname) {
         this.error.hostname = "common.required";
@@ -717,15 +821,20 @@ export default {
     configureModuleValidationFailed(validationErrors) {
       this.loading.configureModule = false;
       let focusAlreadySet = false;
-
       for (const validationError of validationErrors) {
         const param = validationError.parameter;
-        // set i18n error message
-        this.error[param] = this.$t("settings." + validationError.error);
-
-        if (!focusAlreadySet) {
-          this.focusElement(param);
-          focusAlreadySet = true;
+        if (validationError.details) {
+          // show inline error notification with details
+          this.validationErrorDetails = validationError.details
+            .split("\n")
+            .filter((detail) => detail.trim() !== "");
+        } else {
+          // set i18n error message
+          this.error[param] = this.$t("settings." + validationError.error);
+          if (!focusAlreadySet) {
+            this.focusElement(param);
+            focusAlreadySet = true;
+          }
         }
       }
     },
@@ -756,11 +865,12 @@ export default {
         `${taskAction}-completed-${eventId}`,
         this.configureModuleCompleted
       );
-      const tmparray = this.mail_module.split(',');
+      const tmparray = this.mail_module.split(",");
       const mail_module_tmp = tmparray[0];
       const mail_domain_tmp = tmparray[1];
-      const tmp_ejabberd = this.ejabberd_module.split(',');
-      const ejabberd_module_tmp = tmp_ejabberd[0] !== '-' ? tmp_ejabberd[0] || "" : "";
+      const tmp_ejabberd = this.ejabberd_module.split(",");
+      const ejabberd_module_tmp =
+        tmp_ejabberd[0] !== "-" ? tmp_ejabberd[0] || "" : "";
       const ejabberd_domain_tmp = tmp_ejabberd[1] || "";
       const res = await to(
         this.createModuleTaskForApp(this.instanceName, {
@@ -787,7 +897,8 @@ export default {
               loglevel: this.zpush.loglevel,
             },
             pecbridge_admin_mail: this.pecbridge_admin_mail,
-            phonebook_instance: this.phonebook_instance == '-' ? '' : this.phonebook_instance,
+            phonebook_instance:
+              this.phonebook_instance == "-" ? "" : this.phonebook_instance,
           },
           extra: {
             title: this.$t("settings.instance_configuration", {
