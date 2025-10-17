@@ -64,7 +64,7 @@
                 $t("settings.enabled")
               }}</template>
             </NsToggle>
-            <cv-row v-if="letsEncryptIsEnabled && !isLetsEncryptEnabled">
+            <cv-row v-if="isLetsEncryptCurrentlyEnabled && !isLetsEncryptEnabled">
               <cv-column>
                 <NsInlineNotification
                   kind="warning"
@@ -484,7 +484,7 @@ export default {
       urlCheckInterval: null,
       hostname: "",
       isLetsEncryptEnabled: false,
-      letsEncryptIsEnabled: false,
+      isLetsEncryptCurrentlyEnabled: false,
       mail_module: "",
       mail_domain: "",
       mail_modules_id: [],
@@ -743,7 +743,7 @@ export default {
       const config = taskResult.output;
       this.hostname = config.hostname;
       this.isLetsEncryptEnabled = config.request_https_certificate;
-      this.letsEncryptIsEnabled = config.request_https_certificate;
+      this.isLetsEncryptCurrentlyEnabled = config.request_https_certificate;
       this.upload_max_filesize = config.upload_max_filesize;
       this.webapp = config.webapp;
       this.webapp.min_memory = String(config.webapp.min_memory);
