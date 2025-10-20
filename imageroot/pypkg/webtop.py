@@ -7,10 +7,11 @@
 
 import os
 import agent.tasks
+import agent 
 
 def configure_module(mail_module, penv):
     """Run the own configure-module action with the input environment and mail module ID"""
-    return agent.tasks.run(agent_id=os.environ['AGENT_ID'], action='configure-module', data={
+    configure_retval = agent.tasks.run(agent_id=os.environ['AGENT_ID'], action='configure-module', data={
         "hostname": penv['WEBTOP_HOSTNAME'],
         "locale": penv['WEBTOP_LOCALE'],
         "timezone": penv['WEBTOP_TIMEZONE'],
@@ -31,3 +32,8 @@ def configure_module(mail_module, penv):
         },
         "pecbridge_admin_mail": penv.get('PECBRIDGE_ADMIN_MAIL',''),
     })
+    agent.assert_exp(
+        configure_retval['exit_code'] == 0,
+        f"The configure-module subtask failed (exit_code={configure_retval['exit_code']})"
+    )
+    return configure_retval
