@@ -21,4 +21,4 @@ lookup_matches = agent.list_service_providers(rdb, 'imap', 'tcp', {
 if lookup_matches:
     # Re-configure Webtop with the matching mail module instance:
     mail_module = lookup_matches[0]['module_id']
-    webtop.configure_module(mail_module, request['environment']) # Ignore exit code
+    webtop.configure_module(mail_module, request['environment'] ) # assert on failure inside function
