@@ -8,10 +8,11 @@
 import json
 import os
 import sys
+import agent
 
 config={
         "hostname": os.getenv("WEBTOP_HOSTNAME", ""),
-        "request_https_certificate": os.environ["WEBTOP_REQUEST_HTTPS_CERTIFICATE"].lower() in ('true', '1', 't'),
+        "request_https_certificate": agent.get_route(os.environ['MODULE_ID']).get('lets_encrypt', False),
         "locale": os.environ["WEBTOP_LOCALE"],
         "timezone": os.environ["WEBTOP_TIMEZONE"],
         "mail_module": os.getenv("MAIL_MODULE", ""),
