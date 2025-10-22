@@ -8,12 +8,12 @@
 import json
 import os
 
-timezone = os.getenv("WEBTOP_TIMEZONE")
-log_level = os.getenv("Z_PUSH_LOG_LEVEL")
-imap_server = os.getenv("Z_PUSH_IMAP_SERVER")
-smtp_server = os.getenv("Z_PUSH_SMTP_SERVER")
-smtp_port = os.getenv("Z_PUSH_SMTP_PORT")
-use_legacy_folder_ids = os.getenv("Z_PUSH_USE_LEGACY_FOLDER_IDS", 'False').lower() in ('true', '1', 't')
+timezone = os.getenv("WEBTOP_TIMEZONE", "UTC")
+log_level = os.getenv("Z_PUSH_LOG_LEVEL", "ERROR")
+imap_server = os.getenv("Z_PUSH_IMAP_SERVER", "10.5.4.1")
+smtp_server = os.getenv("Z_PUSH_SMTP_SERVER", "10.5.4.1")
+smtp_port = os.getenv("Z_PUSH_SMTP_PORT", "25")
+use_legacy_folder_ids = os.getenv("Z_PUSH_USE_LEGACY_FOLDER_IDS", "False") == "True"
 
 config={
         "timezone": f"{timezone}",
