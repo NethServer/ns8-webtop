@@ -7,16 +7,5 @@
 
 import agent
 
-agent.set_env('WEBTOP_TIMEZONE', '-')
-agent.set_env('WEBTOP_LOCALE', 'en_US')
-agent.set_env('WEBDAV_DEBUG', 'False')
-agent.set_env('WEBDAV_LOG_LEVEL', 'ERROR')
-agent.set_env('Z_PUSH_LOG_LEVEL', 'ERROR')
-agent.set_env('Z_PUSH_IMAP_SERVER', '10.5.4.1')
-agent.set_env('Z_PUSH_SMTP_SERVER', '10.5.4.1')
-agent.set_env('Z_PUSH_SMTP_PORT', '25')
+# for legacy usage, set default to false
 agent.set_env('Z_PUSH_USE_LEGACY_FOLDER_IDS', 'false')
-agent.set_env('WEBAPP_JS_DEBUG', 'False')
-agent.set_env('WEBAPP_MIN_MEMORY', '512')
-agent.set_env('WEBAPP_MAX_MEMORY', '1024')
-agent.set_env('EJABBERD_MODULE', '')
