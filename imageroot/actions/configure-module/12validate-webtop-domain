@@ -23,6 +23,11 @@ host = data.get("hostname")
 # do not test if it is the same host
 oldHost = os.environ.get('WEBTOP_HOSTNAME','')
 
+# Skip validation during restore and clone:
+if oldHost == '' and os.getenv('AGENT_TASK_USER') == os.getenv('AGENT_ID'):
+    sys.exit(0)
+
+# Fail if hostname is used by other apps:
 if host != oldHost and agent.http_route_in_use(domain=host):
     agent.set_status('validation-failed')
     json.dump([{'field':'hostname','parameter':'hostname','value':host,'error':'domain_already_used_in_traefik'}],fp=sys.stdout)
