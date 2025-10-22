@@ -9,6 +9,7 @@ Before=webapp.service postgres.service apache.service webdav.service z-push.serv
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
+Environment=Z_PUSH_IMAP_SERVER=10.5.4.1
 EnvironmentFile=%S/state/environment
 WorkingDirectory=%S/state
 Restart=always
