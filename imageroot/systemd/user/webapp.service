@@ -10,6 +10,9 @@ PartOf=webtop.service
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
+Environment=WEBAPP_MIN_MEMORY=512
+Environment=WEBAPP_MAX_MEMORY=1024
+Environment=WEBTOP_TIMEZONE=UTC
 EnvironmentFile=%S/state/environment
 EnvironmentFile=%S/state/subscription.env
 WorkingDirectory=%S/state
