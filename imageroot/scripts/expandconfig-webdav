@@ -9,7 +9,7 @@ import json
 import os
 
 timezone = os.getenv("WEBTOP_TIMEZONE", "UTC")
-debug = os.getenv("WEBDAV_DEBUG", "False") == "True"
+debug = os.getenv("WEBDAV_DEBUG", 'False').lower() in ('true', '1', 't')
 log_level = os.getenv("WEBDAV_LOG_LEVEL", "ERROR")
 
 config={

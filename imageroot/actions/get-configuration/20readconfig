@@ -20,12 +20,12 @@ config={
         "ejabberd_module": os.getenv("EJABBERD_MODULE", ""),
         "ejabberd_domain": os.getenv("EJABBERD_DOMAIN", ""),
         "webapp": {
-            "debug": os.getenv("WEBAPP_JS_DEBUG", "False") == "True",
+            "debug": os.getenv("WEBAPP_JS_DEBUG", 'False').lower() in ('true', '1', 't'),
             "min_memory": int(os.getenv("WEBAPP_MIN_MEMORY", "512")),
             "max_memory": int(os.getenv("WEBAPP_MAX_MEMORY", "1024")),
             },
         "webdav": {
-            "debug": os.getenv("WEBDAV_DEBUG", "False") == "True",
+            "debug": os.getenv("WEBDAV_DEBUG", 'False').lower() in ('true', '1', 't'),
             "loglevel": os.getenv("WEBDAV_LOG_LEVEL", "ERROR"),
             },
         "zpush": {
