@@ -5,4 +5,15 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
-systemctl --user restart webtop
+exec 1>&2
+
+systemctl --user enable webtop.service
+
+systemctl --user restart -T \
+    webtop.service \
+    apache.service \
+    webdav.service \
+    pecbridge.service \
+    webapp.service \
+    z-push.service \
+    postgres.service
