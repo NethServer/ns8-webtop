@@ -85,7 +85,7 @@ images+=("${repobase}/${reponame}")
 
 #Create webtop-postgres container
 reponame="webtop-postgres"
-container=$(buildah from docker.io/library/postgres:17.6)
+container=$(buildah from docker.io/library/postgres:17.7)
 buildah add ${container} ${PWD}/webtop5-build/sql-scripts-$webtop_version.tar.gz /docker-entrypoint-initdb.d/
 buildah add ${container} ${PWD}/postgres/data /docker-entrypoint-initdb.d/data
 buildah add ${container} ${PWD}/postgres/postgres /docker-entrypoint-initdb.d/postgres
