@@ -2,7 +2,10 @@
 
 NS8 WebTop module, a collaboration suite of services accessible via web for emails, calendars, contacts, documents.
 
-Official website: http://www.sonicle.com/webtop
+External links:
+- [Official Sonicle Website](http://www.sonicle.com/webtop)
+- [Issue tracker](https://sonicle.atlassian.net/jira/software/c/projects/WT/boards/3)
+- [Official roadmap](https://nethserver.github.io/webtop-roadmap/) - [exported](https://github.com/NethServer/webtop-roadmap) every night from the issue tracker
 
 ## Module overview
 
