@@ -54,7 +54,7 @@ Verify webtop frontend title
 
 Login to webtop as user u1@domain.test
     ${output}    ${err}    ${rc} =    Execute Command
-    ...    curl -L -v -X POST ${backend_url}/webtop/login -d "wtusername=u1@domain.test" -d "wtpassword=Nethesis,1234" -d "location=${backend_url}/webtop/" -d "wtdomain=NethServer" -b cookies.txt -c cookies.txt -H "User-Agent: curl/8.15.0" -H "Referer: ${backend_url}/webtop/" -H "Accept: */*"
+    ...    curl -L -v -X POST ${backend_url}/webtop/login -d "wtusername=u1@domain.test" -d "wtpassword=Nethesis,123" -d "location=${backend_url}/webtop/" -d "wtdomain=NethServer" -b cookies.txt -c cookies.txt -H "User-Agent: curl/8.15.0" -H "Referer: ${backend_url}/webtop/" -H "Accept: */*"
     ...    return_rc=True
     ...    return_stdout=True
     ...    return_stderr=True
@@ -64,4 +64,5 @@ Login to webtop as user u1@domain.test
     # webtop redirect to https://
     #Should Be Equal As Integers    ${rc}    35
     Should Contain    ${err}    HTTP/1.1 302
-    Should Contain    ${err}    Clear auth, redirects scheme from HTTP to httpsIssue another request to this URL:
+    # match the cookie of the authenticated session
+    Should Contain    ${err}    Set-Cookie: JSESSIONID=
