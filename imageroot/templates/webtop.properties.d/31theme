@@ -1,2 +1,3 @@
-webtop.ui.presets=nethesis:Nethesis|nethesis|nethesis
-webtop.ui.preset.forced=nethesis
+webtop.ui.presets=nethesislight:Nethesis (light)|nethesis-light|nethesis@light,nethesisdark:Nethesis (dark)|nethesis-dark|nethesis@dark
+webtop.ui.public.theme=nethesis-light
+webtop.ui.public.laf=nethesis@light
