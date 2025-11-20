@@ -54,7 +54,7 @@ Verify webtop frontend title
 
 Login to webtop as user u1@domain.test
     ${output}    ${err}    ${rc} =    Execute Command
-    ...    curl -L -v -X POST ${backend_url}/webtop/login -d "wtusername=u1@domain.test" -d "wtpassword=Nethesis,123" -d "location=${backend_url}/webtop/" -d "wtdomain=NethServer" -b cookies.txt -c cookies.txt -H "User-Agent: curl/8.15.0" -H "Referer: ${backend_url}/webtop/" -H "Accept: */*"
+    ...    curl -L -v -X POST ${backend_url}/webtop/login -d "wtusername=u1@domain.test" -d "wtpassword=Nethesis,1234" -d "location=${backend_url}/webtop/" -d "wtdomain=NethServer" -b cookies.txt -c cookies.txt -H "User-Agent: curl/8.15.0" -H "Referer: ${backend_url}/webtop/" -H "Accept: */*"
     ...    return_rc=True
     ...    return_stdout=True
     ...    return_stderr=True
