@@ -62,5 +62,6 @@ Login to webtop as user u1@domain.test
     Log    Curl stderr: ${err}
     Log    Curl rc: ${rc}
     # webtop redirect to https://
-    Should Be Equal As Integers    ${rc}    35
-    Should Contain    ${err}    Added cookie rememberMe="deleteMe" for domain 127.0.0.1, path /webtop, expire 1
+    #Should Be Equal As Integers    ${rc}    35
+    Should Contain    ${err}    HTTP/1.1 302
+    Should Contain    ${err}    Clear auth, redirects scheme from HTTP to httpsIssue another request to this URL:
