@@ -102,7 +102,8 @@
         "get-status": "Obtener el estado",
         "configure-module": "Configurar el módulo",
         "get-configuration": "Obtener los ajustes",
-        "get-name": "Obtener el nombre"
+        "get-name": "Obtener el nombre",
+        "get-defaults": "Get defaults"
     },
     "task": {
         "cannot_create_task": "No se puede crear la tarea {action}"
