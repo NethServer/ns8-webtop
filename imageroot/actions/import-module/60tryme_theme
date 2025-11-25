@@ -9,6 +9,8 @@ set -e
 
 mkdir -p ${AGENT_STATE_DIR}/webtop.properties.d
 cat <<EOF > ${AGENT_STATE_DIR}/webtop.properties.d/31theme
-webtop.ui.presets.extra=nethesis:Nethesis|nethesis|nethesis
-webtop.ui.preset.tryme=nethesis
+webtop.ui.presets.extra=nethesislight:Nethesis (light)|nethesis-light|nethesis@light,nethesisdark:Nethesis (dark)|nethesis-dark|nethesis@dark
+webtop.ui.preset.tryme=nethesislight
+webtop.ui.public.theme=nethesis-light
+webtop.ui.public.laf=nethesis@light
 EOF
