@@ -17,14 +17,40 @@ if prev_image is not None:
     # Extract the image tag from the URL
     prev_tag= prev_image.split(':')[-1]
     try:
+        # the NS7 migration is bind to version 1.4.4, we cannot use import-module to migrate webtop.ui.presets.extra
+        # to check if it is migrated from NS7 we look after 'webtop.ui.presets.extra' in webtop.properties file
+        webtop_properties_path = f'{os.environ["AGENT_STATE_DIR"]}/webtop.properties'
+        if os.path.isfile(webtop_properties_path):
+            with open(webtop_properties_path, 'r') as f:
+                webtop_properties = f.read()
+            if 'webtop.ui.presets.extra=' in webtop_properties:
+                # If found, we come from a NS7 migrated installation
+                migrated = True
+            else:
+                migrated = False
+        else:
+            migrated = False
+
+        # Parse the previous version using semver
         prev_version = semver.VersionInfo.parse(prev_tag)
-        # Check if the previous version is less than or equal to 1.5.4
-        if prev_version <= semver.VersionInfo.parse('1.5.4'):
+
+        # Check if the previous version is less than or equal to 1.5.4 and verify if it is not migrated from NS7
+        if prev_version <= semver.VersionInfo.parse('1.5.4') and not migrated:
             # Create the directory webtop.properties.d in the module state directory
             os.makedirs(f'{os.environ["AGENT_STATE_DIR"]}/webtop.properties.d', exist_ok=True)
             # Write the 31theme into the webtop.properties.d directory to enable the white/dark nethesis theme
             with open(f'{os.environ["AGENT_STATE_DIR"]}/webtop.properties.d/31theme', 'w') as f:
                 f.write('webtop.ui.presets=nethesislight:Nethesis (light)|nethesis-light|nethesis@light,nethesisdark:Nethesis (dark)|nethesis-dark|nethesis@dark\n')
+                f.write('webtop.ui.public.theme=nethesis-light\n')
+                f.write('webtop.ui.public.laf=nethesis@light\n')
+        # Check if the previous version is less than or equal to 1.5.4 and verify if it is migrated from NS7
+        elif prev_version <= semver.VersionInfo.parse('1.5.4') and migrated:
+            # Create the directory webtop.properties.d in the module state directory
+            os.makedirs(f'{os.environ["AGENT_STATE_DIR"]}/webtop.properties.d', exist_ok=True)
+            # Write the 31theme into the webtop.properties.d directory to enable the white/dark nethesis theme
+            with open(f'{os.environ["AGENT_STATE_DIR"]}/webtop.properties.d/31theme', 'w') as f:
+                f.write('webtop.ui.presets.extra=nethesislight:Nethesis (light)|nethesis-light|nethesis@light,nethesisdark:Nethesis (dark)|nethesis-dark|nethesis@dark\n')
+                f.write('webtop.ui.preset.tryme=nethesislight\n')
                 f.write('webtop.ui.public.theme=nethesis-light\n')
                 f.write('webtop.ui.public.laf=nethesis@light\n')
     except ValueError:
