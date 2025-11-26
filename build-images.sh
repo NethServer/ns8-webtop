@@ -11,6 +11,9 @@ images=()
 repobase="${REPOBASE:-ghcr.io/nethserver}"
 #Get WebTop version
 webtop_version=$(cat ${PWD}/webtop5-build/VERSION)
+# PHP version
+php_version="8.3.20"
+php_installer_version="2.7.33"
 
 # Download of external deps and CHECKSUM verification:
 if ! compgen -G "pecbridge-*.tar.gz"; then
@@ -116,7 +119,7 @@ images+=("${repobase}/${reponame}")
 
 #Create webtop-webdav container
 reponame="webtop-webdav"
-container=$(buildah from docker.io/library/php:7.3-fpm-alpine)
+container=$(buildah from docker.io/library/php:$php_version-fpm-alpine)
 buildah add ${container} ${PWD}/webtop5-build/webtop-dav-server-$webtop_version.tgz /usr/share/webtop/webdav/
 buildah run ${container} sh -c "mv \$PHP_INI_DIR/php.ini-production \$PHP_INI_DIR/php.ini"
 # Commit the image
@@ -127,9 +130,9 @@ images+=("${repobase}/${reponame}")
 
 #Create webtop-z-push container
 reponame="webtop-z-push"
-container=$(buildah from docker.io/library/php:7.3-fpm-alpine)
-buildah copy --from=docker.io/mlocati/php-extension-installer:1.5.37 ${container} /usr/bin/install-php-extensions /usr/local/bin/
-buildah run ${container} sh -c "install-php-extensions imap"
+container=$(buildah from docker.io/library/php:${php_version}-fpm-alpine)
+buildah copy --from=docker.io/mlocati/php-extension-installer:${php_installer_version} ${container} /usr/bin/install-php-extensions /usr/local/bin/
+buildah run ${container} sh -c "install-php-extensions imap soap intl"
 buildah add ${container} ${PWD}/webtop5-build/webtop-eas-server-$webtop_version.tgz /usr/share/webtop/z-push/
 buildah add ${container} ${PWD}/zfaker/src/ /usr/share/webtop/zfacker/
 buildah run ${container} sh -c "mv \$PHP_INI_DIR/php.ini-production \$PHP_INI_DIR/php.ini"
@@ -147,8 +150,8 @@ buildah commit --rm "${container}" "${repobase}/${reponame}"
 images+=("${repobase}/${reponame}")
 
 reponame="webtop-phonebook"
-container=$(buildah from docker.io/library/php:8-cli-alpine)
-buildah copy --from=docker.io/mlocati/php-extension-installer:2.7.28 ${container} /usr/bin/install-php-extensions /usr/local/bin/
+container=$(buildah from docker.io/library/php:${php_version}-cli-alpine)
+buildah copy --from=docker.io/mlocati/php-extension-installer:${php_installer_version} ${container} /usr/bin/install-php-extensions /usr/local/bin/
 buildah run ${container} sh -c "install-php-extensions pgsql mysqli"
 buildah add ${container} ${PWD}/phonebook/webtop2phonebook.php /usr/share/phonebooks/scripts/
 buildah add ${container} ${PWD}/phonebook/pbook2webtop.php /usr/share/phonebooks/post_scripts/
