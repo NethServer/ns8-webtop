@@ -102,7 +102,8 @@
         "get-status": "Status abrufen",
         "configure-module": "Modul konfigurieren",
         "get-configuration": "Konfiguration abrufen",
-        "get-name": "Name abrufen"
+        "get-name": "Name abrufen",
+        "get-defaults": "Get defaults"
     },
     "task": {
         "cannot_create_task": "Aufgabe {action} kann nicht erstellt werden"

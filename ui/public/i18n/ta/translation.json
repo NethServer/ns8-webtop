@@ -64,7 +64,8 @@
         "get-status": "Get status",
         "configure-module": "Configure module",
         "get-configuration": "Get configuration",
-        "get-name": "Get name"
+        "get-name": "Get name",
+        "get-defaults": "Get defaults"
     },
     "error": {
         "403": "Operation not authorized",

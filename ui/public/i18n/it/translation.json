@@ -2,7 +2,7 @@
     "common": {
         "required": "Obbligatorio",
         "work_in_progress": "In lavorazione",
-        "processing": "In elaborazione…"
+        "processing": "Elaborazione in corso…"
     },
     "status": {
         "node": "Nodo",
@@ -85,7 +85,8 @@
         "get-status": "Visualizza stato",
         "get-configuration": "Visualizza configurazione",
         "list-installed-modules": "Elenca moduli installati",
-        "get-module-info": "Visualizza info modulo"
+        "get-module-info": "Visualizza info modulo",
+        "get-defaults": "Get defaults"
     },
     "error": {
         "404": "Risorsa non trovata",
