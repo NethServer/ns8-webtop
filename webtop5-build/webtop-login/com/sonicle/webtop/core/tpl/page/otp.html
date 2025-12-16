@@ -6,6 +6,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="none" />
+  <meta name="color-scheme" content="light dark" />
 
   <link
     rel="stylesheet"
@@ -56,6 +57,8 @@
     crossorigin="anonymous"
   ></script>
   <script type="text/javascript">
+    const guessColorScheme = () => { return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light'; };
+
     function onBodyLoad() {
       setTimeout(function () {
         document.getElementById("wtfakecode").focus();
@@ -103,6 +106,7 @@
       form.reset();
       form['wtcode'].value = code;
       form['wttrust'].checked = trust;
+      form['colorscheme'].value = guessColorScheme();
       form.submit();
     }
   </script>
@@ -148,6 +152,7 @@
             </div>
             <div>
               <form name="login" method="post" class="space-y-6">
+                <input id="colorscheme" name="colorscheme" type="hidden">
                 <h5 class="text-left text-gray-600">${deliveryInfo}</h5>
                 <#if showFailure>
                   <div class="border-l-4 rounded-md p-4 w-full flex border-rose-500 bg-rose-100">

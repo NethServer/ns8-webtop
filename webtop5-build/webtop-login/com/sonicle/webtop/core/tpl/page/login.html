@@ -6,6 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="none" />
+    <meta name="color-scheme" content="light dark" />
 
     <link
       rel="stylesheet"
@@ -57,12 +58,15 @@
     ></script>
     <script type="text/javascript">
       $(function () {
+        const guessColorScheme = () => { return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light'; };
+
         setTimeout(function () {
           $("#wtusername").focus();
         }, 100);
 
         $('form[name="login"]').on("submit", function () {
           $("#location").val(window.location);
+          $('#colorscheme').val(guessColorScheme());
           $("#wtsubmit").prop("disabled", true);
         });
 
@@ -122,6 +126,7 @@
               <div>
                 <form name="login" method="post" action="login" class="space-y-6">
                   <input id="location" name="location" type="hidden">
+                  <input id="colorscheme" name="colorscheme" type="hidden">
                   <#if showMaintenance>
                     <div class="border-l-4 rounded-md p-4 w-full flex border-blue-500 bg-blue-100">
                       <div class="flex-shrink-0" style="margin-top: 4px;">
