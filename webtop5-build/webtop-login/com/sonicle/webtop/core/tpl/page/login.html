@@ -6,6 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="none" />
+    <meta name="color-scheme" content="light dark" />
 
     <link
       rel="stylesheet"
@@ -57,12 +58,15 @@
     ></script>
     <script type="text/javascript">
       $(function () {
+        const guessColorScheme = () => { return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light'; };
+
         setTimeout(function () {
           $("#wtusername").focus();
         }, 100);
 
         $('form[name="login"]').on("submit", function () {
           $("#location").val(window.location);
+          $('#colorscheme').val(guessColorScheme());
           $("#wtsubmit").prop("disabled", true);
         });
 
@@ -96,32 +100,41 @@
       </div>
       <div class="w-1/2">
         <div class='absolute top-1/2 left-1/2 lg:left-40 transform -translate-y-1/2 -translate-x-1/2 lg:-translate-x-0'>
-          <div class='border-gray-200 rounded-lg bg-gray-50 p-10'>
+          <div class='border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-500 p-10'>
             <div class="max-w-sm sm:w-96">
               <div class='flex flex-col items-center justify-center'>
-                <img
-                  src="${coreResourcesImagesUrl}/nethserviceLogo.svg"
-                  alt="logo"
-                  class="mx-auto w-auto items-center object-contain object-bottom"
-                  style="min-width: 300px; min-height: 36px; margin-bottom: 4px"
-                />
-                <div class="flex items-center justify-center text-orange-700 pt-4">
+                <picture>
+                  <source srcset="${coreResourcesImagesUrl}/logo-nethservice-white.svg" media="(prefers-color-scheme: light)"/>
+                  <source srcset="${coreResourcesImagesUrl}/logo-nethservice-dark.svg" media="(prefers-color-scheme: dark)"/>
+                  <img
+                    src="${coreResourcesImagesUrl}/logo-nethservice-white.svg"
+                    alt="logo"
+                    class="mx-auto w-auto items-center object-contain object-bottom"
+                    style="min-width: 300px; min-height: 36px; margin-bottom: 4px"
+                  />
+                </picture>
+                <div class="flex items-center justify-center text-orange-700 dark:text-orange-500 pt-4">
                   Collaboration
                 </div>
               </div>
               <div>
                 <div class='relative py-4'>
                     <div class='absolute inset-0 flex items-center justify-center' aria-hidden='true'>
-                        <div class='w-full border-t border-gray-300' style="max-width: 180px;"></div>
+                        <div class='w-full border-t border-gray-300 dark:border-gray-500' style="max-width: 180px;"></div>
                     </div>
                 </div>
                 <div class="flex justify-center">
-                    <img src="${coreResourcesImagesUrl}/login.png" alt="logo" class="mx-auto w-auto items-center object-contain object-bottom" style="max-height: 40px;">
+                  <picture>
+                    <source srcset="${coreResourcesImagesUrl}/logo-nethesis-white.png" media="(prefers-color-scheme: light)"/>
+                    <source srcset="${coreResourcesImagesUrl}/logo-nethesis-dark.png" media="(prefers-color-scheme: dark)"/>
+                    <img src="${coreResourcesImagesUrl}/logo-nethesis-white.png" alt="logo" class="mx-auto w-auto items-center object-contain object-bottom" style="max-height: 40px;">
+                  </picture>
                 </div>
               </div>
               <div>
                 <form name="login" method="post" action="login" class="space-y-6">
                   <input id="location" name="location" type="hidden">
+                  <input id="colorscheme" name="colorscheme" type="hidden">
                   <#if showMaintenance>
                     <div class="border-l-4 rounded-md p-4 w-full flex border-blue-500 bg-blue-100">
                       <div class="flex-shrink-0" style="margin-top: 4px;">
@@ -149,7 +162,7 @@
                   <div>
                     <label
                         for="email"
-                        class="block text-sm font-medium text-gray-700 pb-2"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-200 pb-2"
                         >Username</label
                       >
                     <div>
@@ -160,7 +173,7 @@
                             name="wtusername"
                             type="text"
                             placeholder="${usernamePlaceholder}"
-                            class="block w-full relative focus:z-[8] disabled:cursor-not-allowed bg-white text-gray-900 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 rounded-md px-3 py-2 sm:text-sm ring-gray-300 ring-1 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-orange-500 placeholder:text-gray-500 <#if showFailure>ring-rose-500 focus:border-rose-500 focus:ring-rose-500</#if>"
+                            class="block w-full relative focus:z-[8] disabled:cursor-not-allowed bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 rounded-md px-3 py-2 sm:text-sm ring-gray-300 dark:ring-gray-500 ring-1 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-orange-500 placeholder:text-gray-400 dark:placeholder-gray-500 <#if showFailure>ring-rose-500 focus:border-rose-500 focus:ring-rose-500</#if>"
                             required
                             autocomplete="username"
                           />
@@ -171,7 +184,7 @@
                   <div class="space-y-1">
                     <label
                         for="password"
-                        class="block text-sm font-medium text-gray-700 pb-1"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-200 pb-1"
                         >Password</label
                       >
                     <div>
@@ -185,7 +198,7 @@
                               focusable="false"
                               data-prefix="fas"
                               data-icon="eye-slash"
-                              class="svg-inline--fa fa-eye-slash h-5 w-5 text-gray-700 cursor-pointer"
+                              class="svg-inline--fa fa-eye-slash h-5 w-5 text-gray-700 dark:text-gray-50 cursor-pointer"
                               role="img"
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 640 512"
@@ -201,7 +214,7 @@
                             name="wtpassword"
                             type="password"
                             placeholder="${passwordPlaceholder}"
-                            class="block w-full relative focus:z-[8] disabled:cursor-not-allowed bg-white text-gray-900 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 rounded-md px-3 py-2 sm:text-sm ring-gray-300 ring-1 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-orange-500 placeholder:text-gray-500 <#if showFailure>ring-rose-500 focus:border-rose-500 focus:ring-rose-500</#if>"
+                            class="block w-full relative focus:z-[8] disabled:cursor-not-allowed bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 rounded-md px-3 py-2 sm:text-sm ring-gray-300 dark:ring-gray-500 ring-1 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-orange-500 placeholder:text-gray-400 dark:placeholder-gray-500 <#if showFailure>ring-rose-500 focus:border-rose-500 focus:ring-rose-500</#if>"
                             required
                             autocomplete="current-password"
                           />
@@ -221,7 +234,7 @@
                   <div class="py-2">
                     <button
                     id="wtsubmit"
-                    class="inline-flex content-center items-center justify-center font-medium tracking-wide transition-colors duration-200 transform focus:outline-none focus:ring-2 focus:z-20 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed border border-transparent bg-orange-700 text-gray-50 focus:ring-orange-500 px-4 py-2 text-sm rounded-md w-full h-full"
+                    class="inline-flex content-center items-center justify-center font-medium tracking-wide transition-colors duration-200 transform focus:outline-none focus:ring-2 focus:z-20 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed border border-transparent bg-orange-700 dark:bg-orange-500 text-gray-50 dark:text-gray-950 focus:ring-orange-500 px-4 py-2 text-sm rounded-md w-full h-full"
                     type="submit"
                   >
                     ${submitLabel}
@@ -231,11 +244,11 @@
               </div>
               <div class="mb-4 mt-6">
                 <div class="flex justify-center">
-                  <img
-                    src="${coreResourcesImagesUrl}/poweredby 2.png"
-                    alt="logo"
-                    class="mx-auto w-auto items-center object-contain object-bottom"
-                  />
+                  <picture class="flex flex-col items-center justify-center w-full">
+                    <source srcset="${coreResourcesImagesUrl}/logo-sonicle-white.png" media="(prefers-color-scheme: light)"/>
+                    <source srcset="${coreResourcesImagesUrl}/logo-sonicle-dark.png" media="(prefers-color-scheme: dark)"/>
+                    <img src="${coreResourcesImagesUrl}/logo-sonicle-white.png" alt="logo" class="mx-auto w-auto items-center object-contain object-bottom">
+                  </picture>
                 </div>
                 <div>
                   <h5 class="text-center"><small>${versionString}</small></h5>
