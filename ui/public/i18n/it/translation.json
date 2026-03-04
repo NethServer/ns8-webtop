@@ -86,7 +86,7 @@
         "get-configuration": "Visualizza configurazione",
         "list-installed-modules": "Elenca moduli installati",
         "get-module-info": "Visualizza info modulo",
-        "get-defaults": "Get defaults"
+        "get-defaults": "Ottieni default"
     },
     "error": {
         "404": "Risorsa non trovata",
