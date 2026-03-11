@@ -101,7 +101,7 @@ images+=("${repobase}/${reponame}")
 
 #Create webtop-apache container
 reponame="webtop-apache"
-container=$(buildah from docker.io/library/httpd:2.4.65)
+container=$(buildah from docker.io/library/httpd:2.4.66)
 buildah add ${container} ${PWD}/apache/vhosts/ /usr/local/apache2/conf.d/
 buildah add ${container} ${PWD}/apache/httpd.conf /usr/local/apache2/conf
 buildah add ${container} ${PWD}/webtop5-build/webtop-dav-server-$webtop_version.tgz /usr/share/webtop/webdav/
