@@ -20,10 +20,9 @@ cat - >initdb.d/zzz_domainsuffix_policy_override.sql <<'EOQ'
 DELETE FROM "core"."settings" WHERE service_id = 'com.sonicle.webtop.mail' AND key = 'acl.domainsuffix.policy.override';
 INSERT INTO "core"."settings" (service_id, key, value) VALUES ('com.sonicle.webtop.mail', 'acl.domainsuffix.policy.override', 'strip');
 EOQ
-cat - >initdb.d/zzz_fix_favorite_folders.sql <<'EOQ'
+cat - >initdb.d/zzz_fix_defaultfolder.sql <<'EOQ'
 UPDATE core.user_settings
-SET value = regexp_replace(value, '"folderId":"(.*?)([^@/]+)@[^/]+(/[^"]*)"',
-'"folderId":"\\1\\2\\3"', 'g')
-WHERE key = 'favorite.folders'
-AND value ~ '"folderId":"[^"]*[^@/]+@[^/]';
+SET value = regexp_replace(value, '([^/]*)([^@/]+)@[^/]+', E'\\1\\2', '')
+WHERE key = 'defaultfolder'
+AND value ~ '[^@/]+@[^/]';
 EOQ
