@@ -99,7 +99,8 @@
         "get-status": "Get status",
         "configure-module": "Configure module",
         "get-configuration": "Get configuration",
-        "get-name": "Get name"
+        "get-name": "Get name",
+        "get-defaults": "Get defaults"
     },
     "about": {
         "title": "About"

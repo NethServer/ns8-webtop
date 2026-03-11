@@ -1,4 +1,4 @@
-FROM node:22.16.0-slim
+FROM node:24.11.1-slim
 WORKDIR /app
 ENV NODE_OPTIONS=--openssl-legacy-provider
 EXPOSE 8080

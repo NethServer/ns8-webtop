@@ -2,7 +2,7 @@
     "common": {
         "required": "Required",
         "work_in_progress": "Work in progress",
-        "processing": "Processing..."
+        "processing": "Processing…"
     },
     "status": {
         "title": "Status",
@@ -86,6 +86,7 @@
     "action": {
         "get-status": "Get status",
         "get-configuration": "Get configuration",
+        "get-defaults": "Get defaults",
         "configure-module": "Configure module",
         "get-module-info": "Get module info",
         "get-name": "Get name",

@@ -11,7 +11,6 @@ PartOf=webtop.service
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
 EnvironmentFile=%S/state/environment
-EnvironmentFile=%S/state/subscription.env
 WorkingDirectory=%S/state
 Restart=always
 ExecStartPre=/bin/rm -f %t/webapp.pid %t/webapp.ctr-id
@@ -24,7 +23,6 @@ ExecStart=/usr/bin/podman run \
 			 -Dcom.sun.jndi.ldap.object.disableEndpointIdentification=true \
 			 -Dmail.mime.address.strict=false -Dwebtop.etc.dir=/etc/webtop \
 			 -Duser.timezone=${WEBTOP_TIMEZONE}" \
-    ${TMCE_PLUGIN} \
     --volume=webtop-home:/var/lib/nethserver/webtop \
     --volume=./webtop.properties:/etc/webtop/webtop.properties:z \
     --volume=./webtop-custom-jars:/usr/local/tomcat/webapps/webtop/WEB-INF/webtop-custom-jars:z \

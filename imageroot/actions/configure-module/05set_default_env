@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2025 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import os
+import agent
+
+defaults = {
+    'WEBTOP_TIMEZONE': '-',
+    'WEBTOP_LOCALE': 'en_US',
+    'WEBDAV_DEBUG': 'False',
+    'WEBDAV_LOG_LEVEL': 'ERROR',
+    'Z_PUSH_LOG_LEVEL': 'ERROR',
+    'Z_PUSH_IMAP_SERVER': '10.5.4.1',
+    'Z_PUSH_SMTP_SERVER': '10.5.4.1',
+    'Z_PUSH_SMTP_PORT': '25',
+    'Z_PUSH_USE_LEGACY_FOLDER_IDS': 'false',
+    'WEBAPP_JS_DEBUG': 'False',
+    'WEBAPP_MIN_MEMORY': '512',
+    'WEBAPP_MAX_MEMORY': '1024',
+    'EJABBERD_MODULE': '',
+}
+
+for key, value in defaults.items():
+    if key not in os.environ:
+        agent.set_env(key, value)

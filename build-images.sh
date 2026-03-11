@@ -66,7 +66,7 @@ tar -C "${pecbridge_tmp_dir}" -x -v -z -f pecbridge-*.tar.gz
 
 #Create webtop-webapp container
 reponame="webtop-webapp"
-container=$(buildah from docker.io/library/tomcat:8-jre8)
+container=$(buildah from docker.io/library/tomcat:9.0.115-jre8)
 buildah add ${container} ${webapp_tmp_dir}/webtop /usr/local/tomcat/webapps/webtop/
 buildah add ${container} ${PWD}/webtop5-build/context.xml /usr/local/tomcat/webapps/webtop/META-INF/context.xml
 buildah add ${container} ${PWD}/webtop5-build/webtop-login/ /usr/local/tomcat/webapps/webtop/WEB-INF/classes/
@@ -85,7 +85,7 @@ images+=("${repobase}/${reponame}")
 
 #Create webtop-postgres container
 reponame="webtop-postgres"
-container=$(buildah from docker.io/library/postgres:9.2)
+container=$(buildah from docker.io/library/postgres:17.7)
 buildah add ${container} ${PWD}/webtop5-build/sql-scripts-$webtop_version.tar.gz /docker-entrypoint-initdb.d/
 buildah add ${container} ${PWD}/postgres/data /docker-entrypoint-initdb.d/data
 buildah add ${container} ${PWD}/postgres/postgres /docker-entrypoint-initdb.d/postgres
@@ -107,7 +107,6 @@ buildah add ${container} ${PWD}/apache/httpd.conf /usr/local/apache2/conf
 buildah add ${container} ${PWD}/webtop5-build/webtop-dav-server-$webtop_version.tgz /usr/share/webtop/webdav/
 buildah add ${container} ${PWD}/webtop5-build/webtop-eas-server-$webtop_version.tgz /usr/share/webtop/z-push/
 buildah add ${container} ${PWD}/zfaker/src/ /usr/share/webtop/zfacker/
-buildah config -e APACHE_HTTP_PORT_NUMBER=8081 ${container}
 # Commit the image
 buildah commit --rm "${container}" "${repobase}/${reponame}"
 
@@ -129,7 +128,7 @@ images+=("${repobase}/${reponame}")
 #Create webtop-z-push container
 reponame="webtop-z-push"
 container=$(buildah from docker.io/library/php:7.3-fpm-alpine)
-buildah copy --from=docker.io/mlocati/php-extension-installer:1.5.37 ${container} /usr/bin/install-php-extensions /usr/local/bin/
+buildah copy --from=docker.io/mlocati/php-extension-installer:2.9.34 ${container} /usr/bin/install-php-extensions /usr/local/bin/
 buildah run ${container} sh -c "install-php-extensions imap"
 buildah add ${container} ${PWD}/webtop5-build/webtop-eas-server-$webtop_version.tgz /usr/share/webtop/z-push/
 buildah add ${container} ${PWD}/zfaker/src/ /usr/share/webtop/zfacker/
@@ -149,7 +148,7 @@ images+=("${repobase}/${reponame}")
 
 reponame="webtop-phonebook"
 container=$(buildah from docker.io/library/php:8-cli-alpine)
-buildah copy --from=docker.io/mlocati/php-extension-installer:2.7.28 ${container} /usr/bin/install-php-extensions /usr/local/bin/
+buildah copy --from=docker.io/mlocati/php-extension-installer:2.9.34 ${container} /usr/bin/install-php-extensions /usr/local/bin/
 buildah run ${container} sh -c "install-php-extensions pgsql mysqli"
 buildah add ${container} ${PWD}/phonebook/webtop2phonebook.php /usr/share/phonebooks/scripts/
 buildah add ${container} ${PWD}/phonebook/pbook2webtop.php /usr/share/phonebooks/post_scripts/
@@ -170,7 +169,7 @@ container=$(buildah from scratch)
 # Reuse existing nodebuilder-webtop container, to speed up builds
 if ! buildah containers --format "{{.ContainerName}}" | grep -q nodebuilder-webtop; then
     echo "Pulling NodeJS runtime..."
-    buildah from --name nodebuilder-webtop -v "${PWD}:/usr/src:Z" docker.io/library/node:22.16.0-slim
+    buildah from --name nodebuilder-webtop -v "${PWD}:/usr/src:Z" docker.io/library/node:24.11.1-slim
 fi
 
 echo "Build static UI files with node..."
@@ -182,8 +181,10 @@ buildah add "${container}" ui/dist /ui
 # Setup the entrypoint, ask to reserve one TCP port with the label and set a rootless container
 buildah config --entrypoint=/ \
     --label="org.nethserver.authorizations=traefik@node:routeadm mail@any:mailadm cluster:accountconsumer nethvoice@any:pbookreader" \
+    --label="org.nethserver.min-core=3.12.4-0" \
     --label="org.nethserver.tcp-ports-demand=1" \
     --label="org.nethserver.rootfull=0" \
+    --label="org.nethserver.min-from=1.4.4" \
     --label="org.nethserver.images=${repobase}/webtop-webapp:${IMAGETAG:-latest} \
     ${repobase}/webtop-postgres:${IMAGETAG:-latest} \
     ${repobase}/webtop-apache:${IMAGETAG:-latest} \
