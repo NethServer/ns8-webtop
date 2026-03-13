@@ -8,15 +8,36 @@
 set -e -o pipefail
 exec 1>&2 # Redirect any output to the journal (stderr)
 
-# Add our "flag table" to the provisioning set. The table is used by
-# postgres.service Systemd unit to know when DB initialization is
-# complete.
+# Provision SQL migration scripts to be executed in alphabetical order during
+# database initialization. The last script must remain zzz_mark_db_init.sql
+# because the postgres.service Systemd unit checks for the ns8_webtop_init
+# table to know when DB initialization is complete.
 mkdir -vp initdb.d
+
+# Configure mail service domain suffix policy override
+# Sets the acl.domainsuffix.policy.override to 'strip' to ensure domain
+# suffixes are handled consistently across mail accounts.
+cat - >initdb.d/domainsuffix_policy_override.sql <<'EOQ'
+DELETE FROM "core"."settings" WHERE service_id = 'com.sonicle.webtop.mail' AND key = 'acl.domainsuffix.policy.override';
+INSERT INTO "core"."settings" (service_id, key, value) VALUES ('com.sonicle.webtop.mail', 'acl.domainsuffix.policy.override', 'strip');
+EOQ
+
+# Fix defaultfolder paths migrated from NS7
+# Removes domain suffixes from stored defaultfolder paths to ensure
+# compatibility with NS8 format. Handles paths containing email-like
+# patterns and converts them to local folder references.
+cat - >initdb.d/fix_defaultfolder.sql <<'EOQ'
+UPDATE core.user_settings
+SET value = regexp_replace(value, '([^/]*)([^@/]+)@[^/]+', E'\\1\\2', '')
+WHERE key = 'defaultfolder'
+AND value ~ '[^@/]+@[^/]';
+EOQ
+
+# Mark database initialization as complete
+# Creates a flag table that signals to postgres.service that database
+# initialization has finished. This table must be created last to ensure
+# all other migrations have been applied before marking completion.
 cat - >initdb.d/zzz_mark_db_init.sql <<'EOQ'
 CREATE TABLE ns8_webtop_init ( initialized INTEGER );
 INSERT INTO ns8_webtop_init (initialized) VALUES (1);
-EOQ
-cat - >initdb.d/zzz_domainsuffix_policy_override.sql <<'EOQ'
-DELETE FROM "core"."settings" WHERE service_id = 'com.sonicle.webtop.mail' AND key = 'acl.domainsuffix.policy.override';
-INSERT INTO "core"."settings" (service_id, key, value) VALUES ('com.sonicle.webtop.mail', 'acl.domainsuffix.policy.override', 'strip');
 EOQ
