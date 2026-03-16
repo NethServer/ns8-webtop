@@ -1,7 +1,7 @@
 # ns8-webtop
 
 NS8 WebTop module, a collaboration suite of services accessible via web for emails, calendars, contacts, documents.
-# test to build the module as it should be with version 1.4.4
+
 Official website: http://www.sonicle.com/webtop
 
 ## Module overview
