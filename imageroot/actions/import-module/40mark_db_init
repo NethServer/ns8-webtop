@@ -20,3 +20,19 @@ cat - >initdb.d/zzz_domainsuffix_policy_override.sql <<'EOQ'
 DELETE FROM "core"."settings" WHERE service_id = 'com.sonicle.webtop.mail' AND key = 'acl.domainsuffix.policy.override';
 INSERT INTO "core"."settings" (service_id, key, value) VALUES ('com.sonicle.webtop.mail', 'acl.domainsuffix.policy.override', 'strip');
 EOQ
+
+# fix NethServer#7718 favorite folders for NS7 migration
+cat - >initdb.d/zzz_fix_favorite_folders.sql <<'EOQ'
+UPDATE core.user_settings
+SET value = regexp_replace(value, '"folderId":"(Shared)/([^@]+)@[^/]+(/[^"]*)"', '"folderId":"\1/\2\3"', 'g')
+WHERE key = 'favorite.folders'
+AND value ~ '"folderId":"Shared/[^@]+@[^/]+/';
+EOQ
+
+# fix NethServer#7715 default folder for NS7 migration
+cat - >initdb.d/zzz_fix_defaultfolder.sql <<'EOQ'
+UPDATE core.user_settings
+SET value = regexp_replace(value, '([^/]*)([^@/]+)@[^/]+', E'\\1\\2', '')
+WHERE key = 'defaultfolder'
+AND value ~ '[^@/]+@[^/]';
+EOQ
