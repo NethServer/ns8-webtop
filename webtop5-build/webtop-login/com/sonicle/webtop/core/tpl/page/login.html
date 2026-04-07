@@ -219,6 +219,14 @@
                             autocomplete="current-password"
                           />
                         </div>
+                        <#if showRememberMe>
+                        <div class="flex flex-wrap items-center justify-between gap-4 mt-3">
+                          <div class="flex items-center">
+                            <input id="wtrememberme" name="wtrememberme" type="checkbox" value="true" class="w-4 h-4 rounded accent-orange-700 cursor-pointer" <#if showMaintenance>disabled</#if> />
+                            <label for="wtrememberme" class="ml-3 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">Keep me logged on this device</label>
+                          </div>
+                        </div>
+                        </#if>
                       </div>
                     </div>
                     <div class="form-group" <#if !showDomain>style="display: none;"</#if>
