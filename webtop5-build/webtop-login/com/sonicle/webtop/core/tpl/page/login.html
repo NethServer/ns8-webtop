@@ -163,7 +163,7 @@
                     <label
                         for="email"
                         class="block text-sm font-medium text-gray-700 dark:text-gray-200 pb-2"
-                        >Username</label
+                        >${usernameLabel}</label
                       >
                     <div>
                       <div class="text-left w-full">
@@ -185,7 +185,7 @@
                     <label
                         for="password"
                         class="block text-sm font-medium text-gray-700 dark:text-gray-200 pb-1"
-                        >Password</label
+                        >${passwordLabel}</label
                       >
                     <div>
                       <div class="text-left w-full">
@@ -223,7 +223,7 @@
                         <div class="flex flex-wrap items-center justify-between gap-4 mt-3">
                           <div class="flex items-center">
                             <input id="wtrememberme" name="wtrememberme" type="checkbox" value="true" class="w-4 h-4 rounded accent-orange-700 cursor-pointer" <#if showMaintenance>disabled</#if> />
-                            <label for="wtrememberme" class="ml-3 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">Keep me logged on this device</label>
+                            <label for="wtrememberme" class="ml-3 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">${rememberMeLabel}</label>
                           </div>
                         </div>
                         </#if>
