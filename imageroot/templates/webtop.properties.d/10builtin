@@ -6,3 +6,4 @@ webtop.home=/var/lib/nethserver/webtop
 webtop.provisioning.api.token=${WEBAPP_API_TOKEN}
 webtop.admin.mode.singledomain=true
 webtop.admin.logviewer.enabled=false
+webtop.login.rememberme.enabled=true
