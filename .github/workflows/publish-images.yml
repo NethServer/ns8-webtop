@@ -13,51 +13,18 @@ permissions:
 jobs:
   publish-images:
     if: github.run_number > 1
-    name: 'Publish module images'
-    runs-on: ubuntu-latest
-    env:
-      REPOBASE: ghcr.io/${{ github.repository_owner }}
-      IMAGETAG: ${{ github.ref_name }}
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          lfs: true
-      - uses: actions/cache@v5
-        with:
-          path: ui/node_modules
-          key: "yarn-${{ hashFiles('ui/yarn.lock') }}"
-      - uses: actions/cache@v5
-        with:
-          path: |
-            webtop5-build/webtop-webapp-*.war
-            webtop5-build/sql-scripts-*.tar.gz
-            webtop5-build/webtop-dav-server-*.tgz
-            webtop5-build/webtop-eas-server-*.tgz
-            webtop5-build/ListTimeZones.class
-            webtop5-build/WebtopPassEncode.class
-          key: "maven-build-${{ hashFiles('webtop5-build/VERSION') }}"
-      - id: build
-        run: |
-          ( umask 077 ; base64 -d <<<"${{ secrets.NETRCB64 }}" >~/.netrc || : ; )
-          REPOBASE=${REPOBASE,,}
-          export REPOBASE
-          bash build-images.sh
-      - id: publish
-        run: |
-          trap 'buildah logout ghcr.io' EXIT
-          buildah login -u ${{ github.actor }} --password-stdin ghcr.io <<<"${{ secrets.GITHUB_TOKEN }}"
-          images=(${{ steps.build.outputs.images }})
-          urls=""
-          : "${IMAGETAG:?}"
-          imagetag=$(printf '%s' "${IMAGETAG}" | tr '/' '-')
-          for image in "${images[@]}" ; do
-            buildah push $image docker://${image}:${imagetag}
-            if [[ "${imagetag}" == "main" || "${imagetag}" == "master" ]]; then
-                buildah push $image docker://${image}:latest
-            fi
-            urls="${image}:${imagetag} "$'\n'"${urls}"
-          done
-          echo "::notice title=Image URLs::${urls}"
+    uses: NethServer/ns8-github-actions/.github/workflows/publish-branch.yml@sdl-extra-cache
+    with:
+      extra-cache-paths: |
+        webtop5-build/webtop-webapp-*.war
+        webtop5-build/sql-scripts-*.tar.gz
+        webtop5-build/webtop-dav-server-*.tgz
+        webtop5-build/webtop-eas-server-*.tgz
+        webtop5-build/ListTimeZones.class
+        webtop5-build/WebtopPassEncode.class
+      extra-cache-key: "maven-build-${{ hashFiles('webtop5-build/VERSION') }}"
+    secrets:
+      netrcb64: ${{ secrets.NETRCB64 }}
   module:
     needs: publish-images
     uses: NethServer/ns8-github-actions/.github/workflows/module-info.yml@v1
