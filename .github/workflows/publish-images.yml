@@ -22,7 +22,8 @@ jobs:
         webtop5-build/webtop-eas-server-*.tgz
         webtop5-build/ListTimeZones.class
         webtop5-build/WebtopPassEncode.class
-      extra-cache-key: "maven-build-${{ hashFiles('webtop5-build/VERSION') }}"
+      extra-cache-key-prefix: "maven-build"
+      extra-cache-key-file: "webtop5-build/VERSION"
     secrets:
       netrcb64: ${{ secrets.NETRCB64 }}
   module:
