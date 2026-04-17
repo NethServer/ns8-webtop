@@ -4,7 +4,7 @@
 set -e
 cleanup_list=()
 trap 'rm -rf "${cleanup_list[@]}"' EXIT
-
+#
 # Prepare variables for later use
 images=()
 # The image will be pushed to GitHub container registry
