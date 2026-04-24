@@ -105,3 +105,6 @@ dist
 
 # Pecbridge download binaries
 pecbridge-*.tar.gz
+
+# Test outputs
+tests/outputs/
