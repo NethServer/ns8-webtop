@@ -19,7 +19,7 @@ Login to cluster-admin
 Take screenshots
     [Tags]    ui
     New Browser    chromium    headless=True
-    New Context    timeout=10s
+    New Context    ignoreHTTPSErrors=True
     Login to cluster-admin
     Go To    https://${NODE_ADDR}/cluster-admin/#/apps/${webtop_module_id}
     Wait For Elements State    iframe >>> h2 >> text="Status"    visible    timeout=10s
