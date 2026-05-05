@@ -80,7 +80,7 @@
     "action": {
         "get-name": "Visualizza nome",
         "configure-module": "Configura modulo",
-        "list-backup-repositories": "Elenca repository di backup",
+        "list-backup-repositories": "Elenca i repository di backup",
         "list-backups": "Elenca backup",
         "get-status": "Visualizza stato",
         "get-configuration": "Visualizza configurazione",
