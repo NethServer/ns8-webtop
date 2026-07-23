@@ -10,8 +10,8 @@ After=webtop.service
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
-EnvironmentFile=%S/state/environment
-WorkingDirectory=%S/state
+EnvironmentFile=%E/state/environment
+WorkingDirectory=%E/state
 Restart=always
 # wait-postgres-init should complete in 5 minutes,
 # this sets an larger safeguard limit:
