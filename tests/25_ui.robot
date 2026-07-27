@@ -1,5 +1,4 @@
 *** Settings ***
-Library           Browser
 
 *** Variables ***
 ${ADMIN_USER}    admin
@@ -18,6 +17,7 @@ Login to cluster-admin
 *** Test Cases ***
 Take screenshots
     [Tags]    ui
+    Import Library    Browser
     New Browser    chromium    headless=True
     New Context    ignoreHTTPSErrors=True
     Login to cluster-admin
