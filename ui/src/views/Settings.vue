@@ -64,7 +64,9 @@
                 $t("settings.enabled")
               }}</template>
             </NsToggle>
-            <cv-row v-if="isLetsEncryptCurrentlyEnabled && !isLetsEncryptEnabled">
+            <cv-row
+              v-if="isLetsEncryptCurrentlyEnabled && !isLetsEncryptEnabled"
+            >
               <cv-column>
                 <NsInlineNotification
                   kind="warning"
