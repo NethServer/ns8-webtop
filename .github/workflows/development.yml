@@ -10,11 +10,11 @@ jobs:
     - name: Get current stable version
       id: get_version
       run: echo "::set-output name=version::$(cat webtop5-build/VERSION)"
-    - name: Get current stable version
+    - name: Get current date
       id: get_date
       run: |
         export TZ=Europe/Rome
-        echo "::set-output name=current::$(date)"
+        echo "::set-output name=current::$(date +%Y%m%d-%H%M%S-%Z)"
     - name: Set development version
       run: echo "development-${{ steps.get_date.outputs.current }}" > webtop5-build/VERSION
     - name: Create/Update pull request
