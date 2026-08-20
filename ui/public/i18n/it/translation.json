@@ -98,7 +98,7 @@
         "generic_error": "Qualcosa è andato storto",
         "validation_error": "Errore di validazione",
         "cannot_retrieve_module_info": "Impossibile recuperare info modulo",
-        "network_error": "Errore di rete. Controlla la connessione e ricarica la pagina.",
+        "network_error": "Errore di rete",
         "cannot_retrieve_installed_modules": "Impossibile elencare moduli installati",
         "network_timeout": "Timeout di rete"
     },
