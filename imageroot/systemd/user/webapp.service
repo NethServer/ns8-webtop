@@ -10,11 +10,11 @@ PartOf=webtop.service
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
-EnvironmentFile=%S/state/environment
-WorkingDirectory=%S/state
+EnvironmentFile=%E/state/environment
+WorkingDirectory=%E/state
 Restart=always
 ExecStartPre=/bin/rm -f %t/webapp.pid %t/webapp.ctr-id
-ExecStartPre=/usr/local/bin/runagent %S/scripts/expandconfig-webapp
+ExecStartPre=/usr/local/bin/runagent %E/scripts/expandconfig-webapp
 ExecStartPre=/usr/local/bin/runagent discover-ldap
 ExecStartPre=/usr/local/bin/runagent mkdir -p webtop-custom-jars
 ExecStart=/usr/bin/podman run \
