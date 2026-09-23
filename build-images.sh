@@ -16,7 +16,6 @@ webtop_version=$(cat ${PWD}/webtop5-build/VERSION)
 if ! compgen -G "pecbridge-*.tar.gz"; then
     curl --netrc --fail -O "https://www.sonicle.com/nethesis/commercial/pecbridge/pecbridge-5.4.11.tar.gz"
 fi
-sha256sum pecbridge-*.tar.gz
 sha256sum -c CHECKSUM
 
 # Reuse existing webtopbuilder container, to speed up builds
