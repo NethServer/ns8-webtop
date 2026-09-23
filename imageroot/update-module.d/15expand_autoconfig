@@ -1,16 +1,1 @@
-#!/bin/bash
-
-#
-# Copyright (C) 2026 Nethesis S.r.l.
-# SPDX-License-Identifier: GPL-3.0-or-later
-#
-
-set -e
-
-# Module not configured yet, configure-module will expand the templates
-if [[ -z "$MAIL_DOMAIN" ]]; then
-    exit 0
-fi
-
-mkdir -p autoconfiguration
-exec ../actions/configure-module/30expand_autoconfig
+../actions/configure-module/30expand_autoconfig
