@@ -1,0 +1,44 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "get-facts output",
+    "$id": "http://schema.nethserver.org/webtop/get-facts-output.json",
+    "description": "WebTop facts for the cluster inventory",
+    "examples": [
+        {
+            "pecbridge_fetchers_count": 3,
+            "pecbridge_fetchers_enabled_count": 2,
+            "pecbridge_relays_count": 1,
+            "pecbridge_relays_enabled_count": 1
+        },
+        {
+            "get_pecbridge_facts_error": true
+        }
+    ],
+    "type": "object",
+    "properties": {
+        "pecbridge_fetchers_count": {
+            "description": "Number of configured PEC bridge fetchers",
+            "type": "integer",
+            "minimum": 0
+        },
+        "pecbridge_fetchers_enabled_count": {
+            "description": "Number of enabled PEC bridge fetchers",
+            "type": "integer",
+            "minimum": 0
+        },
+        "pecbridge_relays_count": {
+            "description": "Number of configured PEC bridge relays",
+            "type": "integer",
+            "minimum": 0
+        },
+        "pecbridge_relays_enabled_count": {
+            "description": "Number of enabled PEC bridge relays",
+            "type": "integer",
+            "minimum": 0
+        },
+        "get_pecbridge_facts_error": {
+            "description": "Set when the PEC bridge facts cannot be read",
+            "type": "boolean"
+        }
+    }
+}
