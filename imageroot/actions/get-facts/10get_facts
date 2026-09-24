@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2026 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import subprocess
+import sys
+import agent
+
+query = """
+SELECT
+    (SELECT count(*) FROM config.pecbridge_fetchers),
+    (SELECT count(*) FILTER (WHERE enabled) FROM config.pecbridge_fetchers),
+    (SELECT count(*) FROM config.pecbridge_relays),
+    (SELECT count(*) FILTER (WHERE enabled) FROM config.pecbridge_relays);
+"""
+keys = [
+    "pecbridge_fetchers_count",
+    "pecbridge_fetchers_enabled_count",
+    "pecbridge_relays_count",
+    "pecbridge_relays_enabled_count",
+]
+
+try:
+    proc = subprocess.run(
+        ['podman', 'exec', '-i', 'postgres', 'psql', '-U', 'postgres', 'webtop5', '-tAF,', '-v', 'ON_ERROR_STOP=1'],
+        input=query, stdout=subprocess.PIPE, text=True, check=True,
+    )
+    facts = dict(zip(keys, map(int, proc.stdout.strip().split(','))))
+except Exception as ex:
+    # Never fail: the cluster inventory must keep working without these facts
+    print(agent.SD_ERR, "PEC bridge query failed:", ex, file=sys.stderr)
+    facts = {"get_pecbridge_facts_error": True}
+
+json.dump(facts, fp=sys.stdout)
