@@ -69,7 +69,9 @@ if [ "$base_branch" == "release" -o  "$base_branch" == "develop" ]; then
     COMPONENTS_COM=webtop-nethesis-laf \
     MOD_FLAGS.webtop-nethesis-laf=git-develop,git-release
 else
-  make setup USE_LFS=0 COMPONENTS_COM=webtop-nethesis-laf MOD_FLAGS.webtop-nethesis-laf=git-develop,git-release
+  # sonicle-superpom lives in the sonicle org, not in sonicle-webtop like other components
+  make setup USE_LFS=0 COMPONENTS_COM=webtop-nethesis-laf MOD_FLAGS.webtop-nethesis-laf=git-develop,git-release \
+    MOD_CLONEBASEURL.sonicle-superpom=https://github.com/sonicle
   make checkout-tag TAG=$tag_name
 fi
 
