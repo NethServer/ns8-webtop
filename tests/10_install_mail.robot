@@ -13,7 +13,7 @@ Install account providers
 
 Mail module installation
     [Tags]    module
-    ${output}  ${rc} =    Execute Command    add-module ghcr.io/nethserver/mail:main 1
+    ${output}  ${rc} =    Execute Command    add-module mail 1
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}  0
     &{output} =    Evaluate    ${output}
