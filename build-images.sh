@@ -124,6 +124,11 @@ buildah add ${container} ${PWD}/webtop5-build/webtop-dav-server-$webtop_version.
 buildah run ${container} sh -c "mv \$PHP_INI_DIR/php.ini-production \$PHP_INI_DIR/php.ini"
 # Drop E_WARNING: bundled sabre/dav floods the logs on PHP >= 7.3
 buildah run ${container} sh -c "sed -i 's/error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE);/error_reporting(E_ALL \& ~E_NOTICE \& ~E_USER_NOTICE \& ~E_WARNING);/' /usr/share/webtop/webdav/server.php"
+buildah run ${container} sh -c "sed -i 's/pm.max_children = 5/pm.max_children = 40/' /usr/local/etc/php-fpm.d/www.conf"
+buildah run ${container} sh -c "sed -i 's/pm.start_servers = 2/pm.start_servers = 20/' /usr/local/etc/php-fpm.d/www.conf"
+buildah run ${container} sh -c "sed -i 's/pm.min_spare_servers = 1/pm.min_spare_servers = 20/' /usr/local/etc/php-fpm.d/www.conf"
+buildah run ${container} sh -c "sed -i 's/pm.max_spare_servers = 3/pm.max_spare_servers = 30/' /usr/local/etc/php-fpm.d/www.conf"
+buildah run ${container} sh -c "sed -i 's/;pm.max_requests = 500/pm.max_requests = 500/' /usr/local/etc/php-fpm.d/www.conf"
 # Commit the image
 buildah commit --rm "${container}" "${repobase}/${reponame}"
 
