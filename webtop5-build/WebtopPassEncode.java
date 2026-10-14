@@ -1,6 +1,6 @@
 import javax.crypto.*;
 import javax.crypto.spec.*;
-import sun.misc.*;
+import java.util.Base64;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 
@@ -23,7 +23,8 @@ public class WebtopPassEncode {
         SecretKey sk=SecretKeyFactory.getInstance("DES").generateSecret(ks);
         Cipher cipher=Cipher.getInstance("DES");
         cipher.init(Cipher.ENCRYPT_MODE,sk);
-        return (new BASE64Encoder()).encode(cipher.doFinal(pass.getBytes("UTF-8")));
+        // MIME encoder with "\n" matches the output of the removed sun.misc.BASE64Encoder
+        return Base64.getMimeEncoder(76, new byte[]{'\n'}).encodeToString(cipher.doFinal(pass.getBytes("UTF-8")));
     }
 
 }
