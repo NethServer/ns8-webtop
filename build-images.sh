@@ -22,10 +22,13 @@ if ! sha256sum -c CHECKSUM; then
 fi
 
 # Reuse existing webtopbuilder container, to speed up builds
-builder="webtopbuilder-jdk21"
+# Maven 3.8: minify-maven-plugin relies on the plexus-utils that 3.9 no
+# longer adds to plugins
+builder_tag="3.8.8-eclipse-temurin-21"
+builder="webtopbuilder-${builder_tag}"
 if ! buildah containers --format "{{.ContainerName}}" | grep -qx "${builder}"; then
     echo "Pulling maven runtime..."
-    buildah from --name "${builder}-tmp" docker.io/library/maven:3.9.16-eclipse-temurin-21
+    buildah from --name "${builder}-tmp" "docker.io/library/maven:${builder_tag}"
     buildah run "${builder}-tmp"  apt-get  update
     buildah run "${builder}-tmp"  apt-get  install -y  nodejs make bzip2 wget git
     buildah commit --rm "${builder}-tmp" "${builder}-image"
