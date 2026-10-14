@@ -25,9 +25,14 @@ fi
 webtop_version=$(cat VERSION)
 
 if echo $webtop_version | grep -qE ^development- ; then
-    base_branch="develop"
+    base_branch_type="DEVELOP"
+    # An optional BRANCH file selects an upstream branch: components
+    # without it stay on "develop"
+    if [ -s BRANCH ]; then
+        branch_name=$(cat BRANCH)
+    fi
 elif echo $webtop_version | grep -qE ^staging- ; then
-    base_branch="release"
+    base_branch_type="RELEASE"
 else
     tag_name=$webtop_version
     if [ -z $tag_name ]; then
@@ -60,14 +65,20 @@ echo
 echo "Cloning all repositories..."
 echo
 
-if [ "$base_branch" == "release" -o  "$base_branch" == "develop" ]; then
+if [ -n "$base_branch_type" ]; then
   make setup \
     USE_LFS=0 \
     DEFAULT_CLONE_BASEURL=https://bitbucket.org/sonicle \
     DEFAULT_MVNTOOLS_CLONE_BASEURL=https://bitbucket.org/sonicle \
-    DEFAULT_BASE_BRANCH=$base_branch \
+    DEFAULT_BASE_BRANCH_TYPE=$base_branch_type \
     COMPONENTS_COM=webtop-nethesis-laf \
     MOD_FLAGS.webtop-nethesis-laf=git-develop,git-release
+  if [ -n "$branch_name" ]; then
+    make checkout-branch \
+      BRANCH="$branch_name" \
+      COMPONENTS_COM=webtop-nethesis-laf \
+      MOD_FLAGS.webtop-nethesis-laf=git-develop,git-release
+  fi
 else
   make setup USE_LFS=0 COMPONENTS_COM=webtop-nethesis-laf MOD_FLAGS.webtop-nethesis-laf=git-develop,git-release
   make checkout-tag TAG=$tag_name
