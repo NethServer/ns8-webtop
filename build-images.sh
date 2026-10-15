@@ -80,6 +80,8 @@ buildah add ${container} ${PWD}/zfaker/wrappers/php /usr/share/webtop/bin/php
 buildah add ${container} ${PWD}/zfaker/wrappers/z-push-admin-wapper /usr/share/webtop/bin/z-push-admin-wrapper
 buildah add ${container} ${pecbridge_tmp_dir}/pecbridge /usr/share/pecbridge
 buildah add ${container} ${PWD}/webapp/ /
+# Hide Tomcat version from error pages; fail if the valve was not added
+buildah run ${container} sh -c "sed -i 's|</Host>|  <Valve className=\"org.apache.catalina.valves.ErrorReportValve\" showReport=\"false\" showServerInfo=\"false\" />\\n      </Host>|' /usr/local/tomcat/conf/server.xml && grep -q 'ErrorReportValve' /usr/local/tomcat/conf/server.xml"
 # Commit the image
 buildah commit --rm "${container}" "${repobase}/${reponame}"
 
