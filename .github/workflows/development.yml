@@ -1,6 +1,11 @@
 name: Build Development
 on:
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Upstream branch (empty: develop)'
+        required: false
+        default: ''
 
 jobs:
   update_create_pr:
@@ -17,6 +22,15 @@ jobs:
         echo "current=$(date +%Y%m%d-%H%M%S-%Z)" >> "$GITHUB_OUTPUT"
     - name: Set development version
       run: echo "development-${{ steps.get_date.outputs.current }}" > webtop5-build/VERSION
+    - name: Set upstream branch
+      env:
+        BRANCH: ${{ github.event.inputs.branch }}
+      run: |
+        if [ -n "$BRANCH" ]; then
+          echo "$BRANCH" > webtop5-build/BRANCH
+        else
+          rm -f webtop5-build/BRANCH
+        fi
     - name: Create/Update pull request
       uses: peter-evans/create-pull-request@v8
       with:
