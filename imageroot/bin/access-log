@@ -36,7 +36,18 @@ line_expr="'action=' || $(field action)
     || ' ip=' || $(field "CASE WHEN data IS JSON OBJECT THEN data::json->>'ip' END")
     || ' session=' || $(field session_id)"
 
+table_ready=0
+
 while true; do
+    # WebTop creates its schema on first start: wait for it without warnings
+    if (( ! table_ready )); then
+        if [[ $(run_query "SELECT to_regclass('core.access_log') IS NOT NULL" 2>/dev/null) != t ]]; then
+            sleep "${interval}"
+            continue
+        fi
+        table_ready=1
+    fi
+
     if ! max=$(run_query "SELECT coalesce(max(access_log_id), 0) FROM core.access_log"); then
         warn "query failed, retrying in ${interval}s"
         sleep "${interval}"
