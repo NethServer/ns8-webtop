@@ -1,17 +1,11 @@
-<!--
-  Loaded by WebTop from override.dir. Send the auth log (logins and
-  failed logins with client IP) to stdout, so it reaches journald.
-  Own appender: journald already adds the timestamp, and it works
-  whatever webtop.log.target is.
--->
+<!-- Send WebTop auth events to journald, one line each: the typed username may hold CR/LF -->
 <included>
   <appender name="authlog-stdout" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%replace(%msg){'\s+$',''}%n</pattern>
+      <pattern>webtop-auth: %replace(%replace(%msg){'[\r\n]+',' '}){'\s+$',''}%n</pattern>
     </encoder>
   </appender>
-  <!-- TRACE as upstream: logout and session end events are logged at DEBUG -->
-  <logger name="com.sonicle.webtop.AuthLog" level="TRACE" additivity="false">
+  <logger name="com.sonicle.webtop.AuthLog" level="DEBUG" additivity="false">
     <appender-ref ref="authlog-stdout"/>
   </logger>
 </included>
