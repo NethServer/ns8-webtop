@@ -1,0 +1,9 @@
+<!--
+  Loaded by WebTop from override.dir. Send the auth log (logins and
+  failed logins with client IP) to stdout, so it reaches journald.
+-->
+<included>
+  <logger name="com.sonicle.webtop.AuthLog" level="INFO" additivity="false">
+    <appender-ref ref="stdout"/>
+  </logger>
+</included>
