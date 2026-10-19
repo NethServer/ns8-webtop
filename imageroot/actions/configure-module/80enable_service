@@ -9,6 +9,7 @@ exec 1>&2
 
 # If the control reaches this step, the service can be enabled and started
 systemctl --user enable --now webtop.service
+systemctl --user enable --now access-log.service
 
 if [ -f "phonebook.env" ]; then
     systemctl --user enable --now phonebook.timer

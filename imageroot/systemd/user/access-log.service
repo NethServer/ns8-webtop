@@ -1,0 +1,19 @@
+#
+# Send WebTop login events from core.access_log to journald
+#
+[Unit]
+Description=WebTop access log forwarder
+After=postgres.service
+BindsTo=postgres.service
+
+[Service]
+Type=simple
+WorkingDirectory=%E/state
+ExecStart=runagent access-log
+Restart=always
+RestartSec=10
+SyslogIdentifier=webtop-access-log
+
+[Install]
+# Start again with postgres, BindsTo only stops this unit
+WantedBy=postgres.service

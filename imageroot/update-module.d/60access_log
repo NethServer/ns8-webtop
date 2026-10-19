@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2026 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+set -e
+
+exec 1>&2
+
+# Starting the unit pulls in postgres and the whole pod: skip modules not configured yet
+if systemctl --user -q is-enabled webtop.service; then
+    systemctl --user enable access-log.service
+    systemctl --user restart access-log.service
+fi
