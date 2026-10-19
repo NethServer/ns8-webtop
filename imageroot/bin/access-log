@@ -13,7 +13,7 @@ interval=10
 batch_size=500
 
 run_query() {
-    podman exec -i postgres psql -U postgres webtop5 -tA -F $'\t' -v ON_ERROR_STOP=1 <<<"$1" 2>&1
+    podman exec -i postgres psql -U postgres webtop5 -tA -F $'\t' -v ON_ERROR_STOP=1 <<<"$1"
 }
 
 warn() {
@@ -38,7 +38,7 @@ line_expr="'action=' || $(field action)
 
 while true; do
     if ! max=$(run_query "SELECT coalesce(max(access_log_id), 0) FROM core.access_log"); then
-        warn "query failed, retrying in ${interval}s: ${max%%$'\n'*}"
+        warn "query failed, retrying in ${interval}s"
         sleep "${interval}"
         continue
     fi
@@ -54,19 +54,26 @@ while true; do
     if rows=$(run_query "SELECT access_log_id, ${line_expr}
             FROM core.access_log
             WHERE context = 'AUTH' AND access_log_id > ${cursor}
+                AND \"timestamp\" < now() - interval '5 seconds'
             ORDER BY access_log_id
             LIMIT ${batch_size}"); then
         last=${cursor}
+        count=0
         while IFS=$'\t' read -r id line; do
             [[ -n "${id}" ]] || continue
             printf '%s\n' "${line}"
             last=${id}
+            (( count++ ))
         done <<<"${rows}"
         if (( last != cursor )); then
             save_cursor "${last}"
         fi
+        # A full batch means a backlog: read the next one right away
+        if (( count == batch_size )); then
+            continue
+        fi
     else
-        warn "query failed, retrying in ${interval}s: ${rows%%$'\n'*}"
+        warn "query failed, retrying in ${interval}s"
     fi
 
     sleep "${interval}"

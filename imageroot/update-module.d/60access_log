@@ -9,8 +9,11 @@ set -e
 
 exec 1>&2
 
-# Starting the unit pulls in postgres and the whole pod: skip modules not configured yet
 if systemctl --user -q is-enabled webtop.service; then
     systemctl --user enable access-log.service
+fi
+
+# Starting the unit pulls in postgres and the whole pod: do it only if postgres already runs
+if systemctl --user -q is-active postgres.service; then
     systemctl --user restart access-log.service
 fi
