@@ -220,6 +220,13 @@ class DavClient:
         self.save()
         return {}
 
+    def lookup(self, kind, name):
+        """The href of the only item with this name the phone knows."""
+        hrefs = [h for h, item in self.kind_state(kind)["items"].items() if item.get("name") == name]
+        if len(hrefs) != 1:
+            raise HelperError("phone knows %d %s items named %r" % (len(hrefs), kind, name))
+        return {"href": hrefs[0]}
+
     def sync(self, kind):
         ks = self.kind_state(kind)
         full_resync = False
@@ -293,4 +300,6 @@ def run(args):
         return client.delete(args.href)
     if args.command == "sync":
         return client.sync(args.kind)
+    if args.command == "lookup":
+        return client.lookup(args.kind, args.name)
     raise HelperError("unknown dav command %s" % args.command)

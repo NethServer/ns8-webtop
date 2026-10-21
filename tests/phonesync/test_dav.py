@@ -75,5 +75,22 @@ class DiffTest(unittest.TestCase):
         self.assertEqual(dav.diff({}, {"/x.vcf": None}, complete=False), ([], [], []))
 
 
+class LookupTest(unittest.TestCase):
+    def test_lookup_by_name_in_state(self):
+        import tempfile, json
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "s.json")
+            with open(path, "w") as f:
+                json.dump({"contact": {"collection": AB, "items": {CARD: {"etag": '"1"', "name": "A"},
+                                                                  AB + "x.vcf": {"etag": '"1"', "name": "A"}}}}, f)
+            client = dav.DavClient("http://x", "h", "u", "p", "davx5", path)
+            with self.assertRaises(dav.HelperError):  # two items with the same name: not exactly one
+                client.lookup("contact", "A")
+            with self.assertRaises(dav.HelperError):
+                client.lookup("contact", "B")
+            client.state["contact"]["items"][AB + "y.vcf"] = {"etag": '"1"', "name": "C"}
+            self.assertEqual(client.lookup("contact", "C"), {"href": AB + "y.vcf"})
+
+
 if __name__ == "__main__":
     unittest.main()

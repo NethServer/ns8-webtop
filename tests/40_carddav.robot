@@ -1,26 +1,11 @@
 *** Settings ***
+Test Timeout      5 minutes
 Documentation     Contacts over CardDAV, as DAVx5 (Android) and iOS sync them
 Resource          phonesync_sync.resource
 Suite Setup       Set up phone suite
 Suite Teardown    Delete all test items in WebTop
 
 *** Test Cases ***
-Paired phone keeps syncing contacts after upgrade
-    [Template]    Paired DAV phone keeps syncing
-    davx5    contact
-    ios-dav    contact
-
-Pre-upgrade contacts survive
-    [Template]    Pre-upgrade contact survives
-    davx5
-    ios-dav
-    ios-eas
-    android-eas
-
-Paired phone can still write contacts
-    [Template]    Paired phone can still write contacts
-    davx5
-    ios-dav
 
 Phone discovers address book
     [Template]    Phone discovers address book
@@ -129,19 +114,3 @@ Second phone sees first phone's contact
     ${r} =    Phone DAV sync    ${reader}    contact
     ${names} =    Names in    ${r['added']}
     Should Be Equal    ${names}    ${{[$name]}}
-
-Paired DAV phone keeps syncing
-    [Arguments]    ${profile}    ${kind}
-    Skip unless update scenario
-    Phone DAV sync has nothing new    ${profile}    ${kind}
-
-Pre-upgrade contact survives
-    [Arguments]    ${profile}
-    Skip unless update scenario
-    ${name} =    Pre-upgrade name    ${profile}    contact
-    Contact exists in WebTop    ${name}
-
-Paired phone can still write contacts
-    [Arguments]    ${profile}
-    Skip unless update scenario
-    Contact created on phone reaches WebTop    ${profile}

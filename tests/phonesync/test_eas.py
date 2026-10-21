@@ -179,6 +179,37 @@ class SyncTest(EasTestCase):
         self.assertTrue(out["full_resync"])
         self.assertEqual(out["added"], [])  # same item came back: no duplicate
 
+    def test_sync_reports_pages(self):
+        server = FakeServer(
+            sync_reply("k1"),
+            sync_reply("k2", commands=[contact_add("s1", "A"), contact_add("s2", "B")], more=True),
+            sync_reply("k3", commands=[contact_add("s3", "C")]))
+        out = self.client(server).sync("Contacts", window=2)
+        self.assertEqual((out["pages"], out["max_page"]), (2, 2))
+
+    def test_delete_of_unknown_item_ignored(self):
+        server = FakeServer(sync_reply("k5", commands=[el("AirSync:Delete", el("AirSync:ServerId", text="never-seen"))]))
+        c = self.client(server, sync={"Contacts": {"collection_id": "c1", "sync_key": "k4", "items": {}}})
+        self.assertEqual(c.sync("Contacts")["deleted"], [])
+
+    def test_endless_more_available_raises(self):
+        server = FakeServer(sync_reply("k1"), *[sync_reply("k%d" % i, more=True) for i in range(2, 60)])
+        with self.assertRaises(HelperError):
+            self.client(server).sync("Contacts")
+
+    def test_repeated_invalid_sync_key_raises(self):
+        server = FakeServer(sync_reply("0", status="3"), sync_reply("k1"), sync_reply("0", status="3"))
+        c = self.client(server, sync={"Contacts": {"collection_id": "c1", "sync_key": "old", "items": {}}})
+        with self.assertRaises(HelperError):
+            c.sync("Contacts")
+
+    def test_lookup_by_name(self):
+        c = self.client(FakeServer(), sync={"Contacts": {"collection_id": "c1", "sync_key": "k1",
+                                                         "items": {"s1": {"name": "A"}, "s2": {"name": "B"}}}})
+        self.assertEqual(c.lookup("Contacts", "B"), {"server_id": "s2"})
+        with self.assertRaises(HelperError):
+            c.lookup("Contacts", "missing")
+
     def test_add_returns_server_id(self):
         server = FakeServer(sync_reply("k2", responses=[
             el("AirSync:Add", el("AirSync:ClientId", text="cid"), el("AirSync:ServerId", text="s9"),
