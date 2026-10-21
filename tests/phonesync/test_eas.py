@@ -148,6 +148,55 @@ class ItemShapeTest(unittest.TestCase):
         self.assertEqual(findtext(data, "Contacts:FileAs"), "Niccolò Ürsula ☕")
         self.assertEqual(eas.item_name(data), "Niccolò Ürsula ☕")
 
+    FIELDS = {"mobile": "+39 333 1234567", "email": "niccolo@example.test",
+              "street": "Via Roma 1", "city": "Pesaro", "photo": "png"}
+
+    def test_task_data(self):
+        data = eas.task_data("Pay ☕", "2026-07-20T08:00:00Z")
+        self.assertEqual(findtext(data, "Tasks:Subject"), "Pay ☕")
+        self.assertEqual(findtext(data, "Tasks:UtcDueDate"), "2026-07-20T08:00:00.000Z")
+        self.assertEqual(findtext(data, "Tasks:Complete"), "0")
+        self.assertIsNone(find(data, "Tasks:DateCompleted"))
+
+    def test_task_complete_data(self):
+        data = eas.task_data("Pay", "2026-07-20T08:00:00Z", complete=True)
+        self.assertEqual(findtext(data, "Tasks:Complete"), "1")
+        self.assertRegex(findtext(data, "Tasks:DateCompleted"), r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.000Z$")
+
+    def test_contact_fields_data(self):
+        data = eas.contact_data("N", self.FIELDS)
+        self.assertEqual(findtext(data, "Contacts:MobilePhoneNumber"), "+39 333 1234567")
+        self.assertEqual(findtext(data, "Contacts:Email1Address"), "niccolo@example.test")
+        self.assertEqual(findtext(data, "Contacts:BusinessStreet"), "Via Roma 1")
+        self.assertEqual(findtext(data, "Contacts:BusinessCity"), "Pesaro")
+        self.assertEqual(base64.b64decode(findtext(data, "Contacts:Picture")), eas.items.TEST_PNG)
+        self.assertEqual(eas.contact_fields(data), {"mobile": "+39 333 1234567", "email": "niccolo@example.test",
+                                                    "street": "Via Roma 1", "city": "Pesaro",
+                                                    "photo_size": len(eas.items.TEST_PNG)})
+
+    def test_calendar_all_day(self):
+        data = eas.calendar_data("u", "Ferie", "2026-07-15", "2026-07-16", "Europe/Rome", all_day=True)
+        self.assertEqual(findtext(data, "Calendar:AllDayEvent"), "1")
+        self.assertEqual(findtext(data, "Calendar:StartTime"), "20260714T220000Z")  # local midnight
+        self.assertEqual(findtext(data, "Calendar:EndTime"), "20260715T220000Z")
+        self.assertEqual(eas.event_details(data)["start"], "2026-07-15")
+        self.assertTrue(eas.event_details(data)["all_day"])
+
+    def test_calendar_recurrence_and_reminder(self):
+        data = eas.calendar_data("u", "Weekly", "2026-07-15T10:00:00", "2026-07-15T11:00:00", "Europe/Rome",
+                                 rrule="FREQ=WEEKLY;COUNT=4", alarm=15)
+        self.assertEqual(findtext(data, "Calendar:Recurrence/Calendar:Type"), "1")
+        self.assertEqual(findtext(data, "Calendar:Recurrence/Calendar:Occurrences"), "4")
+        self.assertEqual(findtext(data, "Calendar:Recurrence/Calendar:DayOfWeek"), "8")  # Wednesday
+        self.assertEqual(findtext(data, "Calendar:Reminder"), "15")
+        self.assertEqual(eas.event_details(data), {"all_day": False, "start": "2026-07-15T08:00:00Z",
+                                                   "rrule": "FREQ=WEEKLY;COUNT=4", "alarm": 15})
+
+    def test_unsupported_rrule_raises(self):
+        with self.assertRaises(HelperError):
+            eas.calendar_data("u", "x", "2026-07-15T10:00:00", "2026-07-15T11:00:00", "Europe/Rome",
+                              rrule="FREQ=MONTHLY;BYDAY=2TU")
+
     def test_sendmail_request(self):
         root = eas.sendmail_request("cid", b"Subject: hi\r\n\r\nbody")
         self.assertEqual(root.tag, "ComposeMail:SendMail")
@@ -177,7 +226,9 @@ class SyncTest(EasTestCase):
                                                    "items": {"s1": {"name": "A"}, "s2": {"name": "B"}}}})
         out = c.sync("Contacts")
         self.assertEqual(out["changed"], [{"server_id": "s1", "name": "A2", "start": None,
-                                           "tz_bias": None, "tz_dst_bias": None}])
+                                           "tz_bias": None, "tz_dst_bias": None,
+                                           "fields": {"mobile": None, "email": None, "street": None,
+                                                      "city": None, "photo_size": 0}}])
         self.assertEqual(out["deleted"], ["s2"])
         self.assertEqual(c.state["sync"]["Contacts"]["sync_key"], "k5")
 
@@ -229,6 +280,22 @@ class SyncTest(EasTestCase):
                         folders=[{"id": "c1", "type": "13", "name": "WebTop"}])
         added = c.sync("Calendar")["added"][0]
         self.assertEqual((added["start"], added["tz_bias"], added["tz_dst_bias"]), ("2026-07-15T08:00:00Z", -60, -60))
+
+    def test_sync_entries_carry_fields(self):
+        contact = el("AirSync:Add", el("AirSync:ServerId", text="v1"), el("AirSync:ApplicationData",
+                     el("Contacts:FileAs", text="N"), el("Contacts:MobilePhoneNumber", text="+39 1"),
+                     el("Contacts:Picture", text=base64.b64encode(eas.items.TEST_PNG).decode())))
+        task = el("AirSync:Add", el("AirSync:ServerId", text="t1"), el("AirSync:ApplicationData",
+                  el("Tasks:Subject", text="T"), el("Tasks:Complete", text="1"),
+                  el("Tasks:UtcDueDate", text="2026-07-20T08:00:00.000Z")))
+        c = self.client(FakeServer(sync_reply("k1"), sync_reply("k2", commands=[contact]),
+                                   sync_reply("k1"), sync_reply("k2", commands=[task])),
+                        folders=[{"id": "v/1", "type": "14", "name": "WebTop"}, {"id": "t/1", "type": "15", "name": "WebTop"}])
+        added = c.sync("Contacts")["added"][0]
+        self.assertEqual(added["fields"]["mobile"], "+39 1")
+        self.assertEqual(added["fields"]["photo_size"], len(eas.items.TEST_PNG))
+        added = c.sync("Tasks")["added"][0]
+        self.assertEqual((added["name"], added["complete"], added["due"]), ("T", True, "2026-07-20T08:00:00Z"))
 
     def test_write_without_reply_fails_clearly(self):
         c = self.client(FakeServer(None), sync={"Contacts": {"collection_id": "c1", "sync_key": "k1", "items": {}}})

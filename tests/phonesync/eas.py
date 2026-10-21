@@ -4,12 +4,14 @@ import base64
 import datetime
 import email.message
 import email.utils
+import json
 import struct
 import urllib.parse
 import uuid
 import xml.etree.ElementTree as ET
 import zoneinfo
 
+import items
 import state
 import transport
 import wbxml
@@ -19,7 +21,8 @@ from transport import HelperError
 # Protocol versions this helper speaks; Z-Push (2.4.5 and 2.7.7) offers at most 14.1
 SUPPORTED = ["14.0", "14.1"]
 # Default folder type first; Z-Push lists WebTop's calendar and address book as user folders (13, 14)
-CLASS_FOLDER_TYPES = {"Email": ["2"], "Calendar": ["8", "13"], "Contacts": ["9", "14"]}
+CLASS_FOLDER_TYPES = {"Email": ["2"], "Calendar": ["8", "13"], "Contacts": ["9", "14"], "Tasks": ["7", "15"]}
+RECURRENCE_TYPES = {"DAILY": "0", "WEEKLY": "1"}  # the rules the tests use; others raise
 MAX_PAGES = 50  # a Sync that keeps saying MoreAvailable beyond this is broken
 POLICY_STATUSES = {"142", "143", "144"}  # device not provisioned / policy refresh / invalid policy key
 WINDOWS_TZ_NAMES = {"Europe/Rome": ("W. Europe Standard Time", "W. Europe Daylight Time")}
@@ -118,30 +121,112 @@ def _iso_from_compact(value):
     return datetime.datetime.strptime(value, "%Y%m%dT%H%M%SZ").strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def contact_data(name):
+CONTACT_FIELDS = {"mobile": "Contacts:MobilePhoneNumber", "email": "Contacts:Email1Address",
+                  "street": "Contacts:BusinessStreet", "city": "Contacts:BusinessCity"}
+
+
+def contact_data(name, fields=None):
+    fields = fields or {}
     data = el(None, "AirSync:ApplicationData")
     el(data, "Contacts:FileAs", name)
     el(data, "Contacts:FirstName", name)
+    for key, tag in CONTACT_FIELDS.items():
+        if fields.get(key):
+            el(data, tag, fields[key])
+    if fields.get("photo") == "png":
+        el(data, "Contacts:Picture", base64.b64encode(items.TEST_PNG).decode())
     return data
 
 
-def calendar_data(uid, name, start, end, tz):
+def contact_fields(data):
+    out = {key: wbxml.findtext(data, tag) or None for key, tag in CONTACT_FIELDS.items()}
+    picture = wbxml.findtext(data, "Contacts:Picture")
+    out["photo_size"] = len(base64.b64decode(picture)) if picture else 0
+    return out
+
+
+def _local_midnight(day, tz):
+    dt = datetime.datetime.fromisoformat(day).replace(tzinfo=zoneinfo.ZoneInfo(tz or "UTC"))
+    return dt.astimezone(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
+
+def _recurrence(parent, rrule, start_utc):
+    parts = dict(p.split("=", 1) for p in rrule.split(";"))
+    if parts.get("FREQ") not in RECURRENCE_TYPES or not set(parts) <= {"FREQ", "COUNT", "INTERVAL"}:
+        raise HelperError("RRULE %s not supported by the helper" % rrule)
+    rec = el(parent, "Calendar:Recurrence")
+    el(rec, "Calendar:Type", RECURRENCE_TYPES[parts["FREQ"]])
+    if "COUNT" in parts:
+        el(rec, "Calendar:Occurrences", parts["COUNT"])
+    el(rec, "Calendar:Interval", parts.get("INTERVAL", "1"))
+    if parts["FREQ"] == "WEEKLY":
+        weekday = datetime.datetime.strptime(start_utc, "%Y%m%dT%H%M%SZ").isoweekday() % 7  # Sunday = 0
+        el(rec, "Calendar:DayOfWeek", str(1 << weekday))
+
+
+def calendar_data(uid, name, start, end, tz, all_day=False, rrule=None, alarm=None):
     data = el(None, "AirSync:ApplicationData")
     el(data, "Calendar:Timezone", timezone_blob(tz))
-    el(data, "Calendar:AllDayEvent", "0")
+    el(data, "Calendar:AllDayEvent", "1" if all_day else "0")
     el(data, "Calendar:BusyStatus", "2")
     el(data, "Calendar:DtStamp", datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ"))
-    el(data, "Calendar:EndTime", _utc_compact(end, tz))
+    start_utc = _local_midnight(start, tz) if all_day else _utc_compact(start, tz)
+    el(data, "Calendar:EndTime", _local_midnight(end, tz) if all_day else _utc_compact(end, tz))
+    if alarm is not None:
+        el(data, "Calendar:Reminder", str(alarm))
     el(data, "Calendar:Sensitivity", "0")
     el(data, "Calendar:Subject", name)
-    el(data, "Calendar:StartTime", _utc_compact(start, tz))
+    el(data, "Calendar:StartTime", start_utc)
     el(data, "Calendar:UID", uid)
     el(data, "Calendar:MeetingStatus", "0")
+    if rrule:
+        _recurrence(data, rrule, start_utc)
+    return data
+
+
+def event_details(data):
+    """all_day, start (local date for all-day, else UTC), rrule and alarm of an event."""
+    all_day = wbxml.findtext(data, "Calendar:AllDayEvent") == "1"
+    start = _iso_from_compact(wbxml.findtext(data, "Calendar:StartTime"))
+    if all_day and start:
+        # all-day events start at local midnight, always within 12 hours of UTC midnight
+        start = (datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%SZ") + datetime.timedelta(hours=12)).strftime("%Y-%m-%d")
+    rrule = None
+    rec = wbxml.find(data, "Calendar:Recurrence")
+    if rec is not None:
+        freq = {v: k for k, v in RECURRENCE_TYPES.items()}.get(wbxml.findtext(rec, "Calendar:Type"),
+                                                               "TYPE" + str(wbxml.findtext(rec, "Calendar:Type")))
+        rrule = "FREQ=" + freq
+        if wbxml.findtext(rec, "Calendar:Occurrences"):
+            rrule += ";COUNT=" + wbxml.findtext(rec, "Calendar:Occurrences")
+        if wbxml.findtext(rec, "Calendar:Interval") not in (None, "", "1"):
+            rrule += ";INTERVAL=" + wbxml.findtext(rec, "Calendar:Interval")
+    reminder = wbxml.findtext(data, "Calendar:Reminder")
+    return {"all_day": all_day, "start": start, "rrule": rrule, "alarm": int(reminder) if reminder else None}
+
+
+def _eas_date(iso):
+    """'2026-07-20T08:00:00Z' -> '2026-07-20T08:00:00.000Z' (ActiveSync task dates)."""
+    return iso[:-1] + ".000Z"
+
+
+def task_data(name, due, complete=False):
+    data = el(None, "AirSync:ApplicationData")
+    el(data, "Tasks:Complete", "1" if complete else "0")
+    if complete:
+        el(data, "Tasks:DateCompleted",
+           datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"))
+    if due:
+        el(data, "Tasks:DueDate", _eas_date(due))
+        el(data, "Tasks:UtcDueDate", _eas_date(due))
+    el(data, "Tasks:Importance", "1")
+    el(data, "Tasks:Sensitivity", "0")
+    el(data, "Tasks:Subject", name)
     return data
 
 
 def item_name(data):
-    for tag in ("Contacts:FileAs", "Calendar:Subject", "Email:Subject"):
+    for tag in ("Contacts:FileAs", "Calendar:Subject", "Email:Subject", "Tasks:Subject"):
         if wbxml.findtext(data, tag):
             return wbxml.findtext(data, tag)
     names = [wbxml.findtext(data, "Contacts:FirstName"), wbxml.findtext(data, "Contacts:LastName")]
@@ -354,12 +439,16 @@ class EasClient:
             sid = wbxml.findtext(cmd, "AirSync:ServerId")
             if kind in ("Add", "Change"):
                 data = wbxml.find(cmd, "AirSync:ApplicationData")
-                item = {"name": item_name(data), "uid": wbxml.findtext(data, "Calendar:UID"),
-                        "start": _iso_from_compact(wbxml.findtext(data, "Calendar:StartTime")),
-                        "end": _iso_from_compact(wbxml.findtext(data, "Calendar:EndTime"))}
+                item = self._item(data)
                 tz = parse_timezone(wbxml.findtext(data, "Calendar:Timezone"))
                 entry = {"server_id": sid, "name": item["name"], "start": item["start"],
                          "tz_bias": tz["bias"] if tz else None, "tz_dst_bias": tz["dst_bias"] if tz else None}
+                if wbxml.find(data, "Contacts:FileAs") is not None or wbxml.find(data, "Contacts:FirstName") is not None:
+                    entry["fields"] = contact_fields(data)
+                if wbxml.find(data, "Calendar:StartTime") is not None:
+                    entry["details"] = event_details(data)
+                if wbxml.find(data, "Tasks:Subject") is not None:
+                    entry["complete"], entry["due"] = item["complete"], item["due"]
                 if seen is not None:
                     seen.add(sid)
                 if kind == "Add" and sid not in cs["items"]:
@@ -371,6 +460,16 @@ class EasClient:
                 # like real phones, ignore deletes of items the phone never had
                 cs["items"].pop(sid)
                 out["deleted"].append(sid)
+
+    @staticmethod
+    def _item(data):
+        """What the phone remembers about an item, enough to send a change later."""
+        due = wbxml.findtext(data, "Tasks:UtcDueDate")
+        return {"name": item_name(data), "uid": wbxml.findtext(data, "Calendar:UID"),
+                "start": _iso_from_compact(wbxml.findtext(data, "Calendar:StartTime")),
+                "end": _iso_from_compact(wbxml.findtext(data, "Calendar:EndTime")),
+                "due": due.replace(".000Z", "Z") if due else None,
+                "complete": wbxml.findtext(data, "Tasks:Complete") == "1"}
 
     def _write(self, cs, command):
         if cs["sync_key"] == "0":
@@ -385,31 +484,30 @@ class EasClient:
         cs["sync_key"] = wbxml.findtext(coll, "AirSync:SyncKey")
         return coll
 
-    def _item_data(self, cls, name, start, end, tz, uid=None):
-        if cls == "Contacts":
-            return contact_data(name)
-        return calendar_data(uid or str(uuid.uuid4()), name, start, end, tz)
-
-    def add(self, cls, name, start=None, end=None, tz=None, client_id=None):
+    def add(self, cls, name, start=None, end=None, tz=None, client_id=None, fields=None,
+            all_day=False, rrule=None, alarm=None, due=None, complete=False):
         self.ensure_setup()
         cs = self.class_state(cls)
         client_id = client_id or uuid.uuid4().hex
         add = el(None, "AirSync:Add")
         el(add, "AirSync:ClientId", client_id)
-        data = self._item_data(cls, name, start, end, tz)
+        if cls == "Contacts":
+            data = contact_data(name, fields)
+        elif cls == "Tasks":
+            data = task_data(name, due, complete)
+        else:
+            data = calendar_data(str(uuid.uuid4()), name, start, end, tz, all_day=all_day, rrule=rrule, alarm=alarm)
         add.append(data)
         coll = self._write(cs, add)
         resp = wbxml.find(coll, "AirSync:Responses/AirSync:Add")
         if resp is None or wbxml.findtext(resp, "AirSync:Status") != "1":
             raise HelperError("Add status %s" % (wbxml.findtext(resp, "AirSync:Status") if resp is not None else "missing"))
         sid = wbxml.findtext(resp, "AirSync:ServerId")
-        cs["items"][sid] = {"name": name, "uid": wbxml.findtext(data, "Calendar:UID"),
-                            "start": _iso_from_compact(wbxml.findtext(data, "Calendar:StartTime")),
-                            "end": _iso_from_compact(wbxml.findtext(data, "Calendar:EndTime"))}
+        cs["items"][sid] = self._item(data)
         self.save()
         return sid
 
-    def change(self, cls, server_id, name):
+    def change(self, cls, server_id, name=None, complete=False, fields=None):
         self.ensure_setup()
         cs = self.class_state(cls)
         item = cs["items"].get(server_id)
@@ -417,12 +515,19 @@ class EasClient:
             raise HelperError("unknown %s item %s: sync first" % (cls, server_id))
         change = el(None, "AirSync:Change")
         el(change, "AirSync:ServerId", server_id)
-        change.append(self._item_data(cls, name, item.get("start"), item.get("end"), None, item.get("uid")))
+        name = name or item["name"]
+        if cls == "Contacts":
+            data = contact_data(name, fields)
+        elif cls == "Tasks":
+            data = task_data(name, item.get("due"), complete or item.get("complete"))
+        else:
+            data = calendar_data(item.get("uid") or str(uuid.uuid4()), name, item.get("start"), item.get("end"), None)
+        change.append(data)
         coll = self._write(cs, change)
         resp = wbxml.find(coll, "AirSync:Responses/AirSync:Change")
         if resp is not None and wbxml.findtext(resp, "AirSync:Status") != "1":
             raise HelperError("Change status %s" % wbxml.findtext(resp, "AirSync:Status"))
-        item["name"] = name
+        cs["items"][server_id] = self._item(data)
         self.save()
         return {}
 
@@ -481,9 +586,13 @@ def run(args):
     if args.command == "sync":
         return client.sync(args.cls, args.window)
     if args.command == "add":
-        return {"server_id": client.add(args.cls, args.name, args.start, args.end, args.tz)}
+        return {"server_id": client.add(args.cls, args.name, args.start, args.end, args.tz,
+                                        fields=json.loads(args.fields) if args.fields else None,
+                                        all_day=args.all_day, rrule=args.rrule, alarm=args.alarm,
+                                        due=args.due, complete=args.complete)}
     if args.command == "change":
-        return client.change(args.cls, args.server_id, args.name)
+        return client.change(args.cls, args.server_id, args.name, complete=args.complete,
+                             fields=json.loads(args.fields) if args.fields else None)
     if args.command == "delete":
         return client.delete(args.cls, args.server_id)
     if args.command == "fetch":
