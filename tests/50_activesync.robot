@@ -136,6 +136,11 @@ Task completed on phone shows completed
     ios-eas    android-eas
     android-eas    ios-eas
 
+Task completed in WebTop reaches phone
+    [Template]    Task completed in WebTop reaches phone
+    ios-eas
+    android-eas
+
 Task deleted in WebTop leaves phone
     [Template]    Task deleted in WebTop leaves phone
     ios-eas
@@ -153,6 +158,11 @@ Contact with details reaches WebTop
 
 Contact details reach the second phone
     [Template]    Contact details reach the second phone
+    ios-eas    android-eas
+    android-eas    ios-eas
+
+Large contact photo round-trips
+    [Template]    Large contact photo round-trips
     ios-eas    android-eas
     android-eas    ios-eas
 
@@ -397,12 +407,29 @@ Task completed on phone shows completed
     Phone EAS sync    ${reader}    Tasks
     ${name} =    Unique name    ${writer} task done
     ${id} =    Phone adds    ${writer}    Tasks    ${name}
+    ${r} =    Phone EAS sync    ${reader}    Tasks
+    Length Should Be    ${r['added']}    1
+    Should Not Be True    ${r['added'][0]['complete']}
     Phonesync    eas    change    ${writer}    --class    Tasks    --server-id    ${id}    --complete
     ${task} =    Task in WebTop    ${name}
     Should Be True    ${task['completed']}
+    Should Be Equal    ${task['status']}    CO
     ${r} =    Phone EAS sync    ${reader}    Tasks
+    Length Should Be    ${r['changed']}    1    the other phone was not told the task is done
+    Should Be True    ${r['changed'][0]['complete']}
+
+Task completed in WebTop reaches phone
+    [Arguments]    ${profile}
+    Phone EAS sync    ${profile}    Tasks
+    ${name} =    Unique name    ${profile} task done in WebTop
+    Create task in WebTop    ${name}    ${TASK_DUE}
+    ${r} =    Phone EAS sync    ${profile}    Tasks
     Length Should Be    ${r['added']}    1
-    Should Be True    ${r['added'][0]['complete']}
+    Should Not Be True    ${r['added'][0]['complete']}
+    Complete task in WebTop    ${name}
+    ${r} =    Phone EAS sync    ${profile}    Tasks
+    Length Should Be    ${r['changed']}    1    the phone was not told the task is done
+    Should Be True    ${r['changed'][0]['complete']}
 
 Task deleted in WebTop leaves phone
     [Arguments]    ${profile}
@@ -472,3 +499,15 @@ Recurring event with reminder
     Length Should Be    ${r['added']}    1
     Should Be Equal    ${r['added'][0]['details']['rrule']}    FREQ=WEEKLY;COUNT=4
     Should Be Equal As Integers    ${r['added'][0]['details']['alarm']}    15
+
+Large contact photo round-trips
+    [Arguments]    ${writer}    ${reader}
+    Phone EAS sync    ${reader}    Contacts
+    ${name} =    Unique name    ${writer} large photo
+    Phonesync    eas    add    ${writer}    --class    Contacts    --name    ${name}    --fields    {"photo": "large"}
+    ${size} =    Photo size    large
+    ${got} =    Contact fields in WebTop    ${name}
+    Should Be Equal As Integers    ${got['photo_size']}    ${size}
+    ${r} =    Phone EAS sync    ${reader}    Contacts
+    Length Should Be    ${r['added']}    1
+    Should Be Equal As Integers    ${r['added'][0]['fields']['photo_size']}    ${size}

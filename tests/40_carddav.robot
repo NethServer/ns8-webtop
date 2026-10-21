@@ -48,6 +48,11 @@ Contact details reach the second phone
     davx5    ios-dav
     ios-dav    davx5
 
+Large contact photo round-trips
+    [Template]    Large contact photo round-trips
+    davx5    ios-dav
+    ios-dav    davx5
+
 Contact WebTop cannot save is reported to the phone
     [Documentation]    Known issue: WebDAV answers 201 Created when WebTop fails to store the contact,
     ...                so the phone believes it is saved. Skipped while it fails.
@@ -99,7 +104,7 @@ Phone puts a contact WebTop rejects
     ...    PHOTO;ENCODING=b;TYPE=PNG:iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGAAAAAFAAGl9kVAAAAAAElFTkSuQmCC    END:VCARD    ${EMPTY}
     ${r} =    Phonesync    dav    discover    davx5
     ${url} =    Set Variable    ${backend_url}${r['addressbooks'][0]['href']}${uid}.vcf
-    ${cmd} =    Evaluate    'printf %s ' + shlex.quote($vcard) + ' | curl -s -o /dev/null -w "%{http_code}" -X PUT --data-binary @- -H "Content-Type: text/vcard" -H ' + shlex.quote('Host: ' + $WEBTOP_HOST) + ' -u ' + shlex.quote($PHONE_USER + ':' + $PHONE_PASSWORD) + ' ' + shlex.quote($url)    modules=shlex
+    ${cmd} =    Evaluate    'printf %s ' + shlex.quote($vcard) + ' | curl -s -o /dev/null -w "\%{http_code}" -X PUT --data-binary @- -H "Content-Type: text/vcard" -H ' + shlex.quote('Host: ' + $WEBTOP_HOST) + ' -u ' + shlex.quote($PHONE_USER + ':' + $PHONE_PASSWORD) + ' ' + shlex.quote($url)    modules=shlex
     ${status} =    Execute Command    ${cmd}
     RETURN    ${status}
 
@@ -178,3 +183,16 @@ Contact edited on phone reaches WebTop
     Phonesync    dav    update    ${profile}    --href    ${r['href']}    --name    ${new}
     Contact exists in WebTop    ${new}
     Contact does not exist in WebTop    ${name}
+
+Large contact photo round-trips
+    [Arguments]    ${writer}    ${reader}
+    Phone DAV sync    ${reader}    contact
+    ${name} =    Unique name    ${writer} large photo
+    Phonesync    dav    put    ${writer}    --kind    contact    --name    ${name}    --fields    {"photo": "large"}
+    ${size} =    Photo size    large
+    ${got} =    Contact fields in WebTop    ${name}
+    Should Be Equal As Integers    ${got['photo_size']}    ${size}
+    ${r} =    Phone DAV sync    ${reader}    contact
+    Length Should Be    ${r['added']}    1
+    ${read} =    Phonesync    dav    get    ${reader}    --href    ${r['added'][0]['href']}
+    Should Be Equal As Integers    ${read['fields']['photo_size']}    ${size}

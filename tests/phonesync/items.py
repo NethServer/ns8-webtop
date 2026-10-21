@@ -2,11 +2,30 @@
 
 import base64
 import datetime
+import random
 import re
+import struct
+import zlib
 
 # 1x1 transparent PNG used as contact photo
 TEST_PNG = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg==")
+
+
+def make_large_png():
+    """A 96x96 noise PNG of about 28 KB: the size of a real phone contact photo, same bytes every run."""
+    rng = random.Random(42)
+    raw = b"".join(b"\x00" + bytes(rng.getrandbits(8) for _ in range(96 * 3)) for _ in range(96))
+
+    def chunk(kind, data):
+        return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data) & 0xffffffff)
+
+    return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", 96, 96, 8, 2, 0, 0, 0))
+            + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
+
+
+LARGE_PNG = make_large_png()
+PHOTOS = {"png": TEST_PNG, "large": LARGE_PNG}
 
 VTIMEZONES = {
     "Europe/Rome": (
@@ -74,8 +93,8 @@ def vcard(uid, name, fields=None):
         lines.append("EMAIL;TYPE=WORK:" + fields["email"])
     if fields.get("street") or fields.get("city"):
         lines.append("ADR;TYPE=WORK:;;%s;%s;;;" % (escape(fields.get("street") or ""), escape(fields.get("city") or "")))
-    if fields.get("photo") == "png":
-        lines.append("PHOTO;ENCODING=b;TYPE=PNG:" + base64.b64encode(TEST_PNG).decode())
+    if fields.get("photo") in PHOTOS:
+        lines.append("PHOTO;ENCODING=b;TYPE=PNG:" + base64.b64encode(PHOTOS[fields["photo"]]).decode())
     lines.append("END:VCARD")
     return _join(lines)
 

@@ -55,6 +55,18 @@ class ItemsTest(unittest.TestCase):
         self.assertTrue(data.startswith(b"\x89PNG\r\n\x1a\n"))
         zlib.decompress(data[data.index(b"IDAT") + 4:data.index(b"IEND") - 8])
 
+    def test_large_png_is_a_phone_sized_photo(self):
+        import zlib
+        data = items.LARGE_PNG
+        self.assertTrue(20000 < len(data) < 40000)
+        zlib.decompress(data[data.index(b"IDAT") + 4:data.index(b"IEND") - 8])
+        self.assertEqual(items.LARGE_PNG, items.make_large_png())  # same bytes every run
+
+    def test_vcard_large_photo(self):
+        data = items.vcard("u", "x", {"photo": "large"})
+        self.assertEqual(items.parse_fields(data)["photo_size"], len(items.LARGE_PNG))
+        self.assertTrue(all(len(line.encode()) <= 75 for line in data.split("\r\n")))
+
     FIELDS = {"mobile": "+39 333 1234567", "email": "niccolo@example.test",
               "street": "Via Roma 1", "city": "Pesaro", "photo": "png"}
 

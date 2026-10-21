@@ -33,6 +33,15 @@ Device details are shown
         Should Contain    ${r['info']}    ${device}
     END
 
+User device list shows the paired phones
+    # `-a list -u` is offered by WebTop's ZPushManager but not used by the panel; check what an admin sees
+    ${text}    ${status} =    Run z-push-admin    -a list -u ${PHONE_USER}
+    Should Be Equal    ${status}    200
+    Should Contain    ${text}    ${PHONE_USER}
+    FOR    ${device}    IN    @{DEVICES}
+        Should Contain    ${text}    ${device}
+    END
+
 zfaker rejects shell syntax
     ${marker} =    Set Variable    /tmp/e2e-injected
     Execute Command    runagent -m ${webtop_module_id} podman exec z-push rm -f ${marker}
