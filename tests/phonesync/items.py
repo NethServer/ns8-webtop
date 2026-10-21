@@ -76,16 +76,20 @@ def event(uid, name, start, end, tz):
     )
 
 
-def _lines(data):
-    """Unfolded content lines of the main component (VCARD or VEVENT), as (name, params, value)."""
+def _unfold(data):
     unfolded = []
     for line in data.replace("\r\n", "\n").split("\n"):
         if line[:1] in (" ", "\t") and unfolded:
             unfolded[-1] += line[1:]
         elif line:
             unfolded.append(line)
+    return unfolded
+
+
+def _lines(data):
+    """Unfolded content lines of the main component (VCARD or VEVENT), as (name, params, value)."""
     out, stack = [], []
-    for line in unfolded:
+    for line in _unfold(data):
         head, _, value = line.partition(":")
         name, *params = head.split(";")
         name = name.upper()
@@ -113,3 +117,22 @@ def parse_start(data):
             iso = "%s-%s-%sT%s:%s:%s%s" % (v[0:4], v[4:6], v[6:8], v[9:11], v[11:13], v[13:15], "Z" if v.endswith("Z") else "")
             return iso, tz
     return None
+
+
+def with_name(data, name):
+    """The item with its FN (and N) or SUMMARY replaced, everything else untouched."""
+    out, stack = [], []
+    for line in _unfold(data):
+        head, _, value = line.partition(":")
+        prop = head.split(";")[0].upper()
+        if prop == "BEGIN":
+            stack.append(value.upper())
+        elif prop == "END":
+            stack.pop()
+        elif stack and stack[-1] in ("VCARD", "VEVENT"):
+            if prop in ("FN", "SUMMARY"):
+                line = "%s:%s" % (prop, escape(name))
+            elif prop == "N":
+                line = "N:%s;;;;" % escape(name)
+        out.append(line)
+    return "\r\n".join(out) + "\r\n"
