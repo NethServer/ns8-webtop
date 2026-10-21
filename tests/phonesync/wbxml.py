@@ -87,6 +87,32 @@ def decode(data):
     return root
 
 
+def find(el, path):
+    """ElementTree-like find for "Page:Tag" names: "A:x/A:y" walks children, ".//A:x" searches descendants."""
+    if el is None:
+        return None
+    if path.startswith(".//"):
+        first, _, rest = path[3:].partition("/")
+        for e in el.iter():
+            if e is not el and e.tag == first:
+                found = find(e, rest) if rest else e
+                if found is not None:
+                    return found
+        return None
+    for step in path.split("/"):
+        el = next((c for c in el if c.tag == step), None)
+        if el is None:
+            return None
+    return el
+
+
+def findtext(el, path, default=None):
+    found = find(el, path)
+    if found is None:
+        return default
+    return found.text if found.text is not None else ""
+
+
 def _mb_u_int32(value):
     out = [value & 0x7F]
     value >>= 7

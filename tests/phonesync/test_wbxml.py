@@ -1,7 +1,7 @@
 import unittest
 import xml.etree.ElementTree as ET
 
-from wbxml import decode, encode
+from wbxml import decode, encode, find, findtext
 
 
 def folder_sync(key):
@@ -43,6 +43,17 @@ class WbxmlTest(unittest.TestCase):
     def test_unknown_tag_raises(self):
         with self.assertRaises(KeyError):
             encode(ET.Element("AirSync:NoSuchTag"))
+
+    def test_find_paths(self):
+        root = ET.Element("Provision:Provision")
+        policy = ET.SubElement(ET.SubElement(root, "Provision:Policies"), "Provision:Policy")
+        ET.SubElement(policy, "Provision:PolicyKey").text = "42"
+        ET.SubElement(policy, "Provision:Status")
+        self.assertEqual(findtext(root, "Provision:Policies/Provision:Policy/Provision:PolicyKey"), "42")
+        self.assertEqual(findtext(root, ".//Provision:Policy/Provision:PolicyKey"), "42")
+        self.assertEqual(findtext(root, ".//Provision:Status"), "")
+        self.assertIsNone(find(root, "Provision:Policy"))
+        self.assertEqual(findtext(None, "Provision:Status", "x"), "x")
 
 
 if __name__ == "__main__":
