@@ -10,8 +10,14 @@ Resource    webtop_server.resource
 &{DETAILS}        mobile=+39 333 1234567    email=niccolo@example.test    street=Via Roma 1    city=Pesaro    photo=png
 
 *** Keywords ***
+Photo size
+    [Arguments]    ${photo}
+    ${size} =    Execute Command    python3 -c 'import sys; sys.path.insert(0, "${PHONESYNC}"); import items; print(len(items.PHOTOS["${photo}"]))'
+    RETURN    ${size}
+
 Expected details
-    &{expected} =    Evaluate    dict(mobile=$DETAILS['mobile'], email=$DETAILS['email'], street=$DETAILS['street'], city=$DETAILS['city'], photo_size=len(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg==')))    modules=base64
+    ${size} =    Photo size    ${DETAILS['photo']}
+    &{expected} =    Evaluate    dict(mobile=$DETAILS['mobile'], email=$DETAILS['email'], street=$DETAILS['street'], city=$DETAILS['city'], photo_size=int($size))
     RETURN    ${expected}
 
 Set up phone suite

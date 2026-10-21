@@ -174,6 +174,10 @@ class ItemShapeTest(unittest.TestCase):
                                                     "street": "Via Roma 1", "city": "Pesaro",
                                                     "photo_size": len(eas.items.TEST_PNG)})
 
+    def test_contact_large_photo(self):
+        data = eas.contact_data("N", {"photo": "large"})
+        self.assertEqual(base64.b64decode(findtext(data, "Contacts:Picture")), eas.items.LARGE_PNG)
+
     def test_calendar_all_day(self):
         data = eas.calendar_data("u", "Ferie", "2026-07-15", "2026-07-16", "Europe/Rome", all_day=True)
         self.assertEqual(findtext(data, "Calendar:AllDayEvent"), "1")

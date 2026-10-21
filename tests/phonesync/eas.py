@@ -134,8 +134,8 @@ def contact_data(name, fields=None):
     for key, tag in CONTACT_FIELDS.items():
         if fields.get(key):
             el(data, tag, fields[key])
-    if fields.get("photo") == "png":
-        el(data, "Contacts:Picture", base64.b64encode(items.TEST_PNG).decode())
+    if fields.get("photo") in items.PHOTOS:
+        el(data, "Contacts:Picture", base64.b64encode(items.PHOTOS[fields["photo"]]).decode())
     return data
 
 
