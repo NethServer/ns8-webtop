@@ -109,3 +109,9 @@ Mailbox has message
     [Arguments]    ${user}    ${subject}
     ${local} =    Evaluate    $user.split('@')[0]
     Wait Until Keyword Succeeds    60 seconds    3 seconds    Mailbox search    ${local}    ${subject}
+
+Delete test messages
+    [Arguments]    ${user}
+    ${local} =    Evaluate    $user.split('@')[0]
+    ${cmd} =    Evaluate    shlex.join(['runagent', '-m', $MID, 'podman', 'exec', 'dovecot', 'doveadm', 'expunge', '-u', $local, 'mailbox', '*', 'subject', 'e2e-'])    modules=shlex
+    Execute Command    ${cmd}
