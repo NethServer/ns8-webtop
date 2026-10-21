@@ -115,3 +115,6 @@ Delete test messages
     ${local} =    Evaluate    $user.split('@')[0]
     ${cmd} =    Evaluate    shlex.join(['runagent', '-m', $MID, 'podman', 'exec', 'dovecot', 'doveadm', 'expunge', '-u', $local, 'mailbox', '*', 'subject', 'e2e-'])    modules=shlex
     Execute Command    ${cmd}
+
+Delete pre-upgrade items in WebTop
+    Phonesync    webtop    cleanup    ${EMPTY}    --name    pre-upgrade-
