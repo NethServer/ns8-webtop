@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<d:multistatus xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns" xmlns:cal="urn:ietf:params:xml:ns:caldav" xmlns:cs="http://calendarserver.org/ns/" xmlns:card="urn:ietf:params:xml:ns:carddav"><d:response><d:href>/webtop-dav/server.php/calendars/u1@example.org/3i2NDaWmqGVd2R/9c82e01e-349d-4ac7-a3d0-d3924f539542.ics</d:href><d:propstat><d:prop><d:getetag>&quot;20261021071014000&quot;</d:getetag><cal:calendar-data>BEGIN:VCALENDAR
+PRODID:-//Sonicle//WebTop Calendar//EN
+VERSION:2.0
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+DTSTAMP:20261021T071018Z
+UID:9c82e01e-349d-4ac7-a3d0-d3924f539542
+ORGANIZER;CN=Test u1:mailto:u1@example.org
+CREATED:20261021T071014Z
+LAST-MODIFIED:20261021T071014Z
+SEQUENCE:0
+DTSTART;TZID=Europe/Rome:20260715T100000
+DTEND;TZID=Europe/Rome:20260715T110000
+SUMMARY:e2e-fixture-meeting
+CLASS:PUBLIC
+TRANSP:OPAQUE
+END:VEVENT
+END:VCALENDAR
+</cal:calendar-data></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>

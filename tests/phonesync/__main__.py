@@ -5,9 +5,11 @@ Prints one JSON object on stdout; exit 1 with {"error", "http_status"} on failur
 
 import argparse
 import json
+import os
 import sys
 
 VERSION = "1"
+STATE_DIR = "/root/phonesync-state"
 
 WEBTOP_COMMANDS = ["contact-create", "contact-rename", "contact-delete",
                    "event-create", "event-rename", "event-delete", "cleanup"]
@@ -35,17 +37,31 @@ def build_parser():
     webtop.add_argument("--start")
     webtop.add_argument("--end")
     webtop.add_argument("--tz")
+    dav = sub.add_parser("dav")
+    dav.add_argument("command", choices=["discover", "put", "get", "update", "delete", "sync"])
+    add_common(dav)
+    dav.add_argument("--kind", choices=["contact", "event"])
+    dav.add_argument("--name")
+    dav.add_argument("--href")
+    dav.add_argument("--start")
+    dav.add_argument("--end")
+    dav.add_argument("--tz")
     return parser
 
 
 def main(argv):
     args = build_parser().parse_args(argv)
+    if getattr(args, "profile", None) and not args.state:
+        args.state = os.path.join(STATE_DIR, args.profile + ".json")
     try:
         if args.proto == "version":
             result = {"version": VERSION}
         elif args.proto == "webtop":
             import webtop
             result = webtop.run(args)
+        elif args.proto == "dav":
+            import dav
+            result = dav.run(args)
         print(json.dumps(result, ensure_ascii=False))
         return 0
     except Exception as err:  # every failure must reach robot as JSON

@@ -37,6 +37,18 @@ class ItemsTest(unittest.TestCase):
         data = data.replace("END:VEVENT", "BEGIN:VALARM\r\nSUMMARY:alarm\r\nEND:VALARM\r\nEND:VEVENT")
         self.assertEqual(items.parse_name(data), "Main")
 
+    def test_with_name_contact(self):
+        data = items.with_name(items.vcard("uid-6", "Old"), "Niccolò ☕")
+        self.assertEqual(items.parse_name(data), "Niccolò ☕")
+        self.assertIn("UID:uid-6\r\n", data)
+
+    def test_with_name_event_keeps_times(self):
+        server = ("BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nUID:u\r\nDTSTART;TZID=Europe/Rome:20260715T100000\r\n"
+                  "SUMMARY:Old\r\n with fold\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n")
+        data = items.with_name(server, "New")
+        self.assertEqual(items.parse_name(data), "New")
+        self.assertEqual(items.parse_start(data), ("2026-07-15T10:00:00", "Europe/Rome"))
+
 
 if __name__ == "__main__":
     unittest.main()
