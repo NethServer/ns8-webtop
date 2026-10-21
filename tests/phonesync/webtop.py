@@ -1,5 +1,6 @@
 """Server-side changes through the WebTop Java REST API, the same one the PHP services call."""
 
+import datetime
 import json
 import subprocess
 import uuid
@@ -10,6 +11,13 @@ from transport import HelperError
 
 CONTACTS_API = "/webtop/api/com.sonicle.webtop.contacts/v1/carddav/addressbooks"
 CALENDAR_API = "/webtop/api/com.sonicle.webtop.calendar/v1/caldav/calendars"
+TASKS_API = "/webtop/api/com.sonicle.webtop.tasks/v2/eas/folders"
+TASK_FIELDS = ("subject", "start", "due", "complOn", "impo", "prvt", "notes")
+
+
+def _compact(iso):
+    """'2026-07-20T08:00:00Z' -> '20260720T080000Z' (the tasks API date format)."""
+    return iso.replace("-", "").replace(":", "") if iso else None
 
 
 class WebTop:
@@ -116,6 +124,44 @@ class WebTop:
         self.call("DELETE", "%s/%s/objects/%s" % (CALENDAR_API, self.calendar(), href))
         return {}
 
+    # Tasks, through the REST API the ActiveSync tasks backend uses
+
+    def task_folder(self):
+        folders = [f for f in self.call("GET", TASKS_API) if f.get("deflt")]
+        if not folders:
+            raise HelperError("user %s has no default task folder" % self.user)
+        return folders[0]["id"]
+
+    def _task_id(self, name):
+        rows = self.sql("SELECT t.task_id FROM tasks.tasks t JOIN tasks.categories k USING (category_id) "
+                        "WHERE k.user_id = :'p1' AND t.subject = :'p2' AND t.revision_status <> 'D'",
+                        self.user_id, name)
+        if len(rows) != 1:
+            raise HelperError("expected one task named %r, found %d" % (name, len(rows)))
+        return rows[0][0]
+
+    def _task_update(self, name, **changes):
+        path = "%s/%s/messages/%s" % (TASKS_API, self.task_folder(), self._task_id(name))
+        task = {k: v for k, v in self.call("GET", path).items() if k in TASK_FIELDS}
+        task.update(changes)
+        self.call("PUT", path, task)
+        return {}
+
+    def task_create(self, name, due):
+        body = {"subject": name, "due": _compact(due), "impo": 5, "prvt": False, "notes": ""}
+        return self.call("POST", "%s/%s/messages" % (TASKS_API, self.task_folder()), body)
+
+    def task_rename(self, name, new_name):
+        return self._task_update(name, subject=new_name)
+
+    def task_complete(self, name):
+        now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        return self._task_update(name, complOn=now)
+
+    def task_delete(self, name):
+        self.call("DELETE", "%s/%s/messages/%s" % (TASKS_API, self.task_folder(), self._task_id(name)))
+        return {}
+
     def cleanup(self, prefix):
         """Delete every contact and event of the user whose name starts with prefix."""
         contacts = self.sql("SELECT c.href FROM contacts.contacts c JOIN contacts.categories k USING (category_id) "
@@ -132,7 +178,14 @@ class WebTop:
             base = "%s/%s/objects" % (CALENDAR_API, self.calendar())
             for (href,) in events:
                 self.call("DELETE", "%s/%s" % (base, href))
-        return {"removed": len(contacts) + len(events)}
+        tasks = self.sql("SELECT t.task_id FROM tasks.tasks t JOIN tasks.categories k USING (category_id) "
+                         "WHERE k.user_id = :'p1' AND t.revision_status <> 'D' AND starts_with(t.subject, :'p2')",
+                         self.user_id, prefix)
+        if tasks:
+            folder = self.task_folder()
+            for (task_id,) in tasks:
+                self.call("DELETE", "%s/%s/messages/%s" % (TASKS_API, folder, task_id))
+        return {"removed": len(contacts) + len(events) + len(tasks)}
 
 def run(args):
     wt = WebTop(args.url, args.host, args.user, args.password, args.module)
@@ -148,6 +201,14 @@ def run(args):
         return wt.event_rename(args.name, args.new_name)
     if args.command == "event-delete":
         return wt.event_delete(args.name)
+    if args.command == "task-create":
+        return wt.task_create(args.name, args.due)
+    if args.command == "task-rename":
+        return wt.task_rename(args.name, args.new_name)
+    if args.command == "task-complete":
+        return wt.task_complete(args.name)
+    if args.command == "task-delete":
+        return wt.task_delete(args.name)
     if args.command == "cleanup":
         return wt.cleanup(args.name)
     raise HelperError("unknown webtop command %s" % args.command)

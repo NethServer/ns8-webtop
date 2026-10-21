@@ -136,3 +136,38 @@ Event details in WebTop
     Length Should Be    ${rows}    1    expected exactly one event named ${name}
     &{details} =    Evaluate    {'all_day': $rows[0][0] == 't', 'start_local': $rows[0][1], 'reminder': int($rows[0][2]) if $rows[0][2] else None, 'rrule': $rows[0][3] or None}
     RETURN    ${details}
+
+Tasks in WebTop
+    [Arguments]    ${name}
+    ${uid} =    Phone user id
+    ${out} =    WebTop SQL    SELECT t.subject, coalesce(to_char(t.due AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), ''), t.status, (t.completed_on IS NOT NULL) FROM tasks.tasks t JOIN tasks.categories k USING (category_id) WHERE k.user_id = $q$${uid}$q$ AND t.subject = $q$${name}$q$ AND t.revision_status <> 'D'
+    @{rows} =    Evaluate    [line.split('|') for line in $out.splitlines() if line]
+    RETURN    ${rows}
+
+Task in WebTop
+    [Arguments]    ${name}
+    @{rows} =    Tasks in WebTop    ${name}
+    Length Should Be    ${rows}    1    expected exactly one task named ${name}
+    &{task} =    Evaluate    {'subject': $rows[0][0], 'due_utc': $rows[0][1] or None, 'status': $rows[0][2], 'completed': $rows[0][3] == 't'}
+    RETURN    ${task}
+
+Task does not exist in WebTop
+    [Arguments]    ${name}
+    @{rows} =    Tasks in WebTop    ${name}
+    Length Should Be    ${rows}    0    task ${name} still in WebTop
+
+Create task in WebTop
+    [Arguments]    ${name}    ${due_utc}
+    Phonesync    webtop    task-create    ${EMPTY}    --name    ${name}    --due    ${due_utc}
+
+Rename task in WebTop
+    [Arguments]    ${name}    ${new_name}
+    Phonesync    webtop    task-rename    ${EMPTY}    --name    ${name}    --new-name    ${new_name}
+
+Complete task in WebTop
+    [Arguments]    ${name}
+    Phonesync    webtop    task-complete    ${EMPTY}    --name    ${name}
+
+Delete task in WebTop
+    [Arguments]    ${name}
+    Phonesync    webtop    task-delete    ${EMPTY}    --name    ${name}
