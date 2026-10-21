@@ -13,6 +13,23 @@ ${UTC_START}      2026-07-15T08:00:00Z
 ${UTC_END}        2026-07-15T09:00:00Z
 
 *** Test Cases ***
+Paired phone keeps syncing events after upgrade
+    [Template]    Paired DAV phone keeps syncing
+    davx5    event
+    ios-dav    event
+
+Pre-upgrade events survive
+    [Template]    Pre-upgrade event survives
+    davx5
+    ios-dav
+    ios-eas
+    android-eas
+
+Paired phone can still write events
+    [Template]    Paired phone can still write events
+    davx5
+    ios-dav
+
 Phone discovers calendar
     [Template]    Phone discovers calendar
     davx5
@@ -156,3 +173,20 @@ Second phone sees first phone's event
     ${r} =    Phone DAV sync    ${reader}    event
     ${names} =    Names in    ${r['added']}
     Should Be Equal    ${names}    ${{[$name]}}
+
+Paired DAV phone keeps syncing
+    [Arguments]    ${profile}    ${kind}
+    Skip unless update scenario
+    Phone DAV sync has nothing new    ${profile}    ${kind}
+
+Pre-upgrade event survives
+    [Arguments]    ${profile}
+    Skip unless update scenario
+    ${name} =    Pre-upgrade name    ${profile}    event
+    ${event} =    Event in WebTop    ${name}
+    Should Be Equal    ${event['start_utc']}    ${UTC_START}
+
+Paired phone can still write events
+    [Arguments]    ${profile}
+    Skip unless update scenario
+    Event created on phone reaches WebTop    ${profile}

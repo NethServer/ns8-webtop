@@ -3,6 +3,7 @@ Documentation     Contacts, calendar and mail over ActiveSync, as the iOS Mail a
 Resource          phonesync_sync.resource
 Suite Setup       Set up phone suite
 Suite Teardown    Run Keywords    Delete all test items in WebTop
+...               AND    Delete pre-upgrade items in WebTop
 ...               AND    Delete test messages    ${PHONE_USER}
 ...               AND    Delete test messages    ${MAIL_RECIPIENT}
 
@@ -15,6 +16,18 @@ ${UTC_START}      2026-07-15T08:00:00Z
 ${UTC_END}        2026-07-15T09:00:00Z
 
 *** Test Cases ***
+Paired phone keeps syncing after upgrade
+    [Template]    Paired ActiveSync phone keeps syncing
+    ios-eas    Contacts
+    ios-eas    Calendar
+    android-eas    Contacts
+    android-eas    Calendar
+
+Paired phone can still write
+    [Template]    Paired ActiveSync phone can still write
+    ios-eas
+    android-eas
+
 Phone sets up account
     [Template]    Phone sets up account
     ios-eas
@@ -287,3 +300,18 @@ Event deleted on phone leaves WebTop
     Event in WebTop    ${name}
     Phonesync    eas    delete    ${profile}    --class    Calendar    --server-id    ${id}
     Event does not exist in WebTop    ${name}
+
+Paired ActiveSync phone keeps syncing
+    [Arguments]    ${profile}    ${class}
+    Skip unless update scenario
+    ${r} =    Phone EAS sync    ${profile}    ${class}
+    Should Be Equal As Integers    ${r['status']}    1
+    Should Be Empty    ${r['added']}
+    Should Be Empty    ${r['changed']}
+    Should Be Empty    ${r['deleted']}
+
+Paired ActiveSync phone can still write
+    [Arguments]    ${profile}
+    Skip unless update scenario
+    Contact created on phone reaches WebTop    ${profile}
+    Event created on phone reaches WebTop    ${profile}

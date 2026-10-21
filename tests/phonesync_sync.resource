@@ -5,6 +5,7 @@ Keywords shared by the phone protocol suites.
 Library     Collections
 Resource    phonesync.resource
 Resource    webtop_server.resource
+Resource    webtop.resource
 
 *** Keywords ***
 Set up phone suite
@@ -52,3 +53,10 @@ Phone EAS sync has nothing new
     Should Be Empty    ${r['added']}
     Should Be Empty    ${r['changed']}
     Should Be Empty    ${r['deleted']}
+
+Pre-upgrade name
+    [Arguments]    ${profile}    ${what}
+    RETURN    pre-upgrade-${profile}-${what}
+
+Skip unless update scenario
+    Skip If    '${SCENARIO}' != 'update'    scenario is ${SCENARIO}, no upgrade to survive
