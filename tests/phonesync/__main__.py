@@ -12,7 +12,8 @@ VERSION = "1"
 STATE_DIR = "/root/phonesync-state"
 
 WEBTOP_COMMANDS = ["contact-create", "contact-rename", "contact-delete",
-                   "event-create", "event-rename", "event-delete", "cleanup"]
+                   "event-create", "event-rename", "event-delete",
+                   "task-create", "task-rename", "task-complete", "task-delete", "cleanup"]
 
 
 def add_common(parser):
@@ -37,6 +38,7 @@ def build_parser():
     webtop.add_argument("--start")
     webtop.add_argument("--end")
     webtop.add_argument("--tz")
+    webtop.add_argument("--due", help="task due time, ISO UTC")
     dav = sub.add_parser("dav")
     dav.add_argument("command", choices=["discover", "put", "get", "update", "delete", "sync", "lookup"])
     add_common(dav)
