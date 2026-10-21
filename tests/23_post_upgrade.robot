@@ -17,8 +17,10 @@ Paired phone keeps syncing after upgrade
     ios-dav    event
     ios-eas    Contacts
     ios-eas    Calendar
+    ios-eas    Tasks
     android-eas    Contacts
     android-eas    Calendar
+    android-eas    Tasks
 
 Pre-upgrade items survive in WebTop
     FOR    ${profile}    IN    @{PROFILES}
@@ -27,6 +29,11 @@ Pre-upgrade items survive in WebTop
         Contact exists in WebTop    ${contact}
         ${found} =    Event in WebTop    ${event}
         Should Be Equal    ${found['start_utc']}    2026-07-15T08:00:00Z
+    END
+    FOR    ${profile}    IN    ios-eas    android-eas
+        ${task} =    Pre-upgrade name    ${profile}    task
+        ${found} =    Task in WebTop    ${task}
+        Should Be Equal    ${found['due_utc']}    2026-07-20T08:00:00Z
     END
 
 Phones still know every pre-upgrade item once
@@ -45,6 +52,13 @@ ActiveSync phone edits a pre-upgrade event
     [Template]    ActiveSync phone edits its pre-upgrade event
     ios-eas
     android-eas
+
+Devices panel still lists paired phones
+    ${r} =    Devices panel data    lastsync    -a lastsync
+    FOR    ${device}    IN    e2eiphone0000001    e2eandroid000001
+        ${rows} =    Evaluate    list(filter(lambda d, dev=$device, usr=$PHONE_USER: d['device'] == dev and d['user'] == usr, $r['devices']))
+        Length Should Be    ${rows}    1    ${device} of ${PHONE_USER} no longer listed after the upgrade
+    END
 
 *** Keywords ***
 Paired phone keeps syncing
@@ -67,6 +81,10 @@ Phone knows every pre-upgrade item once
         IF    $phone.endswith('-eas')
             Phonesync    eas    lookup    ${phone}    --class    Contacts    --name    ${contact}
             Phonesync    eas    lookup    ${phone}    --class    Calendar    --name    ${event}
+            IF    $owner.endswith('-eas')
+                ${task} =    Pre-upgrade name    ${owner}    task
+                Phonesync    eas    lookup    ${phone}    --class    Tasks    --name    ${task}
+            END
         ELSE
             # the stored href must still resolve on the server, not just sit in the phone's state
             ${r} =    Phonesync    dav    lookup    ${phone}    --kind    contact    --name    ${contact}
