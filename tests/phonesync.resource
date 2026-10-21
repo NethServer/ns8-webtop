@@ -2,10 +2,10 @@
 Library     SSHLibrary
 Library     Collections
 Resource    api.resource
+Resource    webtop.resource
 
 *** Variables ***
 # CI defaults; override with -v when running against another machine
-${PHONE_USER}        u1@domain.test
 ${PHONE_PASSWORD}    Nethesis,1234
 ${MAIL_RECIPIENT}    u3@domain.test
 ${WEBTOP_HOST}       webtop.domain.com
@@ -35,6 +35,8 @@ Resolve test environment
 Upload phonesync helper
     Execute Command    rm -rf ${PHONESYNC} && mkdir -p ${PHONESYNC_STATE}
     Put Directory    ${CURDIR}/phonesync    ${PHONESYNC}    recursive=True
+    # the node needs only the helper, not its offline unit tests
+    Execute Command    cd ${PHONESYNC} && rm -rf fixtures __pycache__ test_*.py
 
 Phonesync
     [Arguments]    ${proto}    ${command}    ${profile}    @{args}
@@ -57,6 +59,10 @@ Phonesync
     ${result} =    Evaluate    json.loads($out) if $out.strip() else {"error": $err}    modules=json
     Should Be Equal As Integers    ${rc}    0    phonesync ${proto} ${command} failed: ${result.get('error')}${\n}${err}
     RETURN    ${result}
+
+Reset phones
+    # forget every phone pairing, so reruns on a development machine start clean
+    Execute Command    rm -rf ${PHONESYNC_STATE} && mkdir -p ${PHONESYNC_STATE}
 
 Unique name
     [Arguments]    ${base}
