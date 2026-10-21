@@ -34,3 +34,21 @@ Phone DAV sync has nothing new
     Should Be Empty    ${r['added']}
     Should Be Empty    ${r['changed']}
     Should Be Empty    ${r['deleted']}
+
+Server ids in
+    [Arguments]    ${entries}
+    ${ids} =    Evaluate    [e['server_id'] for e in $entries]
+    RETURN    ${ids}
+
+Phone EAS sync
+    [Arguments]    ${profile}    ${class}    @{args}
+    ${r} =    Phonesync    eas    sync    ${profile}    --class    ${class}    @{args}
+    Should Not Be True    ${r['full_resync']}    ${profile} had to resync all ${class}
+    RETURN    ${r}
+
+Phone EAS sync has nothing new
+    [Arguments]    ${profile}    ${class}
+    ${r} =    Phone EAS sync    ${profile}    ${class}
+    Should Be Empty    ${r['added']}
+    Should Be Empty    ${r['changed']}
+    Should Be Empty    ${r['deleted']}
