@@ -24,6 +24,7 @@ All phones catch up before the upgrade
     FOR    ${profile}    IN    ios-eas    android-eas
         Phone EAS sync    ${profile}    Contacts
         Phone EAS sync    ${profile}    Calendar
+        Phone EAS sync    ${profile}    Tasks
     END
 
 *** Keywords ***
@@ -43,10 +44,14 @@ ActiveSync phone pairs
     Phonesync    eas    setup    ${profile}
     Phone EAS sync    ${profile}    Contacts
     Phone EAS sync    ${profile}    Calendar
+    Phone EAS sync    ${profile}    Tasks
     ${contact} =    Pre-upgrade name    ${profile}    contact
     ${event} =    Pre-upgrade name    ${profile}    event
     Phonesync    eas    add    ${profile}    --class    Contacts    --name    ${contact}
     Phonesync    eas    add    ${profile}    --class    Calendar    --name    ${event}
     ...    --start    2026-07-15T10:00:00    --end    2026-07-15T11:00:00    --tz    Europe/Rome
+    ${task} =    Pre-upgrade name    ${profile}    task
+    Phonesync    eas    add    ${profile}    --class    Tasks    --name    ${task}    --due    2026-07-20T08:00:00Z
     Phone EAS sync    ${profile}    Contacts
     Phone EAS sync    ${profile}    Calendar
+    Phone EAS sync    ${profile}    Tasks
