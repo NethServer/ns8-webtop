@@ -1,6 +1,12 @@
 """vCard and iCalendar items as phones write them, and the few fields tests read back."""
 
+import base64
 import datetime
+import re
+
+# 1x1 transparent PNG used as contact photo
+TEST_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGAAAAAFAAGl9kVAAAAAAElFTkSuQmCC")
 
 VTIMEZONES = {
     "Europe/Rome": (
@@ -41,15 +47,37 @@ def unescape(text):
     return "".join(out)
 
 
-def vcard(uid, name):
-    return (
-        "BEGIN:VCARD\r\n"
-        "VERSION:3.0\r\n"
-        "UID:%s\r\n"
-        "FN:%s\r\n"
-        "N:%s;;;;\r\n"
-        "END:VCARD\r\n" % (uid, escape(name), escape(name))
-    )
+def fold(line):
+    """Fold a content line at 75 octets without splitting UTF-8 characters."""
+    out, current = [], ""
+    for ch in line:
+        limit = 75 if not out else 74  # continuation lines start with a space
+        if len((current + ch).encode("utf-8")) > limit:
+            out.append(current)
+            current = ""
+        current += ch
+    out.append(current)
+    return "\r\n ".join(out)
+
+
+def _join(lines):
+    return "".join(fold(line) + "\r\n" for line in lines)
+
+
+def vcard(uid, name, fields=None):
+    """vCard 3.0; fields: mobile, email, street, city, photo ("png" for TEST_PNG)."""
+    fields = fields or {}
+    lines = ["BEGIN:VCARD", "VERSION:3.0", "UID:" + uid, "FN:" + escape(name), "N:%s;;;;" % escape(name)]
+    if fields.get("mobile"):
+        lines.append("TEL;TYPE=CELL:" + fields["mobile"])
+    if fields.get("email"):
+        lines.append("EMAIL;TYPE=WORK:" + fields["email"])
+    if fields.get("street") or fields.get("city"):
+        lines.append("ADR;TYPE=WORK:;;%s;%s;;;" % (escape(fields.get("street") or ""), escape(fields.get("city") or "")))
+    if fields.get("photo") == "png":
+        lines.append("PHOTO;ENCODING=b;TYPE=PNG:" + base64.b64encode(TEST_PNG).decode())
+    lines.append("END:VCARD")
+    return _join(lines)
 
 
 def _ical_time(value):
@@ -57,23 +85,25 @@ def _ical_time(value):
     return value.replace("-", "").replace(":", "")
 
 
-def event(uid, name, start, end, tz):
+def event(uid, name, start, end, tz, all_day=False, rrule=None, alarm=None):
+    """iCalendar VEVENT; all_day takes dates (end exclusive), alarm is minutes before start."""
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    tzparam = ";TZID=%s" % tz if tz else ""
-    return (
-        "BEGIN:VCALENDAR\r\n"
-        "VERSION:2.0\r\n"
-        "PRODID:-//NethServer//phonesync//EN\r\n"
-        + (VTIMEZONES[tz] if tz else "")
-        + "BEGIN:VEVENT\r\n"
-        "UID:%s\r\n"
-        "DTSTAMP:%s\r\n"
-        "DTSTART%s:%s\r\n"
-        "DTEND%s:%s\r\n"
-        "SUMMARY:%s\r\n"
-        "END:VEVENT\r\n"
-        "END:VCALENDAR\r\n" % (uid, stamp, tzparam, _ical_time(start), tzparam, _ical_time(end), escape(name))
-    )
+    lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//NethServer//phonesync//EN"]
+    if tz and not all_day:
+        lines += VTIMEZONES[tz].rstrip("\r\n").split("\r\n")
+    lines += ["BEGIN:VEVENT", "UID:" + uid, "DTSTAMP:" + stamp]
+    if all_day:
+        lines += ["DTSTART;VALUE=DATE:" + start.replace("-", ""), "DTEND;VALUE=DATE:" + end.replace("-", "")]
+    else:
+        tzparam = ";TZID=%s" % tz if tz else ""
+        lines += ["DTSTART%s:%s" % (tzparam, _ical_time(start)), "DTEND%s:%s" % (tzparam, _ical_time(end))]
+    if rrule:
+        lines.append("RRULE:" + rrule)
+    lines.append("SUMMARY:" + escape(name))
+    if alarm is not None:
+        lines += ["BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:Reminder", "TRIGGER:-PT%dM" % alarm, "END:VALARM"]
+    lines += ["END:VEVENT", "END:VCALENDAR"]
+    return _join(lines)
 
 
 def _unfold(data):
@@ -109,6 +139,76 @@ def parse_name(data):
     return None
 
 
+def _components(data):
+    """(component path, name, params, value) for every unfolded content line."""
+    out, stack = [], []
+    for line in _unfold(data):
+        head, _, value = line.partition(":")
+        name, *params = head.split(";")
+        name = name.upper()
+        if name == "BEGIN":
+            stack.append(value.upper())
+        elif name == "END":
+            stack.pop()
+        else:
+            out.append(("/".join(stack), name, params, value))
+    return out
+
+
+def _has_type(params, wanted):
+    types = []
+    for p in params:
+        key, _, val = p.partition("=")
+        types += (val if val else key).upper().split(",")
+    return wanted in types
+
+
+def parse_fields(data):
+    """Contact details as the tests compare them: mobile, email, street, city, photo_size."""
+    out = {"mobile": None, "email": None, "street": None, "city": None, "photo_size": 0}
+    for name, params, value in _lines(data):
+        if name == "TEL" and _has_type(params, "CELL") and out["mobile"] is None:
+            out["mobile"] = value
+        elif name == "EMAIL" and out["email"] is None:
+            out["email"] = value
+        elif name == "ADR" and out["street"] is None:
+            parts = value.split(";") + [""] * 7
+            out["street"], out["city"] = unescape(parts[2]) or None, unescape(parts[3]) or None
+        elif name == "PHOTO":
+            if value.startswith("data:"):
+                value = value.split(",", 1)[1]
+            try:
+                out["photo_size"] = len(base64.b64decode(value))
+            except ValueError:
+                out["photo_size"] = 0
+    return out
+
+
+def _minutes(duration):
+    """'-PT15M', '-PT1H30M', '-P1D' -> minutes before start."""
+    m = re.fullmatch(r"-?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?", duration)
+    if not m:
+        return None
+    w, d, h, mi, _ = (int(x) if x else 0 for x in m.groups())
+    return ((w * 7 + d) * 24 + h) * 60 + mi
+
+
+def parse_event_details(data):
+    """all_day, start (date, or local time), rrule and alarm minutes of the main VEVENT."""
+    out = {"all_day": False, "start": None, "rrule": None, "alarm": None}
+    for path, name, params, value in _components(data):
+        if path.endswith("VEVENT") and name == "DTSTART":
+            if any(p.upper() == "VALUE=DATE" for p in params) or len(value) == 8:
+                out["all_day"], out["start"] = True, "%s-%s-%s" % (value[0:4], value[4:6], value[6:8])
+            else:
+                out["start"] = parse_start(data)[0]
+        elif path.endswith("VEVENT") and name == "RRULE":
+            out["rrule"] = value
+        elif path.endswith("VEVENT/VALARM") and name == "TRIGGER" and out["alarm"] is None:
+            out["alarm"] = _minutes(value)
+    return out
+
+
 def parse_start(data):
     for name, params, value in _lines(data):
         if name == "DTSTART":
@@ -135,4 +235,4 @@ def with_name(data, name):
             elif prop == "N":
                 line = "N:%s;;;;" % escape(name)
         out.append(line)
-    return "\r\n".join(out) + "\r\n"
+    return _join(out)
