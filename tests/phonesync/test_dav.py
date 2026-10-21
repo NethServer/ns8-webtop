@@ -92,5 +92,38 @@ class LookupTest(unittest.TestCase):
             self.assertEqual(client.lookup("contact", "C"), {"href": AB + "y.vcf"})
 
 
+class PutTest(unittest.TestCase):
+    def setUp(self):
+        import tempfile, json
+        self.dir = tempfile.TemporaryDirectory()
+        self.path = os.path.join(self.dir.name, "s.json")
+        with open(self.path, "w") as f:
+            json.dump({"contact": {"collection": AB, "items": {}}, "event": {"collection": CAL, "items": {}}}, f)
+        self.sent = []
+        self.real = dav.transport.request
+
+        def fake(method, url, **kw):
+            self.sent.append((method, url, kw.get("body")))
+            return dav.transport.Response(201, {"ETag": '"e1"'}, b"")
+        dav.transport.request = fake
+
+    def tearDown(self):
+        dav.transport.request = self.real
+        self.dir.cleanup()
+
+    def test_put_passes_fields(self):
+        client = dav.DavClient("http://x", "h", "u", "p", "davx5", self.path)
+        client.put("contact", "N", fields={"mobile": "+39 1", "photo": "png"})
+        body = self.sent[0][2].decode()
+        self.assertEqual(dav.items.parse_fields(body)["mobile"], "+39 1")
+        self.assertEqual(dav.items.parse_fields(body)["photo_size"], len(dav.items.TEST_PNG))
+
+    def test_put_passes_event_options(self):
+        client = dav.DavClient("http://x", "h", "u", "p", "davx5", self.path)
+        client.put("event", "E", "2026-07-15", "2026-07-16", None, all_day=True, rrule="FREQ=WEEKLY;COUNT=4", alarm=15)
+        details = dav.items.parse_event_details(self.sent[0][2].decode())
+        self.assertEqual(details, {"all_day": True, "start": "2026-07-15", "rrule": "FREQ=WEEKLY;COUNT=4", "alarm": 15})
+
+
 if __name__ == "__main__":
     unittest.main()
