@@ -46,6 +46,19 @@ def build_parser():
     dav.add_argument("--start")
     dav.add_argument("--end")
     dav.add_argument("--tz")
+    eas = sub.add_parser("eas")
+    eas.add_argument("command", choices=["setup", "sync", "add", "change", "delete", "fetch", "send"])
+    add_common(eas)
+    eas.add_argument("--class", dest="cls", choices=["Contacts", "Calendar", "Email"])
+    eas.add_argument("--window", type=int, default=25)
+    eas.add_argument("--name")
+    eas.add_argument("--server-id")
+    eas.add_argument("--start")
+    eas.add_argument("--end")
+    eas.add_argument("--tz")
+    eas.add_argument("--to")
+    eas.add_argument("--subject")
+    eas.add_argument("--body")
     return parser
 
 
@@ -62,6 +75,9 @@ def main(argv):
         elif args.proto == "dav":
             import dav
             result = dav.run(args)
+        elif args.proto == "eas":
+            import eas
+            result = eas.run(args)
         print(json.dumps(result, ensure_ascii=False))
         return 0
     except Exception as err:  # every failure must reach robot as JSON
