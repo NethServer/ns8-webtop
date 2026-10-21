@@ -26,7 +26,7 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 _opener = urllib.request.build_opener(_NoRedirect)
 
 
-def request(method, url, *, user, password, host, headers=None, body=None):
+def request(method, url, *, user, password, host, headers=None, body=None, timeout=60):
     all_headers = {
         "Host": host,
         "X-Forwarded-Host": host,
@@ -36,7 +36,7 @@ def request(method, url, *, user, password, host, headers=None, body=None):
     all_headers.update(headers or {})
     req = urllib.request.Request(url, data=body, headers=all_headers, method=method)
     try:
-        with _opener.open(req, timeout=60) as resp:
+        with _opener.open(req, timeout=timeout) as resp:
             return Response(resp.status, dict(resp.headers), resp.read())
     except urllib.error.HTTPError as err:
         return Response(err.code, dict(err.headers), err.read())

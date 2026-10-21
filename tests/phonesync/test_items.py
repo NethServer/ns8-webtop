@@ -49,6 +49,52 @@ class ItemsTest(unittest.TestCase):
         self.assertEqual(items.parse_name(data), "New")
         self.assertEqual(items.parse_start(data), ("2026-07-15T10:00:00", "Europe/Rome"))
 
+    FIELDS = {"mobile": "+39 333 1234567", "email": "niccolo@example.test",
+              "street": "Via Roma 1", "city": "Pesaro", "photo": "png"}
+
+    def test_vcard_fields_roundtrip(self):
+        data = items.vcard("uid-7", "Niccolò", self.FIELDS)
+        self.assertIn("TEL;TYPE=CELL:+39 333 1234567\r\n", data)
+        self.assertIn("EMAIL;TYPE=WORK:niccolo@example.test\r\n", data)
+        self.assertTrue(all(len(line.encode()) <= 75 for line in data.split("\r\n")))
+        self.assertEqual(items.parse_fields(data), {"mobile": "+39 333 1234567", "email": "niccolo@example.test",
+                                                    "street": "Via Roma 1", "city": "Pesaro",
+                                                    "photo_size": len(items.TEST_PNG)})
+
+    def test_parse_fields_data_uri_photo(self):
+        import base64
+        data = ("BEGIN:VCARD\r\nVERSION:4.0\r\nFN:x\r\nPHOTO:data:image/png;base64,%s\r\nEND:VCARD\r\n"
+                % base64.b64encode(items.TEST_PNG).decode())
+        self.assertEqual(items.parse_fields(data)["photo_size"], len(items.TEST_PNG))
+
+    def test_parse_fields_missing(self):
+        self.assertEqual(items.parse_fields(items.vcard("u", "x")),
+                         {"mobile": None, "email": None, "street": None, "city": None, "photo_size": 0})
+
+    def test_all_day_event(self):
+        data = items.event("uid-8", "Ferie", "2026-07-15", "2026-07-16", None, all_day=True)
+        self.assertIn("DTSTART;VALUE=DATE:20260715\r\n", data)
+        self.assertIn("DTEND;VALUE=DATE:20260716\r\n", data)
+        self.assertEqual(items.parse_event_details(data),
+                         {"all_day": True, "start": "2026-07-15", "rrule": None, "alarm": None})
+
+    def test_recurring_event_with_alarm(self):
+        data = items.event("uid-9", "Weekly", "2026-07-15T10:00:00", "2026-07-15T11:00:00", "Europe/Rome",
+                           rrule="FREQ=WEEKLY;COUNT=4", alarm=15)
+        self.assertIn("RRULE:FREQ=WEEKLY;COUNT=4\r\n", data)
+        self.assertIn("TRIGGER:-PT15M\r\n", data)
+        self.assertEqual(items.parse_event_details(data),
+                         {"all_day": False, "start": "2026-07-15T10:00:00", "rrule": "FREQ=WEEKLY;COUNT=4", "alarm": 15})
+
+    def test_parse_alarm_hours(self):
+        data = items.event("u", "x", "2026-07-15T10:00:00", "2026-07-15T11:00:00", "Europe/Rome", alarm=15)
+        self.assertEqual(items.parse_event_details(data.replace("-PT15M", "-PT1H"))["alarm"], 60)
+
+    def test_with_name_keeps_fields(self):
+        data = items.with_name(items.vcard("u", "Old", self.FIELDS), "New")
+        self.assertEqual(items.parse_fields(data)["photo_size"], len(items.TEST_PNG))
+        self.assertEqual(items.parse_fields(data)["mobile"], "+39 333 1234567")
+
 
 if __name__ == "__main__":
     unittest.main()
