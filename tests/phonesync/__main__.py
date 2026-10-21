@@ -55,7 +55,7 @@ def build_parser():
     eas = sub.add_parser("eas")
     eas.add_argument("command", choices=["setup", "sync", "add", "change", "delete", "fetch", "send", "lookup"])
     add_common(eas)
-    eas.add_argument("--class", dest="cls", choices=["Contacts", "Calendar", "Email"])
+    eas.add_argument("--class", dest="cls", choices=["Contacts", "Calendar", "Email", "Tasks"])
     eas.add_argument("--window", type=int, default=25)
     eas.add_argument("--name")
     eas.add_argument("--server-id")
@@ -65,6 +65,12 @@ def build_parser():
     eas.add_argument("--to")
     eas.add_argument("--subject")
     eas.add_argument("--body")
+    eas.add_argument("--fields", help="JSON: mobile, email, street, city, photo")
+    eas.add_argument("--all-day", action="store_true")
+    eas.add_argument("--rrule")
+    eas.add_argument("--alarm", type=int, help="minutes before start")
+    eas.add_argument("--due", help="task due time, ISO UTC")
+    eas.add_argument("--complete", action="store_true")
     return parser
 
 
