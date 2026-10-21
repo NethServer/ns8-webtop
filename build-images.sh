@@ -169,6 +169,7 @@ buildah run ${container} sh -c "install-php-extensions pgsql mysqli"
 buildah add ${container} ${PWD}/phonebook/webtop2phonebook.php /usr/share/phonebooks/scripts/
 buildah add ${container} ${PWD}/phonebook/pbook2webtop.php /usr/share/phonebooks/post_scripts/
 buildah add ${container} ${PWD}/phonebook/start.sh /usr/share/phonebooks/
+buildah add ${container} ${PWD}/php/zz-session-upload-progress.ini /usr/local/etc/php/conf.d/zz-session-upload-progress.ini
 buildah config --cmd /usr/share/phonebooks/start.sh ${container}
 # Commit the image
 buildah commit --rm "${container}" "${repobase}/${reponame}"
