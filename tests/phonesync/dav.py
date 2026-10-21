@@ -1,5 +1,6 @@
 """CalDAV/CardDAV client acting like DAVx5 (sync-collection) or iOS (ctag + etag polling)."""
 
+import json
 import urllib.parse
 import uuid
 import xml.etree.ElementTree as ET
@@ -177,11 +178,14 @@ class DavClient:
             return etag
         return etags(self.propfind(path, 0, "<d:getetag/>")).get(path)
 
-    def put(self, kind, name, start=None, end=None, tz=None):
+    def put(self, kind, name, start=None, end=None, tz=None, fields=None, all_day=False, rrule=None, alarm=None):
         ks = self.kind_state(kind)
         uid = str(uuid.uuid4())
         href = ks["collection"] + uid + KINDS[kind]["ext"]
-        data = items.vcard(uid, name) if kind == "contact" else items.event(uid, name, start, end, tz)
+        if kind == "contact":
+            data = items.vcard(uid, name, fields)
+        else:
+            data = items.event(uid, name, start, end, tz, all_day=all_day, rrule=rrule, alarm=alarm)
         resp = self.req("PUT", href, data, {"Content-Type": KINDS[kind]["type"], "If-None-Match": "*"})
         etag = self._etag(href, resp)
         ks["items"][href] = {"etag": etag, "uid": uid, "name": name}
@@ -192,8 +196,13 @@ class DavClient:
         resp = self.req("GET", href, ok=(200,))
         data = resp.body.decode("utf-8")
         start = items.parse_start(data)
-        return {"etag": resp.headers.get("etag"), "name": items.parse_name(data),
-                "start": start[0] if start else None, "tz": start[1] if start else None}
+        out = {"etag": resp.headers.get("etag"), "name": items.parse_name(data),
+               "start": start[0] if start else None, "tz": start[1] if start else None}
+        if href.endswith(KINDS["contact"]["ext"]):
+            out["fields"] = items.parse_fields(data)
+        else:
+            out["details"] = items.parse_event_details(data)
+        return out
 
     def _owner(self, href):
         kind = "contact" if href.endswith(KINDS["contact"]["ext"]) else "event"
@@ -291,7 +300,9 @@ def run(args):
     if args.command == "discover":
         return client.discover()
     if args.command == "put":
-        return client.put(args.kind, args.name, args.start, args.end, args.tz)
+        return client.put(args.kind, args.name, args.start, args.end, args.tz,
+                          fields=json.loads(args.fields) if args.fields else None,
+                          all_day=args.all_day, rrule=args.rrule, alarm=args.alarm)
     if args.command == "get":
         return client.get(args.href)
     if args.command == "update":

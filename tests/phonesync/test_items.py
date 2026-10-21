@@ -49,6 +49,12 @@ class ItemsTest(unittest.TestCase):
         self.assertEqual(items.parse_name(data), "New")
         self.assertEqual(items.parse_start(data), ("2026-07-15T10:00:00", "Europe/Rome"))
 
+    def test_test_png_is_valid(self):
+        import zlib
+        data = items.TEST_PNG
+        self.assertTrue(data.startswith(b"\x89PNG\r\n\x1a\n"))
+        zlib.decompress(data[data.index(b"IDAT") + 4:data.index(b"IEND") - 8])
+
     FIELDS = {"mobile": "+39 333 1234567", "email": "niccolo@example.test",
               "street": "Via Roma 1", "city": "Pesaro", "photo": "png"}
 

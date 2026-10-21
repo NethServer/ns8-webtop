@@ -118,3 +118,21 @@ Delete test messages
 
 Delete pre-upgrade items in WebTop
     Phonesync    webtop    cleanup    ${EMPTY}    --name    pre-upgrade-
+
+Contact fields in WebTop
+    [Arguments]    ${name}
+    ${uid} =    Phone user id
+    ${out} =    WebTop SQL    SELECT c.work_mobile, c.work_email, c.work_address, c.work_city, coalesce((SELECT octet_length(p.bytes) FROM contacts.contacts_pictures p WHERE p.contact_id = c.contact_id), 0) FROM contacts.contacts c JOIN contacts.categories k USING (category_id) WHERE k.user_id = $q$${uid}$q$ AND c.display_name = $q$${name}$q$ AND c.revision_status <> 'D'
+    @{rows} =    Evaluate    [line.split('|') for line in $out.splitlines() if line]
+    Length Should Be    ${rows}    1    expected exactly one contact named ${name}
+    &{fields} =    Evaluate    dict(zip(['mobile', 'email', 'street', 'city'], [v or None for v in $rows[0][:4]]), photo_size=int($rows[0][4]))
+    RETURN    ${fields}
+
+Event details in WebTop
+    [Arguments]    ${name}
+    ${uid} =    Phone user id
+    ${out} =    WebTop SQL    SELECT e.all_day, to_char(e.start AT TIME ZONE 'Europe/Rome', 'YYYY-MM-DD"T"HH24:MI:SS'), coalesce(e.reminder::text, ''), coalesce(r.rule, '') FROM calendar.events e JOIN calendar.calendars c USING (calendar_id) LEFT JOIN calendar.events_recurrences r USING (event_id) WHERE c.user_id = $q$${uid}$q$ AND e.title = $q$${name}$q$ AND e.revision_status <> 'D'
+    @{rows} =    Evaluate    [line.split('|') for line in $out.splitlines() if line]
+    Length Should Be    ${rows}    1    expected exactly one event named ${name}
+    &{details} =    Evaluate    {'all_day': $rows[0][0] == 't', 'start_local': $rows[0][1], 'reminder': int($rows[0][2]) if $rows[0][2] else None, 'rrule': $rows[0][3] or None}
+    RETURN    ${details}

@@ -55,6 +55,16 @@ Event deleted in WebTop leaves phone
     davx5
     ios-dav
 
+All-day event keeps its day
+    [Template]    All-day event keeps its day
+    davx5    ios-dav
+    ios-dav    davx5
+
+Recurring event with reminder
+    [Template]    Recurring event with reminder
+    davx5    ios-dav
+    ios-dav    davx5
+
 Event deleted on phone leaves WebTop
     [Template]    Event deleted on phone leaves WebTop
     davx5
@@ -158,3 +168,38 @@ Second phone sees first phone's event
     ${r} =    Phone DAV sync    ${reader}    event
     ${names} =    Names in    ${r['added']}
     Should Be Equal    ${names}    ${{[$name]}}
+
+Event read by second phone
+    [Arguments]    ${reader}
+    ${r} =    Phone DAV sync    ${reader}    event
+    Length Should Be    ${r['added']}    1
+    ${got} =    Phonesync    dav    get    ${reader}    --href    ${r['added'][0]['href']}
+    RETURN    ${got['details']}
+
+All-day event keeps its day
+    [Arguments]    ${writer}    ${reader}
+    Phone DAV sync    ${reader}    event
+    ${name} =    Unique name    ${writer} holiday
+    Phonesync    dav    put    ${writer}    --kind    event    --name    ${name}
+    ...    --start    2026-07-15    --end    2026-07-16    --all-day
+    ${db} =    Event details in WebTop    ${name}
+    Should Be True    ${db['all_day']}
+    Should Be Equal    ${db['start_local']}    2026-07-15T00:00:00
+    ${got} =    Event read by second phone    ${reader}
+    Should Be True    ${got['all_day']}
+    Should Be Equal    ${got['start']}    2026-07-15
+
+Recurring event with reminder
+    [Arguments]    ${writer}    ${reader}
+    Phone DAV sync    ${reader}    event
+    ${name} =    Unique name    ${writer} weekly
+    Phonesync    dav    put    ${writer}    --kind    event    --name    ${name}
+    ...    --start    ${LOCAL_START}    --end    ${LOCAL_END}    --tz    ${TZ}    --rrule    FREQ=WEEKLY;COUNT=4    --alarm    15
+    ${db} =    Event details in WebTop    ${name}
+    Should Contain    ${db['rrule']}    FREQ=WEEKLY
+    Should Contain    ${db['rrule']}    COUNT=4
+    Should Be Equal As Integers    ${db['reminder']}    15
+    ${got} =    Event read by second phone    ${reader}
+    Should Contain    ${got['rrule']}    FREQ=WEEKLY
+    Should Contain    ${got['rrule']}    COUNT=4
+    Should Be Equal As Integers    ${got['alarm']}    15
