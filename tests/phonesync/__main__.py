@@ -52,6 +52,9 @@ def build_parser():
     dav.add_argument("--all-day", action="store_true")
     dav.add_argument("--rrule")
     dav.add_argument("--alarm", type=int, help="minutes before start")
+    devices = sub.add_parser("devices", help="parse z-push-admin output read from stdin")
+    devices.add_argument("command", choices=["parse"])
+    devices.add_argument("--what", choices=["lastsync", "list", "info"], required=True)
     eas = sub.add_parser("eas")
     eas.add_argument("command", choices=["setup", "sync", "add", "change", "delete", "fetch", "send", "lookup", "ping"])
     add_common(eas)
@@ -89,6 +92,9 @@ def main(argv):
         elif args.proto == "dav":
             import dav
             result = dav.run(args)
+        elif args.proto == "devices":
+            import devices
+            result = devices.run(args, sys.stdin.read())
         elif args.proto == "eas":
             import eas
             result = eas.run(args)

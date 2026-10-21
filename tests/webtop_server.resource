@@ -179,3 +179,21 @@ Deliver mail
     ${cmd} =    Evaluate    'printf %s ' + shlex.quote($message) + ' | ' + shlex.join(['runagent', '-m', $MID, 'podman', 'exec', '-i', 'postfix', 'sendmail', '-f', 'e2e@example.test', $to])    modules=shlex
     ${out}    ${err}    ${rc} =    Execute Command    ${cmd}    return_stderr=True    return_rc=True
     Should Be Equal As Integers    ${rc}    0    sendmail failed: ${err}
+
+Run z-push-admin
+    # exactly how WebTop's Devices panel reaches z-push-admin: zfaker on localhost, from the webapp container
+    [Arguments]    ${params}
+    ${body} =    Evaluate    json.dumps({'params': $params})    modules=json
+    ${cmd} =    Evaluate    shlex.join(['runagent', '-m', $webtop_module_id, 'podman', 'exec', 'webapp', 'curl', '-s', '-w', '\\n\%{http_code}', '-H', 'Content-Type: application/json', '-d', $body, 'http://localhost:8081/z-push-admin'])    modules=shlex
+    ${out} =    Execute Command    ${cmd}
+    ${text}    ${status} =    Evaluate    $out.rsplit('\\n', 1) if '\\n' in $out else ('', $out)
+    RETURN    ${text}    ${status}
+
+Devices panel data
+    [Arguments]    ${what}    ${params}
+    ${text}    ${status} =    Run z-push-admin    ${params}
+    Should Be Equal    ${status}    200    z-push-admin ${params} answered HTTP ${status}
+    ${cmd} =    Evaluate    'printf %s ' + shlex.quote($text) + ' | ' + shlex.join(['python3', $PHONESYNC, 'devices', 'parse', '--what', $what])    modules=shlex
+    ${out}    ${err}    ${rc} =    Execute Command    ${cmd}    return_stderr=True    return_rc=True
+    ${result} =    Phonesync result    devices parse ${what}    ${out}    ${err}    ${rc}
+    RETURN    ${result}
