@@ -2,7 +2,8 @@
 Test Timeout      5 minutes
 Documentation     Contacts over CardDAV, as DAVx5 (Android) and iOS sync them
 Resource          phonesync_sync.resource
-Suite Setup       Set up phone suite
+Suite Setup       Run Keywords    Set up phone suite
+...               AND    Run Keyword If    '${SCENARIO}' != 'update'    Start from unpaired phones
 Suite Teardown    Delete all test items in WebTop
 
 *** Test Cases ***
@@ -34,6 +35,11 @@ Contact changed in WebTop reaches phone
 
 Contact deleted in WebTop leaves phone
     [Template]    Contact deleted in WebTop leaves phone
+    davx5
+    ios-dav
+
+Contact edited on phone reaches WebTop
+    [Template]    Contact edited on phone reaches WebTop
     davx5
     ios-dav
 
@@ -114,3 +120,12 @@ Second phone sees first phone's contact
     ${r} =    Phone DAV sync    ${reader}    contact
     ${names} =    Names in    ${r['added']}
     Should Be Equal    ${names}    ${{[$name]}}
+
+Contact edited on phone reaches WebTop
+    [Arguments]    ${profile}
+    ${name} =    Unique name    ${profile} draft
+    ${r} =    Phonesync    dav    put    ${profile}    --kind    contact    --name    ${name}
+    ${new} =    Unique name    ${profile} final
+    Phonesync    dav    update    ${profile}    --href    ${r['href']}    --name    ${new}
+    Contact exists in WebTop    ${new}
+    Contact does not exist in WebTop    ${name}

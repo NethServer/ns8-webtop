@@ -47,6 +47,14 @@ Contact deleted in WebTop leaves phone
     ios-eas
     android-eas
 
+Contact renamed on phone reaches WebTop
+    [Documentation]    Known issue: WebTop updates the first name but keeps the old display name.
+    ...                Skipped while it fails; it passes once the server is fixed.
+    [Tags]    known-issue    robot:skip-on-failure
+    [Template]    Contact renamed on phone reaches WebTop
+    ios-eas
+    android-eas
+
 Contact deleted on phone leaves WebTop
     [Template]    Contact deleted on phone leaves WebTop
     ios-eas
@@ -189,6 +197,15 @@ Contact deleted in WebTop leaves phone
     ${r} =    Phone EAS sync    ${profile}    Contacts
     Should Be Equal    ${r['deleted']}    ${ids}
 
+Contact renamed on phone reaches WebTop
+    [Arguments]    ${profile}
+    ${name} =    Unique name    ${profile} draft
+    ${id} =    Phone adds    ${profile}    Contacts    ${name}
+    ${new} =    Unique name    ${profile} final
+    Phonesync    eas    change    ${profile}    --class    Contacts    --server-id    ${id}    --name    ${new}
+    Contact exists in WebTop    ${new}
+    Contact does not exist in WebTop    ${name}
+
 Contact deleted on phone leaves WebTop
     [Arguments]    ${profile}
     ${name} =    Unique name    ${profile} removed
@@ -238,6 +255,9 @@ Phone reads event back
     Length Should Be    ${r['added']}    1
     Should Be Equal    ${r['added'][0]['name']}    ${name}
     Should Be Equal    ${r['added'][0]['start']}    ${UTC_START}
+    # Europe/Rome: one hour ahead of UTC, one more hour in summer
+    Should Be Equal As Integers    ${r['added'][0]['tz_bias']}    -60
+    Should Be Equal As Integers    ${r['added'][0]['tz_dst_bias']}    -60
 
 Event modified on phone reaches WebTop
     [Arguments]    ${profile}

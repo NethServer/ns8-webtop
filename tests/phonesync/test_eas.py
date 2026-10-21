@@ -84,8 +84,13 @@ class NegotiateTest(unittest.TestCase):
     def test_14_1_offered(self):
         self.assertEqual(eas.negotiate("2.5,12.0,12.1,14.0,14.1", "16.1"), "14.1")
 
-    def test_16_offered_stays_on_14_1(self):
-        self.assertEqual(eas.negotiate("14.0,14.1,16.0,16.1", "16.1"), "14.1")
+    def test_16_offered_to_ios_fails_loudly(self):
+        # a real iPhone would use 16.x: running it on 14.1 would test the wrong thing
+        with self.assertRaises(HelperError):
+            eas.negotiate("14.0,14.1,16.0,16.1", "16.1")
+
+    def test_16_offered_to_android_uses_14_1(self):
+        self.assertEqual(eas.negotiate("14.0,14.1,16.0,16.1", "14.1"), "14.1")
 
     def test_too_old_server(self):
         with self.assertRaises(HelperError):
@@ -120,6 +125,11 @@ class ItemShapeTest(unittest.TestCase):
         self.assertEqual((std_month, std_dow, std_week, std_hour), (10, 0, 5, 3))
         dst_bias, = struct.unpack_from("<l", blob, 168)
         self.assertEqual(dst_bias, -60)
+
+    def test_parse_timezone_blob(self):
+        tz = eas.parse_timezone(eas.timezone_blob("Europe/Rome"))
+        self.assertEqual(tz, {"bias": -60, "dst_bias": -60, "std_month": 10, "dst_month": 3})
+        self.assertIsNone(eas.parse_timezone(None))
 
     def test_calendar_data(self):
         data = eas.calendar_data("uid-1", "Riunione ☕", "2026-07-15T10:00:00", "2026-07-15T11:00:00", "Europe/Rome")
@@ -166,7 +176,8 @@ class SyncTest(EasTestCase):
         c = self.client(server, sync={"Contacts": {"collection_id": "c1", "sync_key": "k4",
                                                    "items": {"s1": {"name": "A"}, "s2": {"name": "B"}}}})
         out = c.sync("Contacts")
-        self.assertEqual(out["changed"], [{"server_id": "s1", "name": "A2", "start": None}])
+        self.assertEqual(out["changed"], [{"server_id": "s1", "name": "A2", "start": None,
+                                           "tz_bias": None, "tz_dst_bias": None}])
         self.assertEqual(out["deleted"], ["s2"])
         self.assertEqual(c.state["sync"]["Contacts"]["sync_key"], "k5")
 
@@ -209,6 +220,20 @@ class SyncTest(EasTestCase):
         self.assertEqual(c.lookup("Contacts", "B"), {"server_id": "s2"})
         with self.assertRaises(HelperError):
             c.lookup("Contacts", "missing")
+
+    def test_sync_reports_event_timezone(self):
+        event = el("AirSync:Add", el("AirSync:ServerId", text="e1"), el("AirSync:ApplicationData",
+                   el("Calendar:Timezone", text=eas.timezone_blob("Europe/Rome")),
+                   el("Calendar:Subject", text="M"), el("Calendar:StartTime", text="20260715T080000Z")))
+        c = self.client(FakeServer(sync_reply("k1"), sync_reply("k2", commands=[event])),
+                        folders=[{"id": "c1", "type": "13", "name": "WebTop"}])
+        added = c.sync("Calendar")["added"][0]
+        self.assertEqual((added["start"], added["tz_bias"], added["tz_dst_bias"]), ("2026-07-15T08:00:00Z", -60, -60))
+
+    def test_write_without_reply_fails_clearly(self):
+        c = self.client(FakeServer(None), sync={"Contacts": {"collection_id": "c1", "sync_key": "k1", "items": {}}})
+        with self.assertRaisesRegex(HelperError, "empty reply"):
+            c.add("Contacts", "Z")
 
     def test_add_returns_server_id(self):
         server = FakeServer(sync_reply("k2", responses=[

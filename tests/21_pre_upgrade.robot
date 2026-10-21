@@ -2,7 +2,7 @@
 Test Timeout      5 minutes
 Documentation     Pair every phone with the stable module, before 22_update.robot upgrades it
 Resource          phonesync_sync.resource
-Suite Setup       Run Keywords    Skip unless update scenario    AND    Set up phone suite
+Suite Setup       Run Keywords    Skip unless update scenario    AND    Set up phone suite    AND    Start from unpaired phones
 
 *** Test Cases ***
 DAV phones sync before the upgrade

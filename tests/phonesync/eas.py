@@ -35,6 +35,10 @@ def _version_key(v):
 
 def negotiate(server_versions, cap):
     offered = {v.strip() for v in server_versions.split(",")}
+    beyond = [v for v in offered if v and _version_key(max(SUPPORTED, key=_version_key)) < _version_key(v) <= _version_key(cap)]
+    if beyond:
+        raise HelperError("server offers ActiveSync %s, which this phone would use but the helper does not speak"
+                          % max(beyond, key=_version_key))
     usable = [v for v in SUPPORTED if v in offered and _version_key(v) <= _version_key(cap)]
     if not usable:
         raise HelperError("no common ActiveSync version: server offers %s" % server_versions)
@@ -85,6 +89,18 @@ def timezone_blob(tz):
     blob = struct.pack("<l", bias) + name(std_name) + std_date + struct.pack("<l", 0) \
         + name(dst_name) + dst_date + struct.pack("<l", dst_bias)
     return base64.b64encode(blob).decode()
+
+
+def parse_timezone(blob):
+    """The parts of a base64 TIME_ZONE_INFORMATION that tests check, or None."""
+    if not blob:
+        return None
+    raw = base64.b64decode(blob)
+    bias, = struct.unpack_from("<l", raw, 0)
+    std_month, = struct.unpack_from("<H", raw, 70)
+    dst_month, = struct.unpack_from("<H", raw, 154)
+    dst_bias, = struct.unpack_from("<l", raw, 168)
+    return {"bias": bias, "dst_bias": dst_bias, "std_month": std_month, "dst_month": dst_month}
 
 
 def _utc_compact(value, tz):
@@ -341,7 +357,9 @@ class EasClient:
                 item = {"name": item_name(data), "uid": wbxml.findtext(data, "Calendar:UID"),
                         "start": _iso_from_compact(wbxml.findtext(data, "Calendar:StartTime")),
                         "end": _iso_from_compact(wbxml.findtext(data, "Calendar:EndTime"))}
-                entry = {"server_id": sid, "name": item["name"], "start": item["start"]}
+                tz = parse_timezone(wbxml.findtext(data, "Calendar:Timezone"))
+                entry = {"server_id": sid, "name": item["name"], "start": item["start"],
+                         "tz_bias": tz["bias"] if tz else None, "tz_dst_bias": tz["dst_bias"] if tz else None}
                 if seen is not None:
                     seen.add(sid)
                 if kind == "Add" and sid not in cs["items"]:
@@ -360,6 +378,8 @@ class EasClient:
         commands = el(None, "AirSync:Commands")
         commands.append(command)
         coll = self._collection(cs, self._sync_request(cs, commands=commands, get_changes=False))
+        if coll is None:
+            raise HelperError("Sync write: empty reply from the server")
         if wbxml.findtext(coll, "AirSync:Status") != "1":
             raise HelperError("Sync write status %s" % wbxml.findtext(coll, "AirSync:Status"))
         cs["sync_key"] = wbxml.findtext(coll, "AirSync:SyncKey")

@@ -5,13 +5,18 @@ Keywords shared by the phone protocol suites.
 Library     Collections
 Resource    phonesync.resource
 Resource    webtop_server.resource
-Resource    webtop.resource
 
 *** Keywords ***
 Set up phone suite
     Resolve test environment
     Upload phonesync helper
     Open WebTop once as phone user
+
+Start from unpaired phones
+    # leftovers of an earlier run on a development machine would break "exactly once" checks
+    Reset phones
+    Delete all test items in WebTop
+    Delete pre-upgrade items in WebTop
 
 Names in
     [Arguments]    ${entries}

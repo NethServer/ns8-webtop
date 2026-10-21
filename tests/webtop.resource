@@ -5,7 +5,7 @@ Resource    api.resource
 *** Variables ***
 ${curl_timeout}    9
 ${SCENARIO}        install
-${WEBTOP_USER}      u1@domain.test
+${PHONE_USER}       u1@domain.test
 
 *** Keywords ***
 Retry test
@@ -19,7 +19,7 @@ Backend URL is reachable
 
 Login as u1
     ${output}    ${err}    ${rc} =    Execute Command
-    ...    rm -f cookies.txt; curl -L -v -X POST ${backend_url}/webtop/login -d "wtusername=${WEBTOP_USER}" -d "wtpassword=Nethesis,1234" -d "location=${backend_url}/webtop/" -d "wtdomain=NethServer" -b cookies.txt -c cookies.txt -H "User-Agent: curl/8.15.0" -H "Referer: ${backend_url}/webtop/" -H "Accept: */*"
+    ...    rm -f cookies.txt; curl -L -v -X POST ${backend_url}/webtop/login -d "wtusername=${PHONE_USER}" -d "wtpassword=Nethesis,1234" -d "location=${backend_url}/webtop/" -d "wtdomain=NethServer" -b cookies.txt -c cookies.txt -H "User-Agent: curl/8.15.0" -H "Referer: ${backend_url}/webtop/" -H "Accept: */*"
     ...    return_rc=True
     ...    return_stdout=True
     ...    return_stderr=True
