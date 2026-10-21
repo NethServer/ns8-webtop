@@ -171,3 +171,11 @@ Complete task in WebTop
 Delete task in WebTop
     [Arguments]    ${name}
     Phonesync    webtop    task-delete    ${EMPTY}    --name    ${name}
+
+Deliver mail
+    # through the mail module's postfix, so it is a real delivery and not a mailbox write
+    [Arguments]    ${to}    ${subject}
+    ${message} =    Catenate    SEPARATOR=\n    From: e2e@example.test    To: ${to}    Subject: ${subject}    ${EMPTY}    Delivered by the e2e tests
+    ${cmd} =    Evaluate    'printf %s ' + shlex.quote($message) + ' | ' + shlex.join(['runagent', '-m', $MID, 'podman', 'exec', '-i', 'postfix', 'sendmail', '-f', 'e2e@example.test', $to])    modules=shlex
+    ${out}    ${err}    ${rc} =    Execute Command    ${cmd}    return_stderr=True    return_rc=True
+    Should Be Equal As Integers    ${rc}    0    sendmail failed: ${err}
