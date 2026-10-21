@@ -1,5 +1,6 @@
 *** Settings ***
 Library     SSHLibrary
+Library     Collections
 Resource    api.resource
 
 *** Variables ***
@@ -40,9 +41,15 @@ Phonesync
     IF    '${proto}' == 'version'
         @{argv} =    Create List    version
     ELSE
-        @{argv} =    Create List    ${proto}    ${command}    --profile    ${profile}
+        @{argv} =    Create List    ${proto}    ${command}
         ...    --url    ${backend_url}    --host    ${WEBTOP_HOST}
         ...    --user    ${PHONE_USER}    --password    ${PHONE_PASSWORD}    @{args}
+        IF    $profile
+            Append To List    ${argv}    --profile    ${profile}
+        END
+        IF    '${proto}' == 'webtop'
+            Append To List    ${argv}    --module    ${webtop_module_id}
+        END
     END
     ${cmdline} =    Evaluate    shlex.join(['python3', $PHONESYNC] + $argv)    modules=shlex
     ${out}    ${err}    ${rc} =    Execute Command    ${cmdline}    return_stderr=True    return_rc=True
