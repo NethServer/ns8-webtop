@@ -14,6 +14,7 @@ ${LOCAL_END}      2026-07-15T11:00:00
 ${TZ}             Europe/Rome
 ${UTC_START}      2026-07-15T08:00:00Z
 ${UTC_END}        2026-07-15T09:00:00Z
+${TASK_DUE}       2026-07-20T08:00:00Z
 
 *** Test Cases ***
 
@@ -115,6 +116,56 @@ Second phone sees first phone's event
     ios-eas    android-eas    Calendar
     android-eas    ios-eas    Calendar
 
+Tasks initial sync
+    [Template]    Initial sync
+    ios-eas    Tasks
+    android-eas    Tasks
+
+Task created on phone reaches WebTop
+    [Template]    Task created on phone reaches WebTop
+    ios-eas
+    android-eas
+
+Task changed in WebTop reaches phone
+    [Template]    Task changed in WebTop reaches phone
+    ios-eas
+    android-eas
+
+Task completed on phone shows completed
+    [Template]    Task completed on phone shows completed
+    ios-eas    android-eas
+    android-eas    ios-eas
+
+Task deleted in WebTop leaves phone
+    [Template]    Task deleted in WebTop leaves phone
+    ios-eas
+    android-eas
+
+Task deleted on phone leaves WebTop
+    [Template]    Task deleted on phone leaves WebTop
+    ios-eas
+    android-eas
+
+Contact with details reaches WebTop
+    [Template]    Contact with details reaches WebTop
+    ios-eas
+    android-eas
+
+Contact details reach the second phone
+    [Template]    Contact details reach the second phone
+    ios-eas    android-eas
+    android-eas    ios-eas
+
+All-day event keeps its day
+    [Template]    All-day event keeps its day
+    ios-eas    android-eas
+    android-eas    ios-eas
+
+Recurring event with reminder
+    [Template]    Recurring event with reminder
+    ios-eas    android-eas
+    android-eas    ios-eas
+
 Phone reads a message
     Phone EAS sync    ios-eas    Email
     ${subject} =    Unique name    inbox
@@ -139,6 +190,7 @@ Phone sets up account
     Should Contain    ${types}    2    no Inbox
     Should Be True    $types & {'9', '14'}    no address book folder
     Should Be True    $types & {'8', '13'}    no calendar folder
+    Should Be True    $types & {'7', '15'}    no tasks folder
 
 Initial sync
     [Arguments]    ${profile}    ${class}
@@ -147,6 +199,10 @@ Initial sync
 
 Phone adds
     [Arguments]    ${profile}    ${class}    ${name}
+    IF    '${class}' == 'Tasks'
+        ${r} =    Phonesync    eas    add    ${profile}    --class    Tasks    --name    ${name}    --due    ${TASK_DUE}
+        RETURN    ${r['server_id']}
+    END
     IF    '${class}' == 'Calendar'
         ${r} =    Phonesync    eas    add    ${profile}    --class    Calendar    --name    ${name}
         ...    --start    ${LOCAL_START}    --end    ${LOCAL_END}    --tz    ${TZ}
@@ -312,3 +368,107 @@ Event deleted on phone leaves WebTop
     Event in WebTop    ${name}
     Phonesync    eas    delete    ${profile}    --class    Calendar    --server-id    ${id}
     Event does not exist in WebTop    ${name}
+
+Task created on phone reaches WebTop
+    [Arguments]    ${profile}
+    ${name} =    Unique name    ${profile} task
+    Phone adds    ${profile}    Tasks    ${name}
+    ${task} =    Task in WebTop    ${name}
+    Should Be Equal    ${task['due_utc']}    ${TASK_DUE}
+    Should Not Be True    ${task['completed']}
+
+Task changed in WebTop reaches phone
+    [Arguments]    ${profile}
+    Phone EAS sync    ${profile}    Tasks
+    ${name} =    Unique name    ${profile} task before
+    Create task in WebTop    ${name}    ${TASK_DUE}
+    ${r} =    Phone EAS sync    ${profile}    Tasks
+    ${names} =    Names in    ${r['added']}
+    Should Be Equal    ${names}    ${{[$name]}}
+    Should Be Equal    ${r['added'][0]['due']}    ${TASK_DUE}
+    ${new} =    Unique name    ${profile} task after
+    Rename task in WebTop    ${name}    ${new}
+    ${r} =    Phone EAS sync    ${profile}    Tasks
+    ${names} =    Names in    ${r['changed']}
+    Should Be Equal    ${names}    ${{[$new]}}
+
+Task completed on phone shows completed
+    [Arguments]    ${writer}    ${reader}
+    Phone EAS sync    ${reader}    Tasks
+    ${name} =    Unique name    ${writer} task done
+    ${id} =    Phone adds    ${writer}    Tasks    ${name}
+    Phonesync    eas    change    ${writer}    --class    Tasks    --server-id    ${id}    --complete
+    ${task} =    Task in WebTop    ${name}
+    Should Be True    ${task['completed']}
+    ${r} =    Phone EAS sync    ${reader}    Tasks
+    Length Should Be    ${r['added']}    1
+    Should Be True    ${r['added'][0]['complete']}
+
+Task deleted in WebTop leaves phone
+    [Arguments]    ${profile}
+    Phone EAS sync    ${profile}    Tasks
+    ${name} =    Unique name    ${profile} task doomed
+    Create task in WebTop    ${name}    ${TASK_DUE}
+    ${r} =    Phone EAS sync    ${profile}    Tasks
+    ${ids} =    Server ids in    ${r['added']}
+    Length Should Be    ${ids}    1
+    Delete task in WebTop    ${name}
+    ${r} =    Phone EAS sync    ${profile}    Tasks
+    Should Be Equal    ${r['deleted']}    ${ids}
+
+Task deleted on phone leaves WebTop
+    [Arguments]    ${profile}
+    ${name} =    Unique name    ${profile} task removed
+    ${id} =    Phone adds    ${profile}    Tasks    ${name}
+    Task in WebTop    ${name}
+    Phonesync    eas    delete    ${profile}    --class    Tasks    --server-id    ${id}
+    Task does not exist in WebTop    ${name}
+
+Contact with details reaches WebTop
+    [Arguments]    ${profile}
+    ${name} =    Unique name    ${profile} detailed
+    ${json} =    Evaluate    json.dumps($DETAILS)    modules=json
+    Phonesync    eas    add    ${profile}    --class    Contacts    --name    ${name}    --fields    ${json}
+    ${got} =    Contact fields in WebTop    ${name}
+    ${expected} =    Expected details
+    Dictionaries Should Be Equal    ${got}    ${expected}
+
+Contact details reach the second phone
+    [Arguments]    ${writer}    ${reader}
+    Phone EAS sync    ${reader}    Contacts
+    ${name} =    Unique name    from ${writer} detailed
+    ${json} =    Evaluate    json.dumps($DETAILS)    modules=json
+    Phonesync    eas    add    ${writer}    --class    Contacts    --name    ${name}    --fields    ${json}
+    ${r} =    Phone EAS sync    ${reader}    Contacts
+    Length Should Be    ${r['added']}    1
+    ${expected} =    Expected details
+    Dictionaries Should Be Equal    ${r['added'][0]['fields']}    ${expected}
+
+All-day event keeps its day
+    [Arguments]    ${writer}    ${reader}
+    Phone EAS sync    ${reader}    Calendar
+    ${name} =    Unique name    ${writer} holiday
+    Phonesync    eas    add    ${writer}    --class    Calendar    --name    ${name}
+    ...    --start    2026-07-15    --end    2026-07-16    --tz    ${TZ}    --all-day
+    ${db} =    Event details in WebTop    ${name}
+    Should Be True    ${db['all_day']}
+    Should Be Equal    ${db['start_local']}    2026-07-15T00:00:00
+    ${r} =    Phone EAS sync    ${reader}    Calendar
+    Length Should Be    ${r['added']}    1
+    Should Be True    ${r['added'][0]['details']['all_day']}
+    Should Be Equal    ${r['added'][0]['details']['start']}    2026-07-15
+
+Recurring event with reminder
+    [Arguments]    ${writer}    ${reader}
+    Phone EAS sync    ${reader}    Calendar
+    ${name} =    Unique name    ${writer} weekly
+    Phonesync    eas    add    ${writer}    --class    Calendar    --name    ${name}
+    ...    --start    ${LOCAL_START}    --end    ${LOCAL_END}    --tz    ${TZ}    --rrule    FREQ=WEEKLY;COUNT=4    --alarm    15
+    ${db} =    Event details in WebTop    ${name}
+    Should Contain    ${db['rrule']}    FREQ=WEEKLY
+    Should Contain    ${db['rrule']}    COUNT=4
+    Should Be Equal As Integers    ${db['reminder']}    15
+    ${r} =    Phone EAS sync    ${reader}    Calendar
+    Length Should Be    ${r['added']}    1
+    Should Be Equal    ${r['added'][0]['details']['rrule']}    FREQ=WEEKLY;COUNT=4
+    Should Be Equal As Integers    ${r['added'][0]['details']['alarm']}    15

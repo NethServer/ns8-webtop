@@ -6,7 +6,14 @@ Library     Collections
 Resource    phonesync.resource
 Resource    webtop_server.resource
 
+*** Variables ***
+&{DETAILS}        mobile=+39 333 1234567    email=niccolo@example.test    street=Via Roma 1    city=Pesaro    photo=png
+
 *** Keywords ***
+Expected details
+    &{expected} =    Evaluate    dict(mobile=$DETAILS['mobile'], email=$DETAILS['email'], street=$DETAILS['street'], city=$DETAILS['city'], photo_size=len(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg==')))    modules=base64
+    RETURN    ${expected}
+
 Set up phone suite
     Resolve test environment
     Upload phonesync helper
