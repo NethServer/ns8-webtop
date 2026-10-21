@@ -297,6 +297,31 @@ class SyncTest(EasTestCase):
         added = c.sync("Tasks")["added"][0]
         self.assertEqual((added["name"], added["complete"], added["due"]), ("T", True, "2026-07-20T08:00:00Z"))
 
+    def ping_client(self, server):
+        return self.client(server, folders=[{"id": "i/1", "type": "2", "name": "Inbox"}],
+                           sync={"Email": {"collection_id": "i/1", "sync_key": "k1", "items": {}}})
+
+    def test_ping_request_shape(self):
+        server = FakeServer(el("Ping:Ping", el("Ping:Status", text="1"), el("Ping:Folders")))
+        out = self.ping_client(server).ping(["Email"], 45)
+        cmd, root = server.requests[0]
+        self.assertEqual((cmd, root.tag), ("Ping", "Ping:Ping"))
+        self.assertEqual(findtext(root, "Ping:LifeTime"), "45")
+        self.assertEqual(findtext(root, "Ping:Folders/Ping:Folder/Ping:ServerEntryId"), "i/1")
+        self.assertEqual(findtext(root, "Ping:Folders/Ping:Folder/Ping:FolderType"), "Email")
+        self.assertEqual((out["status"], out["folders"]), (1, []))
+        self.assertIsInstance(out["seconds"], float)
+
+    def test_ping_parses_changed_folders(self):
+        server = FakeServer(el("Ping:Ping", el("Ping:Status", text="2"), el("Ping:Folders", el("Ping:Folder", text="i/1"))))
+        out = self.ping_client(server).ping(["Email"], 45)
+        self.assertEqual((out["status"], out["folders"]), (2, ["i/1"]))
+
+    def test_ping_requires_synced_folders(self):
+        c = self.client(FakeServer(), folders=[{"id": "v/1", "type": "14", "name": "WebTop"}])
+        with self.assertRaises(HelperError):
+            c.ping(["Contacts"], 45)
+
     def test_write_without_reply_fails_clearly(self):
         c = self.client(FakeServer(None), sync={"Contacts": {"collection_id": "c1", "sync_key": "k1", "items": {}}})
         with self.assertRaisesRegex(HelperError, "empty reply"):

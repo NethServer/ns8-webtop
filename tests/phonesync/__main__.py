@@ -53,7 +53,7 @@ def build_parser():
     dav.add_argument("--rrule")
     dav.add_argument("--alarm", type=int, help="minutes before start")
     eas = sub.add_parser("eas")
-    eas.add_argument("command", choices=["setup", "sync", "add", "change", "delete", "fetch", "send", "lookup"])
+    eas.add_argument("command", choices=["setup", "sync", "add", "change", "delete", "fetch", "send", "lookup", "ping"])
     add_common(eas)
     eas.add_argument("--class", dest="cls", choices=["Contacts", "Calendar", "Email", "Tasks"])
     eas.add_argument("--window", type=int, default=25)
@@ -71,6 +71,8 @@ def build_parser():
     eas.add_argument("--alarm", type=int, help="minutes before start")
     eas.add_argument("--due", help="task due time, ISO UTC")
     eas.add_argument("--complete", action="store_true")
+    eas.add_argument("--classes", help="comma-separated classes to ping")
+    eas.add_argument("--heartbeat", type=int, default=45)
     return parser
 
 

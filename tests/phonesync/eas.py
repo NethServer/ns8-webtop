@@ -6,6 +6,7 @@ import email.message
 import email.utils
 import json
 import struct
+import time
 import urllib.parse
 import uuid
 import xml.etree.ElementTree as ET
@@ -253,6 +254,7 @@ class EasClient:
         self.state = state.load(state_path)
         self.post = post or self._http_post
         self.reprovisioned = False
+        self.timeout = 60
 
     def save(self):
         state.save(self.state_path, self.state)
@@ -268,7 +270,8 @@ class EasClient:
                         "Content-Type": "application/vnd.ms-sync.wbxml",
                         "X-MS-PolicyKey": self.state.get("policy_key") or "0"})
         resp = transport.request("POST", "%s/Microsoft-Server-ActiveSync?%s" % (self.url, query),
-                                 headers=headers, body=wbxml.encode(root) if root is not None else None, **self.auth)
+                                 headers=headers, body=wbxml.encode(root) if root is not None else None,
+                                 timeout=self.timeout, **self.auth)
         if resp.status == 449:
             raise NeedsProvision()
         if resp.status != 200:
@@ -544,6 +547,29 @@ class EasClient:
         self.save()
         return {}
 
+    # Push
+
+    def ping(self, classes, heartbeat):
+        """Wait like a phone for changes in the synced folders of these classes."""
+        self.ensure_setup()
+        root = el(None, "Ping:Ping")
+        el(root, "Ping:LifeTime", str(heartbeat))
+        folders = el(root, "Ping:Folders")
+        for cls in classes:
+            cs = self.state.get("sync", {}).get(cls)
+            if not cs or cs["sync_key"] == "0":
+                raise HelperError("sync %s before pinging it" % cls)
+            folder = el(folders, "Ping:Folder")
+            el(folder, "Ping:ServerEntryId", cs["collection_id"])
+            el(folder, "Ping:FolderType", cls)
+        self.timeout = heartbeat + 30
+        started = time.monotonic()
+        reply = self.call("Ping", root)
+        seconds = time.monotonic() - started
+        status = int(wbxml.findtext(reply, "Ping:Status") or 0)
+        changed = [f.text for f in (wbxml.find(reply, "Ping:Folders") or [])]
+        return {"status": status, "folders": changed, "seconds": round(seconds, 1) + 0.0}
+
     # Mail
 
     def fetch(self, server_id):
@@ -599,6 +625,8 @@ def run(args):
         return client.fetch(args.server_id)
     if args.command == "lookup":
         return client.lookup(args.cls, args.name)
+    if args.command == "ping":
+        return client.ping(args.classes.split(","), args.heartbeat)
     if args.command == "send":
         return client.send(args.to, args.subject, args.body)
     raise HelperError("unknown eas command %s" % args.command)

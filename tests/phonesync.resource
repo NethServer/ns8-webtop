@@ -38,7 +38,7 @@ Upload phonesync helper
     # the node needs only the helper, not its offline unit tests
     Execute Command    cd ${PHONESYNC} && rm -rf fixtures __pycache__ test_*.py
 
-Phonesync
+Phonesync command line
     [Arguments]    ${proto}    ${command}    ${profile}    @{args}
     IF    '${proto}' == 'version'
         @{argv} =    Create List    version
@@ -54,10 +54,31 @@ Phonesync
         END
     END
     ${cmdline} =    Evaluate    shlex.join(['python3', $PHONESYNC] + $argv)    modules=shlex
-    ${out}    ${err}    ${rc} =    Execute Command    ${cmdline}    return_stderr=True    return_rc=True
+    RETURN    ${cmdline}
+
+Phonesync result
+    [Arguments]    ${label}    ${out}    ${err}    ${rc}
     Log    ${out}
     ${result} =    Evaluate    json.loads($out) if $out.strip() else {"error": $err}    modules=json
-    Should Be Equal As Integers    ${rc}    0    phonesync ${proto} ${command} failed: ${result.get('error')}${\n}${err}
+    Should Be Equal As Integers    ${rc}    0    phonesync ${label} failed: ${result.get('error')}${\n}${err}
+    RETURN    ${result}
+
+Phonesync
+    [Arguments]    ${proto}    ${command}    ${profile}    @{args}
+    ${cmdline} =    Phonesync command line    ${proto}    ${command}    ${profile}    @{args}
+    ${out}    ${err}    ${rc} =    Execute Command    ${cmdline}    return_stderr=True    return_rc=True
+    ${result} =    Phonesync result    ${proto} ${command}    ${out}    ${err}    ${rc}
+    RETURN    ${result}
+
+Start phonesync
+    # runs in the background, e.g. a phone waiting in Ping; collect it with Finish phonesync
+    [Arguments]    ${proto}    ${command}    ${profile}    @{args}
+    ${cmdline} =    Phonesync command line    ${proto}    ${command}    ${profile}    @{args}
+    Start Command    ${cmdline}
+
+Finish phonesync
+    ${out}    ${err}    ${rc} =    Read Command Output    return_stderr=True    return_rc=True
+    ${result} =    Phonesync result    background command    ${out}    ${err}    ${rc}
     RETURN    ${result}
 
 Reset phones
