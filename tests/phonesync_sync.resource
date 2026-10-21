@@ -23,10 +23,16 @@ Hrefs in
     ${hrefs} =    Evaluate    [e['href'] for e in $entries]
     RETURN    ${hrefs}
 
+Wait for the next WebTop second
+    # WebTop etags, ctags and sync tokens are timestamps with one-second resolution:
+    # a write in the same second as a phone's sync could look unchanged to that phone
+    Sleep    1.1s
+
 Phone DAV sync
     [Arguments]    ${profile}    ${kind}
     ${r} =    Phonesync    dav    sync    ${profile}    --kind    ${kind}
     Should Not Be True    ${r['full_resync']}    ${profile} had to resync all ${kind}s
+    Wait for the next WebTop second
     RETURN    ${r}
 
 Phone DAV sync has nothing new
@@ -45,6 +51,7 @@ Phone EAS sync
     [Arguments]    ${profile}    ${class}    @{args}
     ${r} =    Phonesync    eas    sync    ${profile}    --class    ${class}    @{args}
     Should Not Be True    ${r['full_resync']}    ${profile} had to resync all ${class}
+    Wait for the next WebTop second
     RETURN    ${r}
 
 Phone EAS sync has nothing new

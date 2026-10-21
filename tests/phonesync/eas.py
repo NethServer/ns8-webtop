@@ -20,6 +20,7 @@ from transport import HelperError
 SUPPORTED = ["14.0", "14.1"]
 # Default folder type first; Z-Push lists WebTop's calendar and address book as user folders (13, 14)
 CLASS_FOLDER_TYPES = {"Email": ["2"], "Calendar": ["8", "13"], "Contacts": ["9", "14"]}
+MAX_PAGES = 50  # a Sync that keeps saying MoreAvailable beyond this is broken
 POLICY_STATUSES = {"142", "143", "144"}  # device not provisioned / policy refresh / invalid policy key
 WINDOWS_TZ_NAMES = {"Europe/Rome": ("W. Europe Standard Time", "W. Europe Daylight Time")}
 
@@ -219,15 +220,15 @@ class EasClient:
         reply = self.post("Provision", provision_request(self.state["protocol"], self.profile, temp_key=temp_key))
         self.state["policy_key"] = wbxml.findtext(reply, ".//Provision:PolicyKey") or temp_key
 
-    def folder_sync(self):
+    def folder_sync(self, retry=True):
         root = el(None, "FolderHierarchy:FolderSync")
         el(root, "FolderHierarchy:SyncKey", self.state.get("folder_sync_key") or "0")
         reply = self.call("FolderSync", root)
         status = wbxml.findtext(reply, "FolderHierarchy:Status")
-        if status == "9":  # sync key out of date: start over
+        if status == "9" and retry:  # sync key out of date: start over, once
             self.state["folder_sync_key"] = None
             self.reprovisioned = True
-            return self.folder_sync()
+            return self.folder_sync(retry=False)
         if status != "1":
             raise HelperError("FolderSync status %s" % status)
         folders = {f["id"]: f for f in self.state.get("folders", [])}
@@ -287,7 +288,8 @@ class EasClient:
     def sync(self, cls, window=25):
         self.ensure_setup()
         cs = self.class_state(cls)
-        out = {"added": [], "changed": [], "deleted": [], "full_resync": False, "status": 1}
+        out = {"added": [], "changed": [], "deleted": [], "full_resync": False, "status": 1,
+               "pages": 0, "max_page": 0}
         seen = None  # server ids seen again during a full resync
         while True:
             if cs["sync_key"] == "0":
@@ -297,7 +299,9 @@ class EasClient:
             if coll is None:
                 break
             status = wbxml.findtext(coll, "AirSync:Status")
-            if status == "3":  # invalid sync key: the phone must start over
+            if status == "3":  # invalid sync key: the phone must start over, once
+                if seen is not None:
+                    raise HelperError("Sync %s: sync key rejected again after a full resync" % cls)
                 out["full_resync"] = True
                 cs["sync_key"] = "0"
                 seen = set()
@@ -305,9 +309,14 @@ class EasClient:
             if status != "1":
                 raise HelperError("Sync %s status %s" % (cls, status))
             cs["sync_key"] = wbxml.findtext(coll, "AirSync:SyncKey")
-            self._apply_commands(cs, wbxml.find(coll, "AirSync:Commands"), out, seen)
+            commands = wbxml.find(coll, "AirSync:Commands")
+            out["pages"] += 1
+            out["max_page"] = max(out["max_page"], len(commands) if commands is not None else 0)
+            self._apply_commands(cs, commands, out, seen)
             if wbxml.find(coll, "AirSync:MoreAvailable") is None:
                 break
+            if out["pages"] >= MAX_PAGES:
+                raise HelperError("Sync %s: still MoreAvailable after %d pages" % (cls, MAX_PAGES))
         if seen is not None:
             for sid in [s for s in cs["items"] if s not in seen]:
                 cs["items"].pop(sid)
@@ -315,6 +324,13 @@ class EasClient:
         out["full_resync"] = out["full_resync"] or self.reprovisioned
         self.save()
         return out
+
+    def lookup(self, cls, name):
+        """The server id of the only item with this name the phone knows."""
+        ids = [sid for sid, item in self.class_state(cls)["items"].items() if item.get("name") == name]
+        if len(ids) != 1:
+            raise HelperError("phone knows %d %s items named %r" % (len(ids), cls, name))
+        return {"server_id": ids[0]}
 
     def _apply_commands(self, cs, commands, out, seen):
         for cmd in commands if commands is not None else []:
@@ -333,8 +349,9 @@ class EasClient:
                 elif kind == "Change" or cs["items"][sid].get("name") != item["name"]:
                     out["changed"].append(entry)
                 cs["items"][sid] = item
-            elif kind in ("Delete", "SoftDelete"):
-                cs["items"].pop(sid, None)
+            elif kind in ("Delete", "SoftDelete") and sid in cs["items"]:
+                # like real phones, ignore deletes of items the phone never had
+                cs["items"].pop(sid)
                 out["deleted"].append(sid)
 
     def _write(self, cs, command):
@@ -451,6 +468,8 @@ def run(args):
         return client.delete(args.cls, args.server_id)
     if args.command == "fetch":
         return client.fetch(args.server_id)
+    if args.command == "lookup":
+        return client.lookup(args.cls, args.name)
     if args.command == "send":
         return client.send(args.to, args.subject, args.body)
     raise HelperError("unknown eas command %s" % args.command)
