@@ -78,11 +78,14 @@ problem, with a message naming it:
   the new hashes of the LF-normalised files:
 
   ```
-  tar -xzf webtop5-build/webtop-eas-server-<version>.tgz composer.json composer.lock
+  tar -xzf webtop5-build/webtop-eas-server-<version>.tgz ./composer.json ./composer.lock
   for f in composer.json composer.lock; do
       printf '%s  %s\n' "$(sed 's/\r$//' $f | sha256sum | cut -d' ' -f1)" $f
   done > z-push/sonicle-composer.sha256
   ```
+
+The same patches build both the `wt-5.35.7` release (EAS 2.4.5.25) and
+Sonicle's development package of 2026-10-14 (checked on 2026-10-22).
 
 Run `check-tree.sh` on the built tree and the phone sync tests
 (`tests/50_activesync.robot`, `tests/55_activesync_push.robot`,

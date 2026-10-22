@@ -41,3 +41,15 @@
 -		$ret = \Mail_RFC822::parseAddressList($ia, 'local', null, null, 1);
 +		$ret = (new \Mail_RFC822())->parseAddressList($ia, 'local', null, null, 1);
  		if (($ret === false) || !is_array($ret) || (count($ret) < 1)) {
+--- a/backend/calendar/calendar.php
++++ b/backend/calendar/calendar.php
+@@ -129,3 +129,3 @@
+ 				
+-				if (count($exceptions) > 0) {
++				if (!empty($exceptions)) {
+ 					$logger->debug("Exception created... resync event!!!");
+@@ -254,3 +254,3 @@
+ 		
+-		$obj->meetingstatus = (count($item->getAttendees()) < 1) ? 0 : 1;
++		$obj->meetingstatus = empty($item->getAttendees()) ? 0 : 1;
+ 		

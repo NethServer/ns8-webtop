@@ -120,11 +120,12 @@ buildah run \
 buildah rm ${container}
 
 # Build Sonicle's ActiveSync server for PHP 8.4 (see z-push/README.md) on a
-# base with the imap extension, shared by the builder (its checks run
-# z-push-admin) and the runtime image; apache needs the same tree
+# base with the imap extension (mail) and intl (Z-Push 2.7 formats dates with
+# it), shared by the builder (its checks run z-push-admin) and the runtime
+# image; apache needs the same tree
 container=$(buildah from ${webdav_php_image})
 buildah copy --from=docker.io/mlocati/php-extension-installer:2.11.34 ${container} /usr/bin/install-php-extensions /usr/local/bin/
-buildah run ${container} sh -c "install-php-extensions imap"
+buildah run ${container} sh -c "install-php-extensions imap intl"
 zpush_php_image=$(buildah commit -q --rm ${container})
 zpush_tree=$(mktemp -d)
 cleanup_list+=("${zpush_tree}")
@@ -181,9 +182,9 @@ images+=("${repobase}/${reponame}")
 #Create webtop-z-push container
 reponame="webtop-z-push"
 container=$(buildah from ${zpush_php_image})
-# The PHP modules the PHP 7.3 image had (but ftp, which nothing calls):
-# Sonicle's code and Z-Push call into them
-for module in ctype curl date dom fileinfo filter hash iconv imap json libxml mbstring mysqlnd openssl pcre PDO pdo_sqlite Phar posix readline Reflection session SimpleXML sodium SPL sqlite3 standard tokenizer xml xmlreader xmlwriter zlib; do
+# The PHP modules the PHP 7.3 image had (but ftp, which nothing calls), and
+# intl: Sonicle's code and Z-Push call into them
+for module in ctype curl date dom fileinfo filter hash iconv imap intl json libxml mbstring mysqlnd openssl pcre PDO pdo_sqlite Phar posix readline Reflection session SimpleXML sodium SPL sqlite3 standard tokenizer xml xmlreader xmlwriter zlib; do
     buildah run ${container} sh -c "php -m | grep -qx ${module}" || { echo "PHP module ${module} missing from the z-push image" >&2; exit 1; }
 done
 buildah add ${container} ${zpush_tree} /usr/share/webtop/z-push/
