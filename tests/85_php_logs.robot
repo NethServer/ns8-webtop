@@ -37,4 +37,4 @@ Container log covers the phone run
     ${state} =    Execute Command    ${cmd}
     ${running}    ${started} =    Evaluate    $state.split()
     Should Be Equal    ${running}    true    the ${container} container is not running
-    Should Be True    ${started} <= ${PHONE_RUN_STARTED}    the ${container} container started after the phone suites began, its log misses their requests
+    Should Be True    ${started} <= ${PHONE_RUN_STARTED}    the ${container} container started at ${started}, after the phone suites began at ${PHONE_RUN_STARTED}: its log misses their requests

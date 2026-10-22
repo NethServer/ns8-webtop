@@ -26,14 +26,6 @@ Set up phone suite
     Upload phonesync helper
     Open WebTop once as phone user
 
-Mark the start of the phone run
-    # 85_php_logs checks that the PHP container logs go back to this point (22_update moves it)
-    ${defined} =    Run Keyword And Return Status    Variable Should Exist    \${PHONE_RUN_STARTED}
-    IF    not ${defined}
-        ${now} =    Execute Command    date +%s
-        Set Global Variable    ${PHONE_RUN_STARTED}    ${now}
-    END
-
 Start from unpaired phones
     # leftovers of an earlier run on a development machine would break "exactly once" checks
     Reset phones
