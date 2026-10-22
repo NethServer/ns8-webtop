@@ -6,12 +6,16 @@ Suite Setup       Resolve test environment
 *** Variables ***
 # PHP-level problems only: Sonicle's own error lines (e.g. a REST call that failed) are expected.
 # sabre/dav 4 catches every PHP error and Sonicle logs it as "CRITICAL: <Class>Error: ...", so match
-# any *Error class, plus PHP warnings and crashed workers
-${PHP_ERRORS}     PHP (Fatal error|Parse error|Recoverable fatal error|Warning)|Uncaught|(^|[^A-Za-z])[A-Z][A-Za-z]*Error: |exited on signal
+# any *Error class, plus PHP warnings and crashed workers. Z-Push's own error handler logs PHP
+# errors as "trace error: <file>:<line> <message>"
+${PHP_ERRORS}     PHP (Fatal error|Parse error|Recoverable fatal error|Warning)|Uncaught|(^|[^A-Za-z])[A-Z][A-Za-z]*Error: |exited on signal|trace error:
 
 *** Test Cases ***
 WebDAV logged no PHP errors
     PHP errors in log    webdav
+
+Z-Push logged no PHP errors
+    PHP errors in log    z-push
 
 *** Keywords ***
 PHP errors in log
