@@ -4,7 +4,7 @@
  use WT\Util;
 -use DataURI;
  
-@@ -411,10 +410,23 @@
+@@ -417,10 +416,23 @@
  	
 +	// DataURI\Parser::parse() without the data-uri library: the media type and
 +	// the raw (decoded) data
@@ -33,7 +33,7 @@
 +				'data' => base64_encode($dataUri['data']),
 +				'mimeType' => $dataUri['mimeType']
  			];
-@@ -435,4 +447,4 @@
+@@ -441,4 +453,4 @@
  			}
 -			$ret = new DataURI\Data($raw, $mtype);
 -			$ret->setBinaryData(true);

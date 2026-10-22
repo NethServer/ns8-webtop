@@ -15,8 +15,8 @@ libraries installed by Composer keep their own licences (Z-Push: AGPL-3.0).
 
 ## How the image is built
 
-`build-images.sh` installs the `imap` extension on `php:8.4.27-fpm-alpine`
-and uses that base for both the builder and the `webtop-z-push` image. The
+`build-images.sh` installs the `imap` (mail) and `intl` (Z-Push 2.7 formats
+dates with it) extensions on `php:8.4.27-fpm-alpine` and uses that base for both the builder and the `webtop-z-push` image. The
 builder (with Composer and `patch`) runs `build.sh`:
 
 1. unpack Sonicle's `webtop5-build/webtop-eas-server-<version>.tgz`, the
@@ -31,7 +31,8 @@ builder (with Composer and `patch`) runs `build.sh`:
 5. `composer install --no-dev --classmap-authoritative`;
 6. `verify.sh`: Z-Push version, required files, no patch leftovers or dead
    code, `php -l` of Sonicle's code, `smoke.php` (boots like `index.php`,
-   loads the mail backend, converts an address and a contact photo) and
+   loads the mail backend, converts addresses and a contact photo as Z-Push
+   2.4.5 did, formats a date, checks the policy hashes saved by paired phones) and
    `z-push-admin -a list` as `www-data`; the build fails if any check does.
 
 The resulting tree goes into both the `webtop-z-push` and `webtop-apache`
@@ -52,8 +53,8 @@ image after the upgrade is not supported.
 
 | Patch | Why |
 |---|---|
-| `01-z-push-2.7.patch` | Z-Push 2.7: report the Z-Push version actually installed; let Z-Push's IMAP backend load Sonicle's IMAP settings instead of its own defaults (PHP 8 warns on every constant defined twice) |
-| `02-php84.patch` | PHP 8.4: keep deprecation notices out of the logs (and drop `E_STRICT`, itself deprecated); create a `Mail_RFC822` object instead of calling its method statically, which PHP 8 refuses |
+| `01-z-push-2.7.patch` | Z-Push 2.7: report the Z-Push version actually installed; let Z-Push's IMAP backend load Sonicle's IMAP settings instead of its own defaults (PHP 8 warns on every constant defined twice); keep Z-Push 2.4.5's `policies.ini` (2.7 changed `maxattsize`, which changes the policy hash saved for each phone and makes every phone provision again); quote display names before parsing addresses, as Z-Push 2.4 did (2.7 rejects WebTop's `email <email>` attendees); create a `Mail_RFC822` object instead of calling its method statically, which PHP 8 refuses |
+| `02-php84.patch` | PHP 8.4: keep deprecation notices out of the logs (and drop `E_STRICT`, itself deprecated); do not `count()` a missing list of exceptions or attendees, which PHP 8 refuses |
 | `03-guzzle-7.patch` | guzzle 7 (guzzle 6 is blocked by security advisories): the generated REST clients use `Utils::jsonEncode` and `Psr7\Query::build` |
 | `04-no-data-uri.patch` | contact photos: build and parse `data:` URIs in a few lines instead of the `data-uri` library, whose only dependency, `symfony/http-foundation` 2-4, is blocked by security advisories |
 

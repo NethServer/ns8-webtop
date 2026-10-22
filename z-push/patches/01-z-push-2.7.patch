@@ -18,6 +18,19 @@
 +    // paired phones accepted, so they need not provision again after the upgrade
 +    define('PROVISIONING_POLICYFILE', WT_EAS_ROOT.'/inc/policies.ini');
  
+--- a/lib/webtop/EAS/ZPUtil.php
++++ b/lib/webtop/EAS/ZPUtil.php
+@@ -64,3 +64,9 @@
+ 	public static function parseInternetAddress($ia) {
+-		$ret = \Mail_RFC822::parseAddressList($ia, 'local', null, null, 1);
++		// Z-Push 2.7 dropped its fix that quoted the display name, without which
++		// a name such as an email address ("a@b.c <a@b.c>", as WebTop stores
++		// attendees) fails to parse: quote it here, as Z-Push 2.4 did
++		if (preg_match('/^\s*([^"<\s][^<]*?)\s*(<[^>]*>)\s*$/', (string)$ia, $m)) {
++			$ia = '"'.$m[1].'" '.$m[2];
++		}
++		$ret = (new \Mail_RFC822())->parseAddressList($ia, 'local', null, null, 1);
+ 		if (($ret === false) || !is_array($ret) || (count($ret) < 1)) {
 --- /dev/null
 +++ b/inc/imap-config/backend/imap/config.php
 @@ -0,0 +1,6 @@
