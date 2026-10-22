@@ -22,6 +22,13 @@ class ItemsTest(unittest.TestCase):
         self.assertEqual(items.parse_name(data), "Riunione")
         self.assertEqual(items.parse_start(data), ("2026-07-15T10:00:00", "Europe/Rome"))
 
+    def test_event_with_attendee(self):
+        data = items.event("uid-5", "Meet", "2026-07-15T08:00:00Z", "2026-07-15T09:00:00Z", None,
+                           attendees=["ann@example.org"])
+        self.assertIn("ATTENDEE;CN=ann@example.org;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE:"
+                      "mailto:ann@example.org", items._unfold(data))
+        self.assertNotIn("ATTENDEE", items.event("uid-6", "x", "2026-07-15T08:00:00Z", "2026-07-15T09:00:00Z", None))
+
     def test_event_in_utc(self):
         data = items.event("uid-4", "x", "2026-07-15T08:00:00Z", "2026-07-15T09:00:00Z", None)
         self.assertIn("DTSTART:20260715T080000Z\r\n", data)

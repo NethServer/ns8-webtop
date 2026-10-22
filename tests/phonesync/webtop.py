@@ -124,10 +124,11 @@ class WebTop:
         self.call("POST", "%s/%s/objects" % (CALENDAR_API, self.calendar()), body)
         return {"href": href, "uid": uid}
 
-    def event_create(self, name, start, end, tz):
+    def event_create(self, name, start, end, tz, attendee=None):
         uid = str(uuid.uuid4())
         href = uid + ".ics"
-        body = {"href": href, "icalendar": items.event(uid, name, start, end, tz)}
+        body = {"href": href, "icalendar": items.event(uid, name, start, end, tz,
+                                                       attendees=[attendee] if attendee else ())}
         self.call("POST", "%s/%s/objects" % (CALENDAR_API, self.calendar()), body)
         return {"href": href, "uid": uid}
 
@@ -215,7 +216,7 @@ def run(args):
     if args.command == "contact-delete":
         return wt.contact_delete(args.name)
     if args.command == "event-create":
-        return wt.event_create(args.name, args.start, args.end, args.tz)
+        return wt.event_create(args.name, args.start, args.end, args.tz, args.attendee)
     if args.command == "event-rename":
         return wt.event_rename(args.name, args.new_name)
     if args.command == "event-delete":

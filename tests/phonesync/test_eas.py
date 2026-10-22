@@ -194,7 +194,15 @@ class ItemShapeTest(unittest.TestCase):
         self.assertEqual(findtext(data, "Calendar:Recurrence/Calendar:DayOfWeek"), "8")  # Wednesday
         self.assertEqual(findtext(data, "Calendar:Reminder"), "15")
         self.assertEqual(eas.event_details(data), {"all_day": False, "start": "2026-07-15T08:00:00Z",
-                                                   "rrule": "FREQ=WEEKLY;COUNT=4", "alarm": 15})
+                                                   "rrule": "FREQ=WEEKLY;COUNT=4", "alarm": 15, "attendees": []})
+
+    def test_event_details_attendees(self):
+        data = eas.calendar_data("u", "Meet", "2026-07-15T10:00:00", "2026-07-15T11:00:00", "Europe/Rome")
+        data.append(el("Calendar:Attendees",
+                       el("Calendar:Attendee", el("Calendar:Email", text="ann@example.org"),
+                          el("Calendar:Name", text="Ann")),
+                       el("Calendar:Attendee", el("Calendar:Email", text="bob@example.org"))))
+        self.assertEqual(eas.event_details(data)["attendees"], ["ann@example.org", "bob@example.org"])
 
     def test_unsupported_rrule_raises(self):
         with self.assertRaises(HelperError):

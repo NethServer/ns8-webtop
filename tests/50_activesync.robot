@@ -176,6 +176,11 @@ Recurring event with reminder
     ios-eas    android-eas
     android-eas    ios-eas
 
+Event with attendees reaches the phone
+    [Template]    Event with attendees reaches the phone
+    ios-eas
+    android-eas
+
 Phone reads a message
     Phone EAS sync    ios-eas    Email
     ${subject} =    Unique name    inbox
@@ -499,6 +504,17 @@ Recurring event with reminder
     Length Should Be    ${r['added']}    1
     Should Be Equal    ${r['added'][0]['details']['rrule']}    FREQ=WEEKLY;COUNT=4
     Should Be Equal As Integers    ${r['added'][0]['details']['alarm']}    15
+
+Event with attendees reaches the phone
+    [Arguments]    ${profile}
+    # Sonicle's backend parses each attendee address for the phone
+    Phone EAS sync    ${profile}    Calendar
+    ${name} =    Unique name    ${profile} meeting
+    Create event in WebTop    ${name}    ${UTC_START}    ${UTC_END}    --attendee    ${MAIL_RECIPIENT}
+    ${r} =    Phone EAS sync    ${profile}    Calendar
+    ${names} =    Names in    ${r['added']}
+    Should Be Equal    ${names}    ${{[$name]}}
+    Should Be Equal    ${r['added'][0]['details']['attendees']}    ${{[$MAIL_RECIPIENT]}}
 
 Large contact photo round-trips
     [Arguments]    ${writer}    ${reader}

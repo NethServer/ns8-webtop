@@ -104,8 +104,9 @@ def _ical_time(value):
     return value.replace("-", "").replace(":", "")
 
 
-def event(uid, name, start, end, tz, all_day=False, rrule=None, alarm=None):
-    """iCalendar VEVENT; all_day takes dates (end exclusive), alarm is minutes before start."""
+def event(uid, name, start, end, tz, all_day=False, rrule=None, alarm=None, attendees=()):
+    """iCalendar VEVENT; all_day takes dates (end exclusive), alarm is minutes before start,
+    attendees are email addresses."""
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//NethServer//phonesync//EN"]
     if tz and not all_day:
@@ -119,6 +120,8 @@ def event(uid, name, start, end, tz, all_day=False, rrule=None, alarm=None):
     if rrule:
         lines.append("RRULE:" + rrule)
     lines.append("SUMMARY:" + escape(name))
+    for email in attendees:
+        lines.append("ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:%s" % (email, email))
     if alarm is not None:
         lines += ["BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:Reminder", "TRIGGER:-PT%dM" % alarm, "END:VALARM"]
     lines += ["END:VEVENT", "END:VCALENDAR"]
