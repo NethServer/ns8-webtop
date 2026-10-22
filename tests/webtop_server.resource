@@ -76,8 +76,8 @@ Delete contact in WebTop
     Phonesync    webtop    contact-delete    ${EMPTY}    --name    ${name}
 
 Create event in WebTop
-    [Arguments]    ${name}    ${start_utc}    ${end_utc}
-    Phonesync    webtop    event-create    ${EMPTY}    --name    ${name}    --start    ${start_utc}    --end    ${end_utc}
+    [Arguments]    ${name}    ${start_utc}    ${end_utc}    @{options}
+    Phonesync    webtop    event-create    ${EMPTY}    --name    ${name}    --start    ${start_utc}    --end    ${end_utc}    @{options}
 
 Create sparse contact in WebTop
     [Arguments]    ${last_name}

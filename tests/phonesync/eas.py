@@ -186,7 +186,7 @@ def calendar_data(uid, name, start, end, tz, all_day=False, rrule=None, alarm=No
 
 
 def event_details(data):
-    """all_day, start (local date for all-day, else UTC), rrule and alarm of an event."""
+    """all_day, start (local date for all-day, else UTC), rrule, alarm and attendee emails of an event."""
     all_day = wbxml.findtext(data, "Calendar:AllDayEvent") == "1"
     start = _iso_from_compact(wbxml.findtext(data, "Calendar:StartTime"))
     if all_day and start:
@@ -203,7 +203,10 @@ def event_details(data):
         if wbxml.findtext(rec, "Calendar:Interval") not in (None, "", "1"):
             rrule += ";INTERVAL=" + wbxml.findtext(rec, "Calendar:Interval")
     reminder = wbxml.findtext(data, "Calendar:Reminder")
-    return {"all_day": all_day, "start": start, "rrule": rrule, "alarm": int(reminder) if reminder else None}
+    attendees = wbxml.find(data, "Calendar:Attendees")
+    emails = [wbxml.findtext(a, "Calendar:Email") for a in attendees] if attendees is not None else []
+    return {"all_day": all_day, "start": start, "rrule": rrule, "alarm": int(reminder) if reminder else None,
+            "attendees": emails}
 
 
 def _eas_date(iso):
