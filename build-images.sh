@@ -188,7 +188,7 @@ buildah commit --rm "${container}" "${repobase}/${reponame}"
 images+=("${repobase}/${reponame}")
 
 reponame="webtop-phonebook"
-container=$(buildah from docker.io/library/php:8-cli-alpine)
+container=$(buildah from docker.io/library/php:8.4.27-cli-alpine)
 buildah copy --from=docker.io/mlocati/php-extension-installer:2.11.34 ${container} /usr/bin/install-php-extensions /usr/local/bin/
 buildah run ${container} sh -c "install-php-extensions pgsql mysqli"
 buildah add ${container} ${PWD}/phonebook/webtop2phonebook.php /usr/share/phonebooks/scripts/
