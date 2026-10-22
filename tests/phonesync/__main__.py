@@ -19,6 +19,8 @@ WEBTOP_COMMANDS = ["contact-create", "contact-create-sparse", "event-create-unti
 def add_common(parser):
     parser.add_argument("--url", required=True, help="WebTop backend URL")
     parser.add_argument("--host", required=True, help="public host name of WebTop")
+    parser.add_argument("--insecure", action="store_true",
+                        help="do not check the HTTPS certificate (the node's own Traefik)")
     parser.add_argument("--user", required=True)
     parser.add_argument("--password", required=True)
     parser.add_argument("--profile")

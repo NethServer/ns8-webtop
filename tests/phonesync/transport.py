@@ -1,6 +1,7 @@
 """Minimal HTTP client: Basic auth, forwarded headers, redirects not followed."""
 
 import base64
+import ssl
 import urllib.error
 import urllib.request
 
@@ -24,9 +25,12 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 _opener = urllib.request.build_opener(_NoRedirect)
+# for the node's own Traefik, which serves a self-signed certificate
+_insecure_opener = urllib.request.build_opener(
+    _NoRedirect, urllib.request.HTTPSHandler(context=ssl._create_unverified_context()))
 
 
-def request(method, url, *, user, password, host, headers=None, body=None, timeout=60):
+def request(method, url, *, user, password, host, headers=None, body=None, timeout=60, insecure=False):
     all_headers = {
         "Host": host,
         "X-Forwarded-Host": host,
@@ -36,7 +40,7 @@ def request(method, url, *, user, password, host, headers=None, body=None, timeo
     all_headers.update(headers or {})
     req = urllib.request.Request(url, data=body, headers=all_headers, method=method)
     try:
-        with _opener.open(req, timeout=timeout) as resp:
+        with (_insecure_opener if insecure else _opener).open(req, timeout=timeout) as resp:
             return Response(resp.status, dict(resp.headers), resp.read())
     except urllib.error.HTTPError as err:
         return Response(err.code, dict(err.headers), err.read())
