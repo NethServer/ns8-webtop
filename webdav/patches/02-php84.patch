@@ -1,56 +1,37 @@
 --- a/server.php
 +++ b/server.php
-@@ -1,6 +1,6 @@
- <?php
+@@ -2,3 +2,3 @@
  
 -error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE);
 +error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE & ~E_DEPRECATED & ~E_USER_DEPRECATED);
  
- require_once 'vendor/autoload.php';
- 
 --- a/lib/webtop/DAV/Connector/AuthBackend.php
 +++ b/lib/webtop/DAV/Connector/AuthBackend.php
-@@ -8,6 +8,7 @@
- class AuthBackend extends \Sabre\DAV\Auth\Backend\AbstractBasic {
- 	
+@@ -10,2 +10,3 @@
  	protected $bridge;
 +	protected $currentUser;
  	
- 	public function __construct(Bridge $bridge) {
- 		$this->bridge = $bridge;
 --- a/lib/webtop/DAV/CalDAV/Backend.php
 +++ b/lib/webtop/DAV/CalDAV/Backend.php
-@@ -295,13 +295,13 @@
- 
- 		$hrefKey = $calendarId."\0".$objectUri;
+@@ -297,3 +297,3 @@
  		if (isset($this->cacheCalObjectsByHref) && array_key_exists($hrefKey, $this->cacheCalObjectsByHref)) {
 -			$logger->debug('Returning object from cache [{}]', $objectUri);
 +			$logger->debug('Returning object from cache [{}]', [$objectUri]);
  			return $this->toSabreCalObject($this->cacheCalObjectsByHref[$hrefKey], 'vevent', true);
- 		}
- 
- 		$cacheByHref = $this->doGetDavCalendarObjects($calendarId, null);
+@@ -303,3 +303,3 @@
  		if (isset($cacheByHref) && !is_null($cacheByHref) && array_key_exists($objectUri, $cacheByHref)) {
 -			$logger->debug('Returning object from cache [{}]', $objectUri);
 +			$logger->debug('Returning object from cache [{}]', [$objectUri]);
  			return $this->toSabreCalObject($cacheByHref[$objectUri], 'vevent', true);
- 
- 		} else {
 --- a/lib/webtop/DAV/CardDAV/Backend.php
 +++ b/lib/webtop/DAV/CardDAV/Backend.php
-@@ -267,13 +267,13 @@
- 		
- 		$hrefKey = $addressBookId."\0".$cardUri;
+@@ -269,3 +269,3 @@
  		if (isset($this->cacheCardsByHref) && array_key_exists($hrefKey, $this->cacheCardsByHref)) {
 -			$logger->debug('Returning object from cache [{}]', $cardUri);
 +			$logger->debug('Returning object from cache [{}]', [$cardUri]);
  			return $this->toSabreCard($this->cacheCardsByHref[$hrefKey], true);
- 		}
- 		
- 		$cacheByHref = $this->doGetDavCards($addressBookId);
+@@ -275,3 +275,3 @@
  		if (isset($cacheByHref) && !is_null($cacheByHref) && array_key_exists($cardUri, $cacheByHref)) {
 -			$logger->debug('Returning object from cache [{}]', $cardUri);
 +			$logger->debug('Returning object from cache [{}]', [$cardUri]);
  			return $this->toSabreCard($cacheByHref[$cardUri], true);
- 
- 		} else {

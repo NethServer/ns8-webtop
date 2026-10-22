@@ -15,7 +15,13 @@ rm -rf "${out:?}"/* "$out"/.[!.]* 2>/dev/null || :
 tar -xzf "$package" -C "$out"
 version=$(cat "$out/VERSION" 2>/dev/null || echo unknown)
 
+# Sonicle is moving its sources from CRLF to LF line endings: normalise
+# them so the checks and patches below do not depend on that
+find "$out" -path "$out/vendor" -prune -o -type f \( -name '*.php' -o -name 'composer.json' -o -name 'composer.lock' \) \
+    -exec sed -i 's/\r$//' {} +
+
 # Our composer files replace Sonicle's: a new dependency there must be noticed
+# (hashes of the LF-normalised files)
 for file in composer.json composer.lock; do
     expected=$(awk -v f="$file" '$2 == f {print $1}' "$here/sonicle-composer.sha256")
     actual=$(sha256sum "$out/$file" | cut -d' ' -f1)

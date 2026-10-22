@@ -1,502 +1,290 @@
 --- a/lib/webtop-calendar-client/Api/DavApi.php
 +++ b/lib/webtop-calendar-client/Api/DavApi.php
-@@ -281,7 +281,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -283,3 +283,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -296,7 +296,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -298,3 +298,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -555,7 +555,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -557,3 +557,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -570,7 +570,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -572,3 +572,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -816,7 +816,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -818,3 +818,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -831,7 +831,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -833,3 +833,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -1058,7 +1058,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -1060,3 +1060,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -1073,7 +1073,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -1075,3 +1075,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -1356,7 +1356,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -1358,3 +1358,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -1371,7 +1371,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -1373,3 +1373,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -1667,7 +1667,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -1669,3 +1669,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -1682,7 +1682,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -1684,3 +1684,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -1974,7 +1974,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -1976,3 +1976,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -1989,7 +1989,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -1991,3 +1991,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -2253,7 +2253,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -2255,3 +2255,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -2268,7 +2268,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -2270,3 +2270,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -2513,7 +2513,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -2515,3 +2515,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -2528,7 +2528,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -2530,3 +2530,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -2788,7 +2788,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -2790,3 +2790,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -2803,7 +2803,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -2805,3 +2805,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -3044,7 +3044,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -3046,3 +3046,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -3059,7 +3059,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -3061,3 +3061,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
 --- a/lib/webtop-contacts-client/Api/DavApi.php
 +++ b/lib/webtop-contacts-client/Api/DavApi.php
-@@ -299,7 +299,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -301,3 +301,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -314,7 +314,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -316,3 +316,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -546,7 +546,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -548,3 +548,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -561,7 +561,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -563,3 +563,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -779,7 +779,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -781,3 +781,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -794,7 +794,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -796,3 +796,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -1031,7 +1031,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -1033,3 +1033,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -1046,7 +1046,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -1048,3 +1048,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -1301,7 +1301,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -1303,3 +1303,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -1316,7 +1316,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -1318,3 +1318,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -1552,7 +1552,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -1554,3 +1554,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -1567,7 +1567,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -1569,3 +1569,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -1841,7 +1841,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -1843,3 +1843,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -1856,7 +1856,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -1858,3 +1858,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -2129,7 +2129,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -2131,3 +2131,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -2144,7 +2144,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -2146,3 +2146,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -2427,7 +2427,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -2429,3 +2429,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -2442,7 +2442,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -2444,3 +2444,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -2674,7 +2674,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -2676,3 +2676,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -2689,7 +2689,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -2691,3 +2691,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
-@@ -2940,7 +2940,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -2942,3 +2942,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -2955,7 +2955,7 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -2957,3 +2957,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
-                 // for HTTP post (form)
 --- a/lib/webtop-core-client/Api/DavPrincipalsApi.php
 +++ b/lib/webtop-core-client/Api/DavPrincipalsApi.php
-@@ -305,7 +305,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -307,3 +307,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -320,11 +320,11 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -322,3 +322,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
+@@ -326,3 +326,3 @@
                  // for HTTP post (form)
 -                $httpBody = \GuzzleHttp\Psr7\build_query($formParams);
 +                $httpBody = \GuzzleHttp\Psr7\Query::build($formParams);
              }
-         }
- 
-@@ -346,7 +346,7 @@
-             $headers
-         );
+@@ -348,3 +348,3 @@
  
 -        $query = \GuzzleHttp\Psr7\build_query($queryParams);
 +        $query = \GuzzleHttp\Psr7\Query::build($queryParams);
          return new Request(
-             'GET',
-             $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),
 --- a/lib/webtop-core-client/Api/DefaultApi.php
 +++ b/lib/webtop-core-client/Api/DefaultApi.php
-@@ -296,7 +296,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -298,3 +298,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -311,11 +311,11 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -313,3 +313,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
+@@ -317,3 +317,3 @@
                  // for HTTP post (form)
 -                $httpBody = \GuzzleHttp\Psr7\build_query($formParams);
 +                $httpBody = \GuzzleHttp\Psr7\Query::build($formParams);
              }
-         }
- 
-@@ -337,7 +337,7 @@
-             $headers
-         );
+@@ -339,3 +339,3 @@
  
 -        $query = \GuzzleHttp\Psr7\build_query($queryParams);
 +        $query = \GuzzleHttp\Psr7\Query::build($queryParams);
          return new Request(
-             'GET',
-             $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),
 --- a/lib/webtop-core-client/Api/PrincipalsApi.php
 +++ b/lib/webtop-core-client/Api/PrincipalsApi.php
-@@ -317,7 +317,7 @@
-             $httpBody = $_tempBody;
-             // \stdClass has no __toString(), so we should encode it manually
+@@ -319,3 +319,3 @@
              if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($httpBody);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
              }
-         } elseif (count($formParams) > 0) {
-             if ($multipart) {
-@@ -332,11 +332,11 @@
-                 $httpBody = new MultipartStream($multipartContents);
- 
+@@ -334,3 +334,3 @@
              } elseif ($headers['Content-Type'] === 'application/json') {
 -                $httpBody = \GuzzleHttp\json_encode($formParams);
 +                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
  
-             } else {
+@@ -338,3 +338,3 @@
                  // for HTTP post (form)
 -                $httpBody = \GuzzleHttp\Psr7\build_query($formParams);
 +                $httpBody = \GuzzleHttp\Psr7\Query::build($formParams);
              }
-         }
- 
-@@ -358,7 +358,7 @@
-             $headers
-         );
+@@ -360,3 +360,3 @@
  
 -        $query = \GuzzleHttp\Psr7\build_query($queryParams);
 +        $query = \GuzzleHttp\Psr7\Query::build($queryParams);
          return new Request(
-             'GET',
-             $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),

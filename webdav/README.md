@@ -57,7 +57,7 @@ problem, with a message naming it:
 
 - `patch NN-…patch does not apply to <version>`: unpack the new package,
   apply the patches one by one with `patch -p1`, fix the rejected hunks by
-  hand and regenerate the patch with `diff -u` (labels `a/<path>` and
+  hand and regenerate the patch with `diff -U1` (one line of context; labels `a/<path>` and
   `b/<path>`).
 - `Sonicle changed composer.json` (or `composer.lock`): compare Sonicle's new
   dependency list with ours, update `composer.json`, regenerate
