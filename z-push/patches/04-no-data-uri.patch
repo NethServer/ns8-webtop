@@ -1,0 +1,56 @@
+--- a/lib/webtop/EAS/ZPUtil.php
++++ b/lib/webtop/EAS/ZPUtil.php
+@@ -7,3 +7,2 @@
+ use WT\Util;
+-use DataURI;
+ 
+@@ -411,10 +410,23 @@
+ 	
++	// DataURI\Parser::parse() without the data-uri library: the media type and
++	// the raw (decoded) data
++	public static function parseDataUri($dataUri) {
++		if (!preg_match('/data:([a-zA-Z-\/+]*)([a-zA-Z0-9-_;=.+]+)?,(.*)/', $dataUri, $matches)) {
++			throw new \InvalidArgumentException('Could not parse the URL scheme');
++		}
++		$base64 = in_array('base64', explode(';', $matches[2]), true);
++		$data = $base64 ? base64_decode($matches[3]) : rawurldecode($matches[3]);
++		if ($base64 && !$data) {
++			throw new \InvalidArgumentException('base64 decoding failed');
++		}
++		return ['mimeType' => $matches[1] ? $matches[1] : 'text/plain', 'data' => $data];
++	}
++	
+ 	public static function dataUriToPicture($dataUri) {
+ 		$ret = null;
+-		if (!is_null($dataUri) && strpos($dataUri->getMimeType(), 'image/') === 0) {
++		if (!is_null($dataUri) && strpos($dataUri['mimeType'], 'image/') === 0) {
+ 			$ret = [
+-				// Encode base64 again: getData returns the raw value!
+-				'data' => base64_encode($dataUri->getData()),
+-				//'data' => ($dataIsBase64 === true) ? $dataUri->getData() : base64_encode($dataUri->getData()),
+-				'mimeType' => $dataUri->getMimeType()
++				// Encode base64 again: the parsed data is the raw value!
++				'data' => base64_encode($dataUri['data']),
++				'mimeType' => $dataUri['mimeType']
+ 			];
+@@ -435,4 +447,4 @@
+ 			}
+-			$ret = new DataURI\Data($raw, $mtype);
+-			$ret->setBinaryData(true);
++			// as DataURI\Dumper::dump() built it, without the data-uri library
++			$ret = 'data:'.$mtype.';base64,'.base64_encode($raw);
+ 		}
+--- a/backend/contacts/contacts.php
++++ b/backend/contacts/contacts.php
+@@ -272,3 +272,3 @@
+ 						if ($logger->isDebugEnabled()) $logger->debug('Unpacking picture Data URI...');
+-						$pic = ZPUtil::dataUriToPicture(DataURI\Parser::parse($item->offsetGet($wtName)));
++						$pic = ZPUtil::dataUriToPicture(ZPUtil::parseDataUri($item->offsetGet($wtName)));
+ 						if (!is_null($pic)) {
+@@ -318,4 +318,4 @@
+ 						if (!is_null($dataUri)) {
+-							if ($logger->isDebugEnabled()) $logger->debug('Packed: {} - {} bytes', [$dataUri->getMimeType(), strlen($dataUri->getData())]);
+-							$pic = DataURI\Dumper::dump($dataUri);
++							if ($logger->isDebugEnabled()) $logger->debug('Packed: {} bytes', [strlen($dataUri)]);
++							$pic = $dataUri;
+ 						}
