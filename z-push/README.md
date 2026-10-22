@@ -49,6 +49,15 @@ it. Renovate cannot update such a package: for a new Z-Push release, change
 `z-push_state` volume needs no ownership change. Going back to the PHP 7.3
 image after the upgrade is not supported.
 
+## Known differences from the PHP 7.3 version
+
+- Z-Push 2.7.7 formats the dates it sends with the ICU pattern
+  `yyyyMMdd'T'HHmmSS'Z'`, where `SS` is fractions of a second: every date
+  reaches the phone with `:00` seconds (Z-Push 2.4.5 sent the real seconds).
+  Event times are whole minutes; mail received and task completion times
+  lose their seconds. Left unpatched: mail is usually read with an IMAP app,
+  and the fix belongs upstream (`lib/utils/utils.php`, `FormatDateUtc`).
+
 ## Patches
 
 | Patch | Why |
