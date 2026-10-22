@@ -50,5 +50,30 @@ try {
 } catch (\Throwable $e) {
     check(false, 'contact photo conversion throws ' . get_class($e) . ': ' . $e->getMessage());
 }
+// Z-Push 2.7 formats every date it sends with the intl extension
+try {
+    check(Utils::FormatDateUtc(31536000, "yyyyMMdd'T'HHmmSS'Z'") === '19710101T000000Z', 'Z-Push formats dates');
+} catch (\Throwable $e) {
+    check(false, 'Z-Push date formatting throws ' . get_class($e) . ': ' . $e->getMessage());
+}
+
+// Phones paired before the upgrade saved the hash of the policy they accepted:
+// a different hash makes every phone provision again. These are Z-Push 2.4.5's
+// hashes of the default policy, by ActiveSync version
+try {
+    // as on every request: sets up logging and loads the policy file
+    ZPush::CheckConfig();
+    $protocol = new ReflectionProperty('Request', 'asProtocolVersion');
+    $protocol->setAccessible(true);
+    foreach (['12.0' => 'eb9d07ca23fcbf51a31ce74dc7fe2a70', '12.1' => '794e30742dfdda378caebc4203d4c843',
+              '14.0' => '794e30742dfdda378caebc4203d4c843'] as $version => $hash) {
+        $protocol->setValue(null, $version);
+        $p = SyncProvisioning::GetObjectWithPolicies(ZPush::GetPolicies()['default']);
+        $p->PolicyName = 'default';
+        check($p->GetPolicyHash() === $hash, "the ActiveSync $version policy hash is unchanged (no provisioning again)");
+    }
+} catch (\Throwable $e) {
+    check(false, 'policy hash check throws ' . get_class($e) . ': ' . $e->getMessage());
+}
 restore_error_handler();
 exit($fail);
