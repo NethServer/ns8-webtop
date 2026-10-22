@@ -65,6 +65,12 @@ Recurring event with reminder
     davx5    ios-dav
     ios-dav    davx5
 
+Untitled event from WebTop syncs
+    [Documentation]    An event with an empty title: on sabre/dav 4 a missing value must not break the sync
+    [Template]    Untitled event from WebTop syncs
+    davx5
+    ios-dav
+
 Event deleted on phone leaves WebTop
     [Template]    Event deleted on phone leaves WebTop
     davx5
@@ -203,3 +209,13 @@ Recurring event with reminder
     Should Contain    ${got['rrule']}    FREQ=WEEKLY
     Should Contain    ${got['rrule']}    COUNT=4
     Should Be Equal As Integers    ${got['alarm']}    15
+
+Untitled event from WebTop syncs
+    [Arguments]    ${profile}
+    Phone DAV sync    ${profile}    event
+    ${key} =    Unique name    ${profile} untitled
+    Create untitled event in WebTop    ${key}    ${UTC_START}    ${UTC_END}
+    ${r} =    Phone DAV sync    ${profile}    event
+    Length Should Be    ${r['added']}    1
+    ${got} =    Phonesync    dav    get    ${profile}    --href    ${r['added'][0]['href']}
+    Should Be Equal    ${got['start']}    ${LOCAL_START}

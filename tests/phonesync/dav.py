@@ -134,7 +134,9 @@ class DavClient:
         all_headers.update(headers or {})
         if isinstance(body, str):
             body = body.encode("utf-8")
-        resp = transport.request(method, self.url + path, headers=all_headers, body=body, **self.auth)
+        # hrefs are kept decoded; encode them on the wire as phones do
+        url = self.url + urllib.parse.quote(path, safe="/@:+")
+        resp = transport.request(method, url, headers=all_headers, body=body, **self.auth)
         if ok and resp.status not in ok:
             raise HelperError("%s %s: HTTP %d %s" % (method, path, resp.status, resp.body[:300]), resp.status)
         return resp

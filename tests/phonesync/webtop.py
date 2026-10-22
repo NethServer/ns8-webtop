@@ -3,6 +3,7 @@
 import datetime
 import json
 import subprocess
+import urllib.parse
 import uuid
 
 import items
@@ -45,7 +46,8 @@ class WebTop:
             headers["Content-Type"] = content_type
             if not isinstance(body, bytes):
                 body = (json.dumps(body) if content_type == "application/json" else body).encode("utf-8")
-        resp = transport.request(method, self.url + path, headers=headers, body=body, **self.auth)
+        url = self.url + urllib.parse.quote(path, safe="/@:+?=&")
+        resp = transport.request(method, url, headers=headers, body=body, **self.auth)
         if resp.status >= 300:
             raise HelperError("%s %s: HTTP %d %s" % (method, path, resp.status, resp.body[:300]), resp.status)
         return json.loads(resp.body) if resp.body.strip() else None
@@ -105,6 +107,22 @@ class WebTop:
         href, _ = self._contact(name)
         self.call("DELETE", "%s/%s/cards/%s" % (CONTACTS_API, self.addressbook(), href))
         return {}
+
+    def contact_create_sparse(self, last_name):
+        """A contact with only a last name: no display name, no other fields."""
+        uid = str(uuid.uuid4())
+        href = "%s-%s.vcf" % (last_name.replace(" ", "-"), uid[:8])
+        vcard = "BEGIN:VCARD\r\nVERSION:3.0\r\nUID:%s\r\nN:%s;;;;\r\nFN:\r\nEND:VCARD\r\n" % (uid, items.escape(last_name))
+        self.call("POST", "%s/%s/cards" % (CONTACTS_API, self.addressbook()), {"href": href, "vcard": vcard})
+        return {"href": href, "uid": uid}
+
+    def event_create_untitled(self, key, start, end):
+        """An event with an empty title; key names its href so cleanup can find it."""
+        uid = str(uuid.uuid4())
+        href = "%s-%s.ics" % (key.replace(" ", "-"), uid[:8])
+        body = {"href": href, "icalendar": items.event(uid, "", start, end, None)}
+        self.call("POST", "%s/%s/objects" % (CALENDAR_API, self.calendar()), body)
+        return {"href": href, "uid": uid}
 
     def event_create(self, name, start, end, tz):
         uid = str(uuid.uuid4())
@@ -168,7 +186,8 @@ class WebTop:
                             "WHERE k.user_id = :'p1' AND c.revision_status <> 'D' AND starts_with(c.display_name, :'p2')",
                             self.user_id, prefix)
         events = self.sql("SELECT e.href FROM calendar.events e JOIN calendar.calendars c USING (calendar_id) "
-                          "WHERE c.user_id = :'p1' AND e.revision_status <> 'D' AND starts_with(e.title, :'p2')",
+                          "WHERE c.user_id = :'p1' AND e.revision_status <> 'D' "
+                          "AND (starts_with(e.title, :'p2') OR starts_with(e.href, :'p2'))",
                           self.user_id, prefix)
         if contacts:
             base = "%s/%s/cards" % (CONTACTS_API, self.addressbook())
@@ -201,6 +220,10 @@ def run(args):
         return wt.event_rename(args.name, args.new_name)
     if args.command == "event-delete":
         return wt.event_delete(args.name)
+    if args.command == "contact-create-sparse":
+        return wt.contact_create_sparse(args.name)
+    if args.command == "event-create-untitled":
+        return wt.event_create_untitled(args.name, args.start, args.end)
     if args.command == "task-create":
         return wt.task_create(args.name, args.due)
     if args.command == "task-rename":

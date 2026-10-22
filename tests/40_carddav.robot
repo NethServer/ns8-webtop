@@ -53,6 +53,12 @@ Large contact photo round-trips
     davx5    ios-dav
     ios-dav    davx5
 
+Sparse contact from WebTop syncs
+    [Documentation]    A contact with only a last name: on sabre/dav 4 a missing value must not break the sync
+    [Template]    Sparse contact from WebTop syncs
+    davx5
+    ios-dav
+
 Contact WebTop cannot save is reported to the phone
     [Documentation]    Known issue: WebDAV answers 201 Created when WebTop fails to store the contact,
     ...                so the phone believes it is saved. Skipped while it fails.
@@ -196,3 +202,13 @@ Large contact photo round-trips
     Length Should Be    ${r['added']}    1
     ${read} =    Phonesync    dav    get    ${reader}    --href    ${r['added'][0]['href']}
     Should Be Equal As Integers    ${read['fields']['photo_size']}    ${size}
+
+Sparse contact from WebTop syncs
+    [Arguments]    ${profile}
+    Phone DAV sync    ${profile}    contact
+    ${name} =    Unique name    ${profile} sparse
+    Create sparse contact in WebTop    ${name}
+    ${r} =    Phone DAV sync    ${profile}    contact
+    Length Should Be    ${r['added']}    1
+    ${got} =    Phonesync    dav    get    ${profile}    --href    ${r['added'][0]['href']}
+    Should Be Equal    ${got['fields']['mobile']}    ${None}

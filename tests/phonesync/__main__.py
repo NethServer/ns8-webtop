@@ -11,7 +11,7 @@ import sys
 VERSION = "1"
 STATE_DIR = "/root/phonesync-state"
 
-WEBTOP_COMMANDS = ["contact-create", "contact-rename", "contact-delete",
+WEBTOP_COMMANDS = ["contact-create", "contact-create-sparse", "event-create-untitled", "contact-rename", "contact-delete",
                    "event-create", "event-rename", "event-delete",
                    "task-create", "task-rename", "task-complete", "task-delete", "cleanup"]
 

@@ -111,6 +111,11 @@ class PutTest(unittest.TestCase):
         dav.transport.request = self.real
         self.dir.cleanup()
 
+    def test_request_encodes_href(self):
+        client = dav.DavClient("http://x", "h", "u", "p", "davx5", self.path)
+        client.req("GET", AB + "a b ☕.vcf", ok=None)
+        self.assertEqual(self.sent[0][1], "http://x" + AB + "a%20b%20%E2%98%95.vcf")
+
     def test_put_passes_fields(self):
         client = dav.DavClient("http://x", "h", "u", "p", "davx5", self.path)
         client.put("contact", "N", fields={"mobile": "+39 1", "photo": "png"})
