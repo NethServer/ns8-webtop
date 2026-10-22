@@ -1,0 +1,63 @@
+--- a/backend/webtop/AbstractWebTopBackendDiff.php
++++ b/backend/webtop/AbstractWebTopBackendDiff.php
+@@ -234,3 +234,8 @@
+ 		
+-		$this->sinkFolders[] = $folderid;
++		// Remember the folder state now: a change made from here on wakes the
++		// phone. Keep the id Z-Push gave (encoded with legacy folder ids)
++		$foId = $this->decodeFolderId($folderid);
++		$folder = $this->getApiSyncFolder($foId);
++		$this->sinkFolders[$folderid] = $foId;
++		$this->sinkStates[$folderid] = is_null($folder) ? null : $folder->getEtag();
+ 		return true;
+@@ -242,29 +247,26 @@
+ 		
++		// Z-Push 2.7 calls this with a 1 second timeout every PING_INTERVAL and
++		// waits in between: check WebTop once, with fresh folder states
+ 		$notifications = [];
+-		$stopat = time() + $timeout -1;
+-		while ($stopat > time() && empty($notifications)) {
+-			$folders = $this->getApiSyncFolders();
+-			if (!is_null($folders)) {
+-				foreach ($this->sinkFolders as $folderId) {
+-					$newState = array_key_exists($folderId, $folders) ? $folders[$folderId]->getEtag() : null;
+-					if (!isset($this->sinkStates[$folderId])) {
+-						if ($logger->isTraceEnabled()) $logger->trace('Initializing changes sink... [{}, {}]', [$folderId, $newState]);
+-						$this->sinkStates[$folderId] = $newState;
+-					}
+-					if ($logger->isTraceEnabled()) $logger->trace('Checking changes... [{}, {} =? {}]', [$folderId, $this->sinkStates[$folderId], $newState]);
+-					if ($this->sinkStates[$folderId] !== $newState) {
+-						if ($logger->isTraceEnabled()) $logger->trace('Changes for folder [{}]: {} -> {}', [$folderId, $this->sinkStates[$folderId], $newState]);
+-						$notifications[] = $this->encodeFolderId($folderId);
+-						$this->sinkStates[$folderId] = $newState;
+-					}
+-				}
+-			}
+-			
+-			if (empty($notifications)) {
+-				$sleepTime = min($timeout, 30);
+-				if ($logger->isDebugEnabled()) $logger->debug('({}) no changes, going to sleep ({})', [$timeout, $sleepTime]);
+-				sleep($sleepTime);
+-			}
++		if (empty($this->sinkFolders)) return $notifications;
++		try {
++			$folders = $this->doGetApiFolders();
++		} catch (\Exception $ex) {
++			// WebTop unreachable (e.g. restarting): keep waiting
++			$logger->warn('Unable to check folders for changes: {}', [$ex->getMessage()]);
++			$folders = null;
+ 		}
++		if (is_null($folders)) return $notifications;
+ 		
++		$this->foldersCache = $folders;
++		foreach ($this->sinkFolders as $folderid => $foId) {
++			$newState = array_key_exists($foId, $folders) ? $folders[$foId]->getEtag() : null;
++			if ($logger->isTraceEnabled()) $logger->trace('Checking changes... [{}, {} =? {}]', [$foId, $this->sinkStates[$folderid], $newState]);
++			if ($this->sinkStates[$folderid] !== $newState) {
++				$notifications[] = $folderid;
++				$this->sinkStates[$folderid] = $newState;
++				// the message list cached before the change would hide it
++				unset($this->folderMessagesCache[$foId]);
++			}
++		}
+ 		if ($logger->isDebugEnabled()) $logger->debug('({}) returning notifications: [{}]', [$timeout, implode(' ', $notifications)]);
