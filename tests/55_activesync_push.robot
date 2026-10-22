@@ -30,9 +30,6 @@ New mail wakes the phone
     Should Be True    5 <= ${r['seconds']} < ${HEARTBEAT}    the phone was woken after ${r['seconds']} s
 
 Contact change wakes the phone
-    [Documentation]    Known issue: Sonicle's backend reads the folder state once per request,
-    ...                so changes made in WebTop never wake a waiting phone. Skipped while it fails.
-    [Tags]    known-issue    robot:skip-on-failure
     Phone EAS sync    ios-eas    Contacts
     Start phonesync    eas    ping    ios-eas    --classes    Contacts    --heartbeat    ${HEARTBEAT}
     Sleep    5s
