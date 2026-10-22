@@ -68,11 +68,15 @@ Sparse contact from WebTop syncs
     ios-dav
 
 Contact WebTop cannot save is reported to the phone
-    [Documentation]    Known issue: WebDAV answers 201 Created when WebTop fails to store the contact,
-    ...                so the phone believes it is saved. Skipped while it fails.
-    [Tags]    known-issue    robot:skip-on-failure
     ${status} =    Phone puts a contact WebTop rejects
     Should Not Start With    ${status}    2    WebDAV reported success (${status}) for a contact WebTop did not store
+
+Contact edit WebTop cannot save is reported to the phone
+    ${name} =    Unique name    rejected edit
+    ${r} =    Phonesync    dav    put    davx5    --kind    contact    --name    ${name}
+    ${status} =    Phone puts a contact WebTop rejects    ${r['href']}
+    Should Not Start With    ${status}    2    WebDAV reported success (${status}) for a change WebTop did not store
+    Contact exists in WebTop    ${name}
 
 Contact edited on phone reaches WebTop
     [Template]    Contact edited on phone reaches WebTop
@@ -112,12 +116,13 @@ Contact details reach the second phone
     Dictionaries Should Be Equal    ${got['fields']}    ${expected}
 
 Phone puts a contact WebTop rejects
-    # a PHOTO whose PNG data is corrupt: WebTop refuses to store it
+    [Arguments]    ${href}=${EMPTY}
+    # a PHOTO whose PNG data is corrupt: WebTop refuses to store it; a new contact, or a change to ${href}
     ${uid} =    Unique name    rejected
     ${vcard} =    Catenate    SEPARATOR=\r\n    BEGIN:VCARD    VERSION:3.0    UID:${uid}    FN:${uid}    N:${uid};;;;
     ...    PHOTO;ENCODING=b;TYPE=PNG:iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGAAAAAFAAGl9kVAAAAAAElFTkSuQmCC    END:VCARD    ${EMPTY}
     ${r} =    Phonesync    dav    discover    davx5
-    ${url} =    Set Variable    ${backend_url}${r['addressbooks'][0]['href']}${uid}.vcf
+    ${url} =    Set Variable If    $href    ${backend_url}${href}    ${backend_url}${r['addressbooks'][0]['href']}${uid}.vcf
     ${cmd} =    Evaluate    'printf %s ' + shlex.quote($vcard) + ' | curl -s -o /dev/null -w "\%{http_code}" -X PUT --data-binary @- -H "Content-Type: text/vcard" -H ' + shlex.quote('Host: ' + $WEBTOP_HOST) + ' -u ' + shlex.quote($PHONE_USER + ':' + $PHONE_PASSWORD) + ' ' + shlex.quote($url)    modules=shlex
     ${status} =    Execute Command    ${cmd}
     RETURN    ${status}

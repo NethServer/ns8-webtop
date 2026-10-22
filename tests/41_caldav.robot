@@ -81,6 +81,15 @@ Second phone sees first phone's event
     davx5    ios-dav
     ios-dav    davx5
 
+Event edit WebTop cannot save is reported to the phone
+    ${name} =    Unique name    rejected edit
+    ${r} =    Phonesync    dav    put    davx5    --kind    event    --name    ${name}
+    ...    --start    ${LOCAL_START}    --end    ${LOCAL_END}    --tz    ${TZ}
+    ${status} =    Phone puts an event WebTop rejects    ${r['href']}    ${r['uid']}    ${name}
+    Should Not Start With    ${status}    2    WebDAV reported success (${status}) for a change WebTop did not store
+    ${db} =    Event details in WebTop    ${name}
+    Should Be Equal    ${db['rrule']}    ${None}
+
 *** Keywords ***
 Phone creates event
     [Arguments]    ${profile}    ${name}
@@ -219,3 +228,13 @@ Untitled event from WebTop syncs
     Length Should Be    ${r['added']}    1
     ${got} =    Phonesync    dav    get    ${profile}    --href    ${r['added'][0]['href']}
     Should Be Equal    ${got['start']}    ${LOCAL_START}
+
+Phone puts an event WebTop rejects
+    [Arguments]    ${href}    ${uid}    ${name}
+    # a repeat rule with an unknown frequency: sabre accepts it, WebTop refuses to store it
+    ${ics} =    Catenate    SEPARATOR=\r\n    BEGIN:VCALENDAR    VERSION:2.0    PRODID:-//NethServer//phonesync//EN    BEGIN:VEVENT
+    ...    UID:${uid}    DTSTAMP:20260101T000000Z    DTSTART:${UTC_START.replace('-', '').replace(':', '')}    DTEND:${UTC_END.replace('-', '').replace(':', '')}
+    ...    RRULE:FREQ=FOO    SUMMARY:${name}    END:VEVENT    END:VCALENDAR    ${EMPTY}
+    ${cmd} =    Evaluate    'printf %s ' + shlex.quote($ics) + ' | curl -s -o /dev/null -w "\%{http_code}" -X PUT --data-binary @- -H "Content-Type: text/calendar" -H ' + shlex.quote('Host: ' + $WEBTOP_HOST) + ' -u ' + shlex.quote($PHONE_USER + ':' + $PHONE_PASSWORD) + ' ' + shlex.quote($backend_url + $href)    modules=shlex
+    ${status} =    Execute Command    ${cmd}
+    RETURN    ${status}
