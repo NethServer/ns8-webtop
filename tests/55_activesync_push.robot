@@ -41,6 +41,35 @@ Contact change wakes the phone
     ${r} =    Finish phonesync
     Should Be Equal As Integers    ${r['status']}    2    the phone was not woken (status ${r['status']} after ${r['seconds']} s)
 
+Event change wakes the phone
+    Phone EAS sync    ios-eas    Calendar
+    Start phonesync    eas    ping    ios-eas    --classes    Calendar    --heartbeat    ${HEARTBEAT}
+    Sleep    5s
+    ${name} =    Unique name    push event
+    Create event in WebTop    ${name}    2026-07-15T08:00:00Z    2026-07-15T09:00:00Z
+    ${r} =    Finish phonesync
+    Should Be Equal As Integers    ${r['status']}    2    the phone was not woken (status ${r['status']} after ${r['seconds']} s)
+    Should Be True    5 <= ${r['seconds']} < ${HEARTBEAT}    the phone was woken after ${r['seconds']} s
+
+Task change wakes the phone
+    Phone EAS sync    ios-eas    Tasks
+    Start phonesync    eas    ping    ios-eas    --classes    Tasks    --heartbeat    ${HEARTBEAT}
+    Sleep    5s
+    ${name} =    Unique name    push task
+    Create task in WebTop    ${name}    2026-07-20T08:00:00Z
+    ${r} =    Finish phonesync
+    Should Be Equal As Integers    ${r['status']}    2    the phone was not woken (status ${r['status']} after ${r['seconds']} s)
+    Should Be True    5 <= ${r['seconds']} < ${HEARTBEAT}    the phone was woken after ${r['seconds']} s
+
+Quiet ping on WebTop folders times out
+    # nothing changes: the phone must not be woken early, and the server must not answer at once
+    FOR    ${class}    IN    Contacts    Calendar    Tasks
+        Phone EAS sync    ios-eas    ${class}
+    END
+    ${r} =    Phonesync    eas    ping    ios-eas    --classes    Contacts,Calendar,Tasks    --heartbeat    ${HEARTBEAT}
+    Should Be Equal As Integers    ${r['status']}    1
+    Should Be True    40 <= ${r['seconds']} <= 60    a quiet ping lasted ${r['seconds']} s
+
 Phone can wait longer than a minute
     [Documentation]    Real phones wait minutes in Ping; Apache's default 60 s timeout used to end it with 504
     Phone EAS sync    ios-eas    Email
