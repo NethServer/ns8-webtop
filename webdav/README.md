@@ -64,11 +64,13 @@ problem, with a message naming it:
 - `Sonicle changed composer.json` (or `composer.lock`): compare Sonicle's new
   dependency list with ours, update `composer.json`, regenerate
   `composer.lock` in the runtime image with the pinned Composer, then record
-  the new hashes:
+  the new hashes of the LF-normalised files:
 
   ```
-  tar -xzf webtop5-build/webtop-dav-server-<version>.tgz composer.json composer.lock
-  sha256sum composer.json composer.lock > webdav/sonicle-composer.sha256
+  tar -xzf webtop5-build/webtop-dav-server-<version>.tgz ./composer.json ./composer.lock
+  for f in composer.json composer.lock; do
+      printf '%s  %s\n' "$(sed 's/\r$//' $f | sha256sum | cut -d' ' -f1)" $f
+  done > webdav/sonicle-composer.sha256
   ```
 
 Run `check-tree.sh` on the built tree and the phone sync tests
