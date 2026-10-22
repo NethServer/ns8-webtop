@@ -3,10 +3,11 @@ Documentation     Phones paired by 21_pre_upgrade.robot keep working right after
 Test Timeout      5 minutes
 Resource          phonesync_sync.resource
 Suite Setup       Run Keywords    Skip unless update scenario    AND    Set up phone suite
-Suite Teardown    Run Keywords    Delete all test items in WebTop    AND    Delete pre-upgrade items in WebTop
+Suite Teardown    Run Keywords    Delete all test items in WebTop    AND    Delete pre-upgrade items in WebTop    AND    Delete test messages    ${PHONE_USER}
 
 *** Variables ***
 @{PROFILES}       davx5    ios-dav    ios-eas    android-eas
+${PRE_UPGRADE_MAIL}    e2e-pre-upgrade-mail
 
 *** Test Cases ***
 Paired phone keeps syncing after upgrade
@@ -18,9 +19,11 @@ Paired phone keeps syncing after upgrade
     ios-eas    Contacts
     ios-eas    Calendar
     ios-eas    Tasks
+    ios-eas    Email
     android-eas    Contacts
     android-eas    Calendar
     android-eas    Tasks
+    android-eas    Email
 
 Pre-upgrade items survive in WebTop
     FOR    ${profile}    IN    @{PROFILES}
@@ -94,6 +97,9 @@ Phone knows every pre-upgrade item once
             ${got} =    Phonesync    dav    get    ${phone}    --href    ${r['href']}
             Should Be Equal    ${got['name']}    ${event}
         END
+    END
+    IF    $phone.endswith('-eas')
+        Phonesync    eas    lookup    ${phone}    --class    Email    --name    ${PRE_UPGRADE_MAIL}
     END
 
 DAV phone edits its pre-upgrade contact
