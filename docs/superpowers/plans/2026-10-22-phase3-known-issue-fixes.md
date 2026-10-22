@@ -79,7 +79,7 @@
 
 **Interfaces:**
 - Consumes: Sonicle's `AbstractWebTopBackendDiff` (`backend/webtop/AbstractWebTopBackendDiff.php`):
-  - `doGetApiFolders()`: an uncached REST call that returns `null` on `ApiException` (confirmed in `contacts.php`, `calendar.php`, `tasks.php`);
+  - `doGetApiFolders()`: an uncached REST call that returns `null` on `ApiException` (confirmed in `contacts.php`, `calendar.php`, `tasks.php`). With guzzle 7 a refused connection (webapp down) raises `GuzzleHttp\Exception\ConnectException` instead, which the generated clients do not turn into `ApiException` (Phase 2 review), so it reaches the caller;
   - `getApiSyncFolders()`: cached for the whole request;
   - `folderMessagesCache`, also cached for the whole request;
   - `encodeFolderId()` and `decodeFolderId()`;
@@ -100,7 +100,7 @@
 - [ ] **Step 3: Write the patch.** Decisions:
   - `ChangesSinkInitialize` decodes the id, stores `sinkFolders[<id Z-Push gave>] = <decoded id>`, and records `sinkStates` from `getApiSyncFolders()`. That is the state at Ping start, so a change made right after it is still seen.
   - `ChangesSink` returns `[]` at once when `sinkFolders` is empty.
-  - Otherwise it makes one `doGetApiFolders()` call. On `null` it returns `[]` and keeps the states.
+  - Otherwise it makes one `doGetApiFolders()` call. On `null`, or on any exception (`ConnectException` while the webapp is down), it returns `[]` and keeps the states.
   - For each folder whose etag changed, it returns the id Z-Push gave, updates `sinkStates`, and drops that folder's `folderMessagesCache` entry. This is needed because Z-Push's first-iteration `CountChanges` filled that cache before the change. Without dropping it, `CountChange` after the notification sees the old list and logs `not relevant`, so the phone is not woken.
   - It replaces `foldersCache` with the fresh map.
   - Sonicle's `sleep()` and loop go away.
