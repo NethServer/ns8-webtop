@@ -21,8 +21,9 @@ require WT_EAS_ROOT . '/inc/zpush.config.php';
 
 check(ZPUSH_VERSION === '2.7.7', 'ZPUSH_VERSION is ' . var_export(ZPUSH_VERSION, true) . ', expected the shipped 2.7.7');
 
-// Loading ZLog installs Z-Push's error handler: collect warnings after it
-class_exists('ZLog');
+// As on every request: sets up logging (and Z-Push's error handler, so collect
+// warnings after it) and loads the policy file
+ZPush::CheckConfig();
 $warnings = [];
 set_error_handler(function ($no, $str, $file, $line) use (&$warnings) {
     if ($no & (E_WARNING | E_USER_WARNING)) $warnings[] = "$file:$line $str";
@@ -34,11 +35,17 @@ check(defined('IMAP_SERVER') && IMAP_SERVER === $config->getMailImapServer(),
     'IMAP_SERVER comes from Sonicle\'s config (' . (defined('IMAP_SERVER') ? IMAP_SERVER : 'undefined') . ')');
 check(!$warnings, 'no PHP warnings while loading the backends' . ($warnings ? ":\n  " . implode("\n  ", $warnings) : ''));
 
-try {
-    $ia = \WT\EAS\ZPUtil::parseInternetAddress('Ann <ann@example.org>');
-    check(is_array($ia) && $ia['address'] === 'ann@example.org', 'ZPUtil::parseInternetAddress parses an address');
-} catch (\Throwable $e) {
-    check(false, 'ZPUtil::parseInternetAddress throws ' . get_class($e) . ': ' . $e->getMessage());
+// What Z-Push 2.4.5 returned: WebTop stores attendees as "email <email>"
+foreach (['Ann <ann@example.org>' => ['address' => 'ann@example.org', 'personal' => '"Ann"'],
+          'u3@example.org <u3@example.org>' => ['address' => 'u3@example.org', 'personal' => '"u3@example.org"'],
+          '"Ann B" <ann@example.org>' => ['address' => 'ann@example.org', 'personal' => '"Ann B"'],
+          'ann@example.org' => ['address' => 'ann@example.org', 'personal' => '']] as $input => $expected) {
+    try {
+        $ia = \WT\EAS\ZPUtil::parseInternetAddress($input);
+        check($ia === $expected, "ZPUtil::parseInternetAddress('$input') gives " . json_encode($ia));
+    } catch (\Throwable $e) {
+        check(false, "ZPUtil::parseInternetAddress('$input') throws " . get_class($e) . ': ' . $e->getMessage());
+    }
 }
 // Contact photos: phone → WebTop as a data URI, and back
 $png = base64_encode(base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='));
@@ -61,8 +68,6 @@ try {
 // a different hash makes every phone provision again. These are Z-Push 2.4.5's
 // hashes of the default policy, by ActiveSync version
 try {
-    // as on every request: sets up logging and loads the policy file
-    ZPush::CheckConfig();
     $protocol = new ReflectionProperty('Request', 'asProtocolVersion');
     $protocol->setAccessible(true);
     foreach (['12.0' => 'eb9d07ca23fcbf51a31ce74dc7fe2a70', '12.1' => '794e30742dfdda378caebc4203d4c843',
