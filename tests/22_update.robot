@@ -9,6 +9,9 @@ Update webtop to the image under test
     ...    api-cli run update-module --data '{"force":true,"module_url":"${IMAGE_URL}","instances":["${webtop_module_id}"]}'
     ...    return_rc=True  return_stdout=False
     Should Be Equal As Integers    ${rc}  0
+    # the phone suites after this point run on the new containers: 85_php_logs checks their logs from here
+    ${now} =    Execute Command    date +%s
+    Set Global Variable    ${PHONE_RUN_STARTED}    ${now}
 
 Check the configuration survives the update
     Skip If    '${SCENARIO}' != 'update'    scenario is ${SCENARIO}, nothing to update

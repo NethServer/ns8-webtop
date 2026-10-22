@@ -19,6 +19,18 @@ PHP errors in log
     ${cmd} =    Evaluate    shlex.join(['runagent', '-m', $webtop_module_id, 'podman', 'logs', $container])    modules=shlex
     ${log}    ${rc} =    Execute Command    ${cmd} 2>&1    return_rc=True
     Should Be Equal As Integers    ${rc}    0    cannot read the ${container} log: ${log}
-    Should Contain    ${log}    fpm is running    the ${container} log does not cover the php-fpm start
+    Container log covers the phone run    ${container}
     ${lines} =    Evaluate    '\\n'.join(list(filter(lambda l, p=$PHP_ERRORS: re.search(p, l), $log.splitlines()))[:20])    modules=re
     Should Be Empty    ${lines}    ${container} logged PHP errors:${\n}${lines}
+
+Container log covers the phone run
+    [Arguments]    ${container}
+    # php-fpm logs only warnings, so no line marks its start: check instead that the container was not
+    # replaced or restarted after the phone suites began, so its log holds every phone request
+    ${defined} =    Run Keyword And Return Status    Variable Should Exist    \${PHONE_RUN_STARTED}
+    Should Be True    ${defined}    no phone suite ran: nothing to check in the ${container} log
+    ${cmd} =    Evaluate    shlex.join(['runagent', '-m', $webtop_module_id, 'podman', 'inspect', '-f', '{{.State.Running}} {{.State.StartedAt.Unix}}', $container])    modules=shlex
+    ${state} =    Execute Command    ${cmd}
+    ${running}    ${started} =    Evaluate    $state.split()
+    Should Be Equal    ${running}    true    the ${container} container is not running
+    Should Be True    ${started} <= ${PHONE_RUN_STARTED}    the ${container} container started after the phone suites began, its log misses their requests
