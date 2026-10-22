@@ -5,6 +5,7 @@
 #
 set -e -o pipefail
 dir=$(realpath "$1")
+here=$(realpath "$(dirname "$0")")
 php_image=${PHP_IMAGE:-docker.io/library/php:8.4.27-fpm-alpine}
 fail=0
 
@@ -26,5 +27,11 @@ if podman run --rm -v "$dir:/src:ro,Z" "$php_image" sh -c \
     echo "ok: php -l on Sonicle code"
 else
     echo "FAIL: php -l errors in Sonicle code"; fail=1
+fi
+if podman run --rm -v "$dir:/src:ro,Z" -v "$here/smoke.php:/smoke.php:ro,Z" -w /src "$php_image" \
+    php -d error_reporting=E_ALL /smoke.php; then
+    :
+else
+    echo "FAIL: smoke test"; fail=1
 fi
 exit $fail

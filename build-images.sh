@@ -104,12 +104,27 @@ buildah commit --rm "${container}" "${repobase}/${reponame}"
 images+=("${repobase}/${reponame}")
 
 
+# Build Sonicle's WebDAV server for PHP 8.4 (see webdav/README.md); both the
+# apache and the webdav images need the same tree
+webdav_php_image="docker.io/library/php:8.4.27-fpm-alpine"
+webdav_tree=$(mktemp -d)
+cleanup_list+=("${webdav_tree}")
+container=$(buildah from ${webdav_php_image})
+buildah copy --from=docker.io/library/composer:2.10.3 ${container} /usr/bin/composer /usr/local/bin/composer
+buildah run ${container} sh -c "apk add --no-cache patch"
+buildah run \
+    -v "${PWD}/webdav:/webdav:ro,z" \
+    -v "${PWD}/webtop5-build:/webtop5-build:ro,z" \
+    -v "${webdav_tree}:/out:z" \
+    ${container} sh /webdav/build.sh /webtop5-build/webtop-dav-server-$webtop_version.tgz /out
+buildah rm ${container}
+
 #Create webtop-apache container
 reponame="webtop-apache"
 container=$(buildah from docker.io/library/httpd:2.4.69)
 buildah add ${container} ${PWD}/apache/vhosts/ /usr/local/apache2/conf.d/
 buildah add ${container} ${PWD}/apache/httpd.conf /usr/local/apache2/conf
-buildah add ${container} ${PWD}/webtop5-build/webtop-dav-server-$webtop_version.tgz /usr/share/webtop/webdav/
+buildah add ${container} ${webdav_tree} /usr/share/webtop/webdav/
 buildah add ${container} ${PWD}/webtop5-build/webtop-eas-server-$webtop_version.tgz /usr/share/webtop/z-push/
 buildah add ${container} ${PWD}/zfaker/src/ /usr/share/webtop/zfacker/
 # Commit the image
@@ -121,23 +136,23 @@ images+=("${repobase}/${reponame}")
 
 #Create webtop-webdav container
 reponame="webtop-webdav"
-container=$(buildah from docker.io/library/php:7.3-fpm-alpine)
-buildah add ${container} ${PWD}/webtop5-build/webtop-dav-server-$webtop_version.tgz /usr/share/webtop/webdav/
+container=$(buildah from ${webdav_php_image})
+buildah add ${container} ${webdav_tree} /usr/share/webtop/webdav/
 buildah run ${container} sh -c "mv \$PHP_INI_DIR/php.ini-production \$PHP_INI_DIR/php.ini"
 buildah add ${container} ${PWD}/php/zz-banner-grabbing.ini /usr/local/etc/php/conf.d/zz-banner-grabbing.ini
 buildah add ${container} ${PWD}/php/zz-session-upload-progress.ini /usr/local/etc/php/conf.d/zz-session-upload-progress.ini
 buildah add ${container} ${PWD}/php/zz-fpm-mitigations.ini /usr/local/etc/php/conf.d/zz-fpm-mitigations.ini
 buildah add ${container} ${PWD}/php/zz-webdav.ini /usr/local/etc/php/conf.d/zz-webdav.ini
-# Drop E_WARNING: bundled sabre/dav floods the logs on PHP >= 7.3
-buildah run ${container} sh -c "sed -i 's/error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE);/error_reporting(E_ALL \& ~E_NOTICE \& ~E_USER_NOTICE \& ~E_WARNING);/' /usr/share/webtop/webdav/server.php"
-buildah run ${container} sh -c "sed -i 's/pm.max_children = 5/pm.max_children = 40/' /usr/local/etc/php-fpm.d/www.conf"
-buildah run ${container} sh -c "sed -i 's/pm.start_servers = 2/pm.start_servers = 5/' /usr/local/etc/php-fpm.d/www.conf"
-buildah run ${container} sh -c "sed -i 's/pm.min_spare_servers = 1/pm.min_spare_servers = 5/' /usr/local/etc/php-fpm.d/www.conf"
-buildah run ${container} sh -c "sed -i 's/pm.max_spare_servers = 3/pm.max_spare_servers = 30/' /usr/local/etc/php-fpm.d/www.conf"
-# One request per worker, mitigates CVE-2026-109619 (stale state reused by the next request)
-buildah run ${container} sh -c "sed -i 's/;pm.max_requests = 500/pm.max_requests = 1/' /usr/local/etc/php-fpm.d/www.conf"
+# Pool sizes, and one request per worker: mitigates CVE-2026-109619 (stale
+# state reused by the next request). Fail if the stock www.conf no longer has
+# the lines we change
+buildah run ${container} sh -c "sed -i 's/pm.max_children = 5/pm.max_children = 40/; s/pm.start_servers = 2/pm.start_servers = 5/; s/pm.min_spare_servers = 1/pm.min_spare_servers = 5/; s/pm.max_spare_servers = 3/pm.max_spare_servers = 30/; s/;pm.max_requests = 500/pm.max_requests = 1/' /usr/local/etc/php-fpm.d/www.conf"
+for setting in 'pm.max_children = 40' 'pm.start_servers = 5' 'pm.min_spare_servers = 5' 'pm.max_spare_servers = 30' '^pm.max_requests = 1$'; do
+    buildah run ${container} grep -q "${setting}" /usr/local/etc/php-fpm.d/www.conf
+done
 # Hide the per-request "child exited" and "child started" notices
 buildah run ${container} sh -c "sed -i 's/;log_level = notice/log_level = warning/' /usr/local/etc/php-fpm.conf"
+buildah run ${container} grep -q '^log_level = warning$' /usr/local/etc/php-fpm.conf
 # Commit the image
 buildah commit --rm "${container}" "${repobase}/${reponame}"
 

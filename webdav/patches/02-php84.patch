@@ -1,0 +1,20 @@
+--- a/server.php
++++ b/server.php
+@@ -1,6 +1,6 @@
+ <?php
+ 
+-error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE);
++error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+ 
+ require_once 'vendor/autoload.php';
+ 
+--- a/lib/webtop/DAV/Connector/AuthBackend.php
++++ b/lib/webtop/DAV/Connector/AuthBackend.php
+@@ -8,6 +8,7 @@
+ class AuthBackend extends \Sabre\DAV\Auth\Backend\AbstractBasic {
+ 	
+ 	protected $bridge;
++	protected $currentUser;
+ 	
+ 	public function __construct(Bridge $bridge) {
+ 		$this->bridge = $bridge;
