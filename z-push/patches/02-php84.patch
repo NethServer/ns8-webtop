@@ -1,0 +1,43 @@
+--- a/index.php
++++ b/index.php
+@@ -2,3 +2,3 @@
+ 
+-error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE);
++error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+ // Tweaking the php error_reporting is not sufficient, z-push will internally
+@@ -6,3 +6,3 @@
+ // We need to set also this customized const...
+-define('LOG_ERROR_MASK', ~(E_NOTICE|E_USER_NOTICE|E_STRICT));
++define('LOG_ERROR_MASK', ~(E_NOTICE|E_USER_NOTICE|E_DEPRECATED|E_USER_DEPRECATED));
+ 
+--- a/admin-cli.php
++++ b/admin-cli.php
+@@ -2,3 +2,3 @@
+ 
+-error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE);
++error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+ // Tweaking the php error_reporting is not sufficient, z-push will internally
+@@ -6,3 +6,3 @@
+ // We need to set also this customized const...
+-define('LOG_ERROR_MASK', ~(E_NOTICE|E_USER_NOTICE|E_STRICT));
++define('LOG_ERROR_MASK', ~(E_NOTICE|E_USER_NOTICE|E_DEPRECATED|E_USER_DEPRECATED));
+ 
+--- a/top-cli.php
++++ b/top-cli.php
+@@ -2,3 +2,3 @@
+ 
+-error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE);
++error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+ // Tweaking the php error_reporting is not sufficient, z-push will internally
+@@ -6,3 +6,3 @@
+ // We need to set also this customized const...
+-define('LOG_ERROR_MASK', ~(E_NOTICE|E_USER_NOTICE|E_STRICT));
++define('LOG_ERROR_MASK', ~(E_NOTICE|E_USER_NOTICE|E_DEPRECATED|E_USER_DEPRECATED));
+ 
+--- a/lib/webtop/EAS/ZPUtil.php
++++ b/lib/webtop/EAS/ZPUtil.php
+@@ -64,3 +64,3 @@
+ 	public static function parseInternetAddress($ia) {
+-		$ret = \Mail_RFC822::parseAddressList($ia, 'local', null, null, 1);
++		$ret = (new \Mail_RFC822())->parseAddressList($ia, 'local', null, null, 1);
+ 		if (($ret === false) || !is_array($ret) || (count($ret) < 1)) {

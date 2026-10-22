@@ -1,0 +1,252 @@
+--- a/lib/webtop-calendar-client/Api/EasApi.php
++++ b/lib/webtop-calendar-client/Api/EasApi.php
+@@ -320,3 +320,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -335,3 +335,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -572,3 +572,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -587,3 +587,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -823,3 +823,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -838,3 +838,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -1112,3 +1112,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -1127,3 +1127,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -1396,3 +1396,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -1411,3 +1411,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -1699,3 +1699,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -1714,3 +1714,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+--- a/lib/webtop-contacts-client/Api/EasApi.php
++++ b/lib/webtop-contacts-client/Api/EasApi.php
+@@ -320,3 +320,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -335,3 +335,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -572,3 +572,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -587,3 +587,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -823,3 +823,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -838,3 +838,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -1126,3 +1126,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -1141,3 +1141,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -1396,3 +1396,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -1411,3 +1411,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -1713,3 +1713,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -1728,3 +1728,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+--- a/lib/webtop-core-client/Api/DavPrincipalsApi.php
++++ b/lib/webtop-core-client/Api/DavPrincipalsApi.php
+@@ -307,3 +307,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -322,3 +322,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -326,3 +326,3 @@
+                 // for HTTP post (form)
+-                $httpBody = \GuzzleHttp\Psr7\build_query($formParams);
++                $httpBody = \GuzzleHttp\Psr7\Query::build($formParams);
+             }
+@@ -348,3 +348,3 @@
+ 
+-        $query = \GuzzleHttp\Psr7\build_query($queryParams);
++        $query = \GuzzleHttp\Psr7\Query::build($queryParams);
+         return new Request(
+--- a/lib/webtop-core-client/Api/DefaultApi.php
++++ b/lib/webtop-core-client/Api/DefaultApi.php
+@@ -298,3 +298,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -313,3 +313,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -317,3 +317,3 @@
+                 // for HTTP post (form)
+-                $httpBody = \GuzzleHttp\Psr7\build_query($formParams);
++                $httpBody = \GuzzleHttp\Psr7\Query::build($formParams);
+             }
+@@ -339,3 +339,3 @@
+ 
+-        $query = \GuzzleHttp\Psr7\build_query($queryParams);
++        $query = \GuzzleHttp\Psr7\Query::build($queryParams);
+         return new Request(
+--- a/lib/webtop-core-client/Api/PrincipalsApi.php
++++ b/lib/webtop-core-client/Api/PrincipalsApi.php
+@@ -319,3 +319,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -334,3 +334,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -338,3 +338,3 @@
+                 // for HTTP post (form)
+-                $httpBody = \GuzzleHttp\Psr7\build_query($formParams);
++                $httpBody = \GuzzleHttp\Psr7\Query::build($formParams);
+             }
+@@ -360,3 +360,3 @@
+ 
+-        $query = \GuzzleHttp\Psr7\build_query($queryParams);
++        $query = \GuzzleHttp\Psr7\Query::build($queryParams);
+         return new Request(
+--- a/lib/webtop-tasks-client/Api/EasApi.php
++++ b/lib/webtop-tasks-client/Api/EasApi.php
+@@ -320,3 +320,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -335,3 +335,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -572,3 +572,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -587,3 +587,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -823,3 +823,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -838,3 +838,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -1112,3 +1112,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -1127,3 +1127,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -1396,3 +1396,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -1411,3 +1411,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
+@@ -1699,3 +1699,3 @@
+             if ($httpBody instanceof \stdClass && $headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($httpBody);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($httpBody);
+             }
+@@ -1714,3 +1714,3 @@
+             } elseif ($headers['Content-Type'] === 'application/json') {
+-                $httpBody = \GuzzleHttp\json_encode($formParams);
++                $httpBody = \GuzzleHttp\Utils::jsonEncode($formParams);
+ 
