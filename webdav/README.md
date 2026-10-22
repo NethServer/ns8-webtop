@@ -27,11 +27,13 @@ BSD-3-Clause).
    `composer.lock` in its place;
 4. apply `patches/*.patch` in order, stopping at the first one that does not
    apply;
-5. `composer install --no-dev --classmap-authoritative`.
+5. `composer install --no-dev --classmap-authoritative`;
+6. `verify.sh`: sabre/dav version, required files, no patch leftovers,
+   `php -l` of Sonicle's code and `smoke.php`; the build fails if any check
+   does.
 
 The resulting tree goes into both the `webtop-webdav` and `webtop-apache`
-images. `check-tree.sh <dir>` checks a built tree: sabre/dav version,
-required files, `php -l` of Sonicle's code and `smoke.php`.
+images. `check-tree.sh <dir>` runs `verify.sh` on a tree from the host.
 
 The base image is Alpine: on PHP 8.4.27 the `imap` extension, needed by the
 ActiveSync server, builds and loads on both Alpine and Debian (2026-10-22),

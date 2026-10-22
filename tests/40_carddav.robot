@@ -53,6 +53,14 @@ Large contact photo round-trips
     davx5    ios-dav
     ios-dav    davx5
 
+Phone checks a contact with HEAD
+    [Template]    Phone checks a contact with HEAD
+    davx5
+
+Phone searches principals
+    [Template]    Phone searches principals
+    ios-dav
+
 Sparse contact from WebTop syncs
     [Documentation]    A contact with only a last name: on sabre/dav 4 a missing value must not break the sync
     [Template]    Sparse contact from WebTop syncs
@@ -212,3 +220,20 @@ Sparse contact from WebTop syncs
     Length Should Be    ${r['added']}    1
     ${got} =    Phonesync    dav    get    ${profile}    --href    ${r['added'][0]['href']}
     Should Be Equal    ${got['fields']['mobile']}    ${None}
+
+Phone checks a contact with HEAD
+    [Arguments]    ${profile}
+    ${name} =    Unique name    ${profile} head
+    ${r} =    Phonesync    dav    put    ${profile}    --kind    contact    --name    ${name}
+    ${cmd} =    Evaluate    'curl -s -o /dev/null -w "\%{http_code}" -I -H ' + shlex.quote('Host: ' + $WEBTOP_HOST) + ' -u ' + shlex.quote($PHONE_USER + ':' + $PHONE_PASSWORD) + ' ' + shlex.quote($backend_url + $r['href'])    modules=shlex
+    ${status} =    Execute Command    ${cmd}
+    Should Be Equal    ${status}    200    HEAD on a contact answered ${status}
+
+Phone searches principals
+    [Arguments]    ${profile}
+    ${r} =    Phonesync    dav    discover    ${profile}
+    ${search} =    Set Variable    <?xml version="1.0" encoding="utf-8"?><d:principal-property-search xmlns:d="DAV:"><d:property-search><d:prop><d:displayname/></d:prop><d:match>u1</d:match></d:property-search><d:prop><d:displayname/></d:prop></d:principal-property-search>
+    ${principals} =    Evaluate    $r['principal'].rstrip('/').rsplit('/', 1)[0] + '/'
+    ${cmd} =    Evaluate    'printf %s ' + shlex.quote($search) + ' | curl -s -o /dev/null -w "\%{http_code}" -X REPORT --data-binary @- -H "Content-Type: application/xml" -H "Depth: 0" -H ' + shlex.quote('Host: ' + $WEBTOP_HOST) + ' -u ' + shlex.quote($PHONE_USER + ':' + $PHONE_PASSWORD) + ' ' + shlex.quote($backend_url + $principals)    modules=shlex
+    ${status} =    Execute Command    ${cmd}
+    Should Be Equal    ${status}    207    principal search answered ${status}
