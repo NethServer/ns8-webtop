@@ -79,6 +79,14 @@ Create event in WebTop
     [Arguments]    ${name}    ${start_utc}    ${end_utc}
     Phonesync    webtop    event-create    ${EMPTY}    --name    ${name}    --start    ${start_utc}    --end    ${end_utc}
 
+Create sparse contact in WebTop
+    [Arguments]    ${last_name}
+    Phonesync    webtop    contact-create-sparse    ${EMPTY}    --name    ${last_name}
+
+Create untitled event in WebTop
+    [Arguments]    ${key}    ${start_utc}    ${end_utc}
+    Phonesync    webtop    event-create-untitled    ${EMPTY}    --name    ${key}    --start    ${start_utc}    --end    ${end_utc}
+
 Rename event in WebTop
     [Arguments]    ${name}    ${new_name}
     Phonesync    webtop    event-rename    ${EMPTY}    --name    ${name}    --new-name    ${new_name}
