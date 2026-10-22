@@ -6,8 +6,8 @@ Suite Setup       Run Keywords    Set up phone suite    AND    Pair the phone
 Suite Teardown    Run Keywords    Delete all test items in WebTop    AND    Delete test messages    ${PHONE_USER}
 
 *** Variables ***
-# ActiveSync allows 60 s and more, but Apache in front of Z-Push answers 504 after 60 s today
-# (see "Phone can wait longer than a minute"), so the working cases stay below that
+# Short enough to keep the suite fast; the long waits real phones use are checked by
+# "Phone can wait longer than a minute"
 ${HEARTBEAT}      45
 
 *** Test Cases ***
@@ -42,12 +42,18 @@ Contact change wakes the phone
     Should Be Equal As Integers    ${r['status']}    2    the phone was not woken (status ${r['status']} after ${r['seconds']} s)
 
 Phone can wait longer than a minute
-    [Documentation]    Known issue: Apache in front of Z-Push ends requests after 60 s with 504, so the
-    ...                multi-minute waits real phones use fail and push falls back to polling. Skipped while it fails.
-    [Tags]    known-issue    robot:skip-on-failure
+    [Documentation]    Real phones wait minutes in Ping; Apache's default 60 s timeout used to end it with 504
     Phone EAS sync    ios-eas    Email
     ${r} =    Phonesync    eas    ping    ios-eas    --classes    Email    --heartbeat    120
     Should Be Equal As Integers    ${r['status']}    1
+
+Phone can wait longer than a minute through the NS8 proxy
+    [Documentation]    Real phones reach Z-Push through Traefik, which must not end the wait either
+    Phone EAS sync    ios-eas    Email
+    Set Test Variable    ${backend_url}    https://127.0.0.1
+    ${r} =    Phonesync    eas    ping    ios-eas    --classes    Email    --heartbeat    120    --insecure
+    Should Be Equal As Integers    ${r['status']}    1
+    Should Be True    110 <= ${r['seconds']} <= 150    a quiet 120 s ping lasted ${r['seconds']} s
 
 *** Keywords ***
 Pair the phone
