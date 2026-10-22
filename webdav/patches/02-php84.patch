@@ -18,3 +18,39 @@
  	
  	public function __construct(Bridge $bridge) {
  		$this->bridge = $bridge;
+--- a/lib/webtop/DAV/CalDAV/Backend.php
++++ b/lib/webtop/DAV/CalDAV/Backend.php
+@@ -295,13 +295,13 @@
+ 
+ 		$hrefKey = $calendarId."\0".$objectUri;
+ 		if (isset($this->cacheCalObjectsByHref) && array_key_exists($hrefKey, $this->cacheCalObjectsByHref)) {
+-			$logger->debug('Returning object from cache [{}]', $objectUri);
++			$logger->debug('Returning object from cache [{}]', [$objectUri]);
+ 			return $this->toSabreCalObject($this->cacheCalObjectsByHref[$hrefKey], 'vevent', true);
+ 		}
+ 
+ 		$cacheByHref = $this->doGetDavCalendarObjects($calendarId, null);
+ 		if (isset($cacheByHref) && !is_null($cacheByHref) && array_key_exists($objectUri, $cacheByHref)) {
+-			$logger->debug('Returning object from cache [{}]', $objectUri);
++			$logger->debug('Returning object from cache [{}]', [$objectUri]);
+ 			return $this->toSabreCalObject($cacheByHref[$objectUri], 'vevent', true);
+ 
+ 		} else {
+--- a/lib/webtop/DAV/CardDAV/Backend.php
++++ b/lib/webtop/DAV/CardDAV/Backend.php
+@@ -267,13 +267,13 @@
+ 		
+ 		$hrefKey = $addressBookId."\0".$cardUri;
+ 		if (isset($this->cacheCardsByHref) && array_key_exists($hrefKey, $this->cacheCardsByHref)) {
+-			$logger->debug('Returning object from cache [{}]', $cardUri);
++			$logger->debug('Returning object from cache [{}]', [$cardUri]);
+ 			return $this->toSabreCard($this->cacheCardsByHref[$hrefKey], true);
+ 		}
+ 		
+ 		$cacheByHref = $this->doGetDavCards($addressBookId);
+ 		if (isset($cacheByHref) && !is_null($cacheByHref) && array_key_exists($cardUri, $cacheByHref)) {
+-			$logger->debug('Returning object from cache [{}]', $cardUri);
++			$logger->debug('Returning object from cache [{}]', [$cardUri]);
+ 			return $this->toSabreCard($cacheByHref[$cardUri], true);
+ 
+ 		} else {
