@@ -34,13 +34,18 @@ done
 rm -rf "$out/vendor"
 cp "$here/composer.json" "$here/composer.lock" "$out/"
 
-for p in "$here"/patches/*.patch; do
+for p in "${WEBDAV_PATCHES:-$here/patches}"/*.patch; do
     [ -e "$p" ] || continue
-    if ! patch -d "$out" -p1 --forward --batch --silent < "$p"; then
+    echo "applying $(basename "$p")"
+    if ! patch -d "$out" -p1 --forward --batch --no-backup-if-mismatch < "$p"; then
         echo "patch $(basename "$p") does not apply to $version (see webdav/README.md)" >&2
         exit 1
     fi
 done
 
-cd "$out"
-composer install --no-dev --classmap-authoritative --no-interaction --no-progress
+(cd "$out" && composer install --no-dev --classmap-authoritative --no-interaction --no-progress)
+
+if ! sh "$here/verify.sh" "$out"; then
+    echo "the built WebDAV server failed its checks (see webdav/README.md)" >&2
+    exit 1
+fi

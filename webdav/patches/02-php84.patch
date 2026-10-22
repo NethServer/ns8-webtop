@@ -35,3 +35,9 @@
 -			$logger->debug('Returning object from cache [{}]', $cardUri);
 +			$logger->debug('Returning object from cache [{}]', [$cardUri]);
  			return $this->toSabreCard($cacheByHref[$cardUri], true);
+--- a/lib/webtop/DAV/Connector/PrincipalBackend.php
++++ b/lib/webtop/DAV/Connector/PrincipalBackend.php
+@@ -142,2 +142,3 @@
+ 		*/
++		return [];
+ 	}
