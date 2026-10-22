@@ -245,9 +245,9 @@ def sendmail_request(client_id, mime):
 # Client
 
 class EasClient:
-    def __init__(self, url, host, user, password, profile, state_path, post=None):
+    def __init__(self, url, host, user, password, profile, state_path, post=None, insecure=False):
         self.url = url.rstrip("/")
-        self.auth = {"user": user, "password": password, "host": host}
+        self.auth = {"user": user, "password": password, "host": host, "insecure": insecure}
         self.user = user
         self.profile = PROFILES[profile]
         self.state_path = state_path
@@ -606,7 +606,8 @@ class EasClient:
 
 
 def run(args):
-    client = EasClient(args.url, args.host, args.user, args.password, args.profile, args.state)
+    client = EasClient(args.url, args.host, args.user, args.password, args.profile, args.state,
+                       insecure=args.insecure)
     if args.command == "setup":
         return client.setup()
     if args.command == "sync":
