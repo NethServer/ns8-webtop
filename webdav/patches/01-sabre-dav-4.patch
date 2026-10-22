@@ -1,0 +1,21 @@
+--- a/lib/webtop/DAV/Connector/ExceptionLoggerPlugin.php
++++ b/lib/webtop/DAV/Connector/ExceptionLoggerPlugin.php
+@@ -57,7 +57,7 @@
+ 		$server->on('exception', array($this, 'logException'), 10);
+ 	}
+ 	
+-	public function logException(\Exception $ex) {
++	public function logException(\Throwable $ex) {
+ 		$exceptionClass = get_class($ex);
+ 		if (isset($this->nonFatalExceptions[$exceptionClass]) ||
+ 				($exceptionClass === ServiceUnavailable::class && $ex->getMessage() === 'System in maintenance mode.')) {
+--- a/lib/webtop/DAV/Server.php
++++ b/lib/webtop/DAV/Server.php
+@@ -90,6 +90,6 @@
+ 			$logger->debug($this->server->httpRequest);
+ 		}
+ 		*/
+-		$this->server->exec();
++		$this->server->start();
+ 	}
+ }
