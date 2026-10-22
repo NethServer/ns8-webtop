@@ -42,7 +42,7 @@ and Alpine keeps the image family used before.
 | Patch | Why |
 |---|---|
 | `01-sabre-dav-4.patch` | sabre/dav 4: the exception logger also receives PHP errors (`\Throwable`); start the sabre server with `start()` |
-| `02-php84.patch` | PHP 8.4: declare `AuthBackend::$currentUser`; keep deprecation notices out of production logs |
+| `02-php84.patch` | PHP 8.4: declare `AuthBackend::$currentUser`; pass log parameters as arrays (lf4php throws on a string under PHP 8); keep deprecation notices out of production logs |
 | `03-guzzle-7.patch` | guzzle 7 (guzzle 6 is blocked by security advisories): the generated REST clients use `Utils::jsonEncode` and `Psr7\Query::build` |
 
 Patches change only Sonicle's code. If a library needs a fix, add it as a
