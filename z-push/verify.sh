@@ -36,11 +36,16 @@ else
     echo "ok: no unused php-awl/"
 fi
 
-if find "$dir" -path "$dir/vendor" -prune -o -name '*.php' -print | \
-        xargs -n1 php -d error_reporting="E_ALL & ~E_DEPRECATED" -l >/dev/null; then
-    echo "ok: php -l on Sonicle code"
+# PHP reports deprecated declarations once, when OPcache first compiles a file,
+# straight to the log and past Z-Push's error handler: Sonicle's code must have none
+lint=$(find "$dir" -path "$dir/vendor" -prune -o -name '*.php' -print | \
+        xargs -n1 php -d error_reporting=E_ALL -d display_errors=stdout -d log_errors=0 -l 2>&1)
+if [ $? -ne 0 ]; then
+    echo "FAIL: php -l errors in Sonicle code:"; printf '%s\n' "$lint" | grep -v '^No syntax errors'; fail=1
+elif printf '%s\n' "$lint" | grep -q 'Deprecated:'; then
+    echo "FAIL: PHP deprecations in Sonicle code:"; printf '%s\n' "$lint" | grep 'Deprecated:' | head -20; fail=1
 else
-    echo "FAIL: php -l errors in Sonicle code"; fail=1
+    echo "ok: php -l on Sonicle code, no deprecations"
 fi
 
 # The smoke test and z-push-admin need a config.json and writable state: run

@@ -30,7 +30,7 @@ builder (with Composer and `patch`) runs `build.sh`:
    apply;
 5. `composer install --no-dev --classmap-authoritative`;
 6. `verify.sh`: Z-Push version, required files, no patch leftovers or dead
-   code, `php -l` of Sonicle's code, `smoke.php` (boots like `index.php`,
+   code, `php -l` of Sonicle's code (no PHP deprecations either), `smoke.php` (boots like `index.php`,
    loads the mail backend, converts addresses and a contact photo as Z-Push
    2.4.5 did, formats a date, checks the policy hashes saved by paired phones and what a push wait logs
    while WebTop answers with errors) and
@@ -68,6 +68,7 @@ image after the upgrade is not supported.
 | `03-guzzle-7.patch` | guzzle 7 (guzzle 6 is blocked by security advisories): the generated REST clients use `Utils::jsonEncode` and `Psr7\Query::build` |
 | `04-no-data-uri.patch` | contact photos: build and parse `data:` URIs in a few lines instead of the `data-uri` library, whose only dependency, `symfony/http-foundation` 2-4, is blocked by security advisories |
 | `05-push-webtop-changes.patch` | push: check WebTop's contact, calendar and task folders once on every Z-Push 2.7 sink call, with fresh folder states, so a change made in WebTop wakes a phone waiting in Ping (Sonicle's loop never ran with the 1 second timeout Z-Push 2.7 gives it, and read the folders once per request); keep waiting while WebTop is unreachable or answers with errors, logging one warning per check instead of an error with the whole exception every 30 s; with legacy folder ids, a folder renamed in WebTop makes the phone reload its folder list, as before |
+| `06-php84-explicit-nullable.patch` | PHP 8.4: declare the parameters that default to `null` as nullable (`?Type`) in Sonicle's REST clients and `ZPUtil`; PHP reports the old form once per file when OPcache first compiles it, straight to the log, past Z-Push's error handler. `verify.sh` fails the build on any deprecation in Sonicle's code |
 
 Patches change only Sonicle's code. If a library needs a fix, add it as a
 separate patch named `NN-temporary-<library>-<issue>.patch`, list it here and
