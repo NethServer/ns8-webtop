@@ -13,7 +13,14 @@ define('WT_EAS_ROOT', getcwd());
 require 'vendor/autoload.php';
 \WT\EAS\Config::load(WT_EAS_ROOT . '/config.json');
 $config = \WT\EAS\Config::get();
-\WT\Log::init('eas-server', 'ERROR', 'php://stderr');
+// Sonicle's log goes to a file, for the push check below
+$logFile = tempnam(sys_get_temp_dir(), 'smoke-log');
+\WT\Log::init('eas-server', 'WARNING', $logFile);
+function logSince($offset) {
+    global $logFile;
+    clearstatcache();
+    return (string)file_get_contents($logFile, false, null, $offset);
+}
 
 $_SERVER['SCRIPT_FILENAME'] = WT_EAS_ROOT . $config->getZPushSrc() . '/index.php';
 chdir(WT_EAS_ROOT . $config->getZPushSrc());
@@ -80,5 +87,39 @@ try {
 } catch (\Throwable $e) {
     check(false, 'policy hash check throws ' . get_class($e) . ': ' . $e->getMessage());
 }
+
+// Push: while WebTop answers with errors, each check of the Ping loop logs one
+// warning, not Sonicle's ERROR with the whole exception; a sync still logs it.
+// A stand-in for WebTop on the apiBaseUrl of verify.sh's config.json answers 503
+$router = tempnam(sys_get_temp_dir(), 'smoke-router');
+file_put_contents($router, '<?php http_response_code(503); echo "starting";');
+$server = proc_open([PHP_BINARY, '-S', '127.0.0.1:18080', $router], [1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+for ($i = 0; $i < 50 && !($sock = @fsockopen('127.0.0.1', 18080)); $i++) usleep(100000);
+if ($sock) fclose($sock);
+try {
+    $backend = new BackendContacts();
+    foreach (['sinkFolders' => ['1' => '1'], 'sinkStates' => ['1' => 'etag']] as $name => $value) {
+        $prop = new ReflectionProperty('AbstractWebTopBackendDiff', $name);
+        $prop->setAccessible(true);
+        $prop->setValue($backend, $value);
+    }
+    $offset = filesize($logFile);
+    $changes = $backend->ChangesSink(1);
+    $log = logSince($offset);
+    check($changes === [] && substr_count($log, '.WARNING: ') === 1 && strpos($log, '.ERROR: ') === false,
+        'a push check while WebTop answers 503 wakes no phone and logs one warning' . ($log === '' ? '' : ":\n  " . trim($log)));
+    $sync = new ReflectionMethod('BackendContacts', 'doGetApiFolders');
+    $sync->setAccessible(true);
+    $offset = filesize($logFile);
+    check($sync->invoke($backend) === null && strpos(logSince($offset), '.ERROR: ') !== false,
+        'a sync while WebTop answers 503 still logs an error');
+} catch (\Throwable $e) {
+    check(false, 'push check throws ' . get_class($e) . ': ' . $e->getMessage());
+}
+proc_terminate($server);
+proc_close($server);
+unlink($router);
+unlink($logFile);
+
 restore_error_handler();
 exit($fail);
