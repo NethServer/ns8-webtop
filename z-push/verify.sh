@@ -55,7 +55,7 @@ cat > "$scratch/tree/config.json" <<EOF
     "timezone": "Europe/Rome",
     "log": {"level": "ERROR", "file": "php://stderr"},
     "mail": {"imapServer": "imap.smoke.test", "smtpServer": "smtp.smoke.test", "smtpPort": "25"},
-    "webtop": {"apiBaseUrl": "http://localhost:8080/webtop"},
+    "webtop": {"apiBaseUrl": "http://127.0.0.1:18080/webtop"},
     "state": {"useLegacyFolderIds": false, "dir": "$scratch/state"}
 }
 EOF

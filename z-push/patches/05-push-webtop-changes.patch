@@ -48,9 +48,9 @@
 -			}
 +		if (empty($this->sinkFolders)) return $notifications;
 +		try {
-+			$folders = $this->doGetApiFolders();
++			$folders = $this->doGetApiFolders(true);
 +		} catch (\Exception $ex) {
-+			// WebTop unreachable (e.g. restarting): keep waiting
++			// WebTop unreachable or answering errors: keep waiting, one warning per check
 +			$logger->warn('Unable to check folders for changes: {}', [$ex->getMessage()]);
 +			$folders = null;
  		}
@@ -68,3 +68,42 @@
 +			}
 +		}
  		if ($logger->isDebugEnabled()) $logger->debug('({}) returning notifications: [{}]', [$timeout, implode(' ', $notifications)]);
+@@ -342,3 +351,4 @@
+ 	protected abstract function getLogger();
+-	protected abstract function doGetApiFolders();
++	// $throw: pass WebTop's REST errors on instead of logging them (the push loop)
++	protected abstract function doGetApiFolders($throw = false);
+ 	protected abstract function doGetApiFolderMessages($folderId, $isoCutoffDate);
+--- a/backend/calendar/calendar.php
++++ b/backend/calendar/calendar.php
+@@ -26,3 +26,3 @@
+ 	
+-	protected function doGetApiFolders() {
++	protected function doGetApiFolders($throw = false) {
+ 		$logger = $this->getLogger();
+@@ -41,2 +41,3 @@
+ 		} catch (\WT\Client\Calendar\ApiException $ex) {
++			if ($throw) throw $ex;
+ 			$logger->error($ex);
+--- a/backend/contacts/contacts.php
++++ b/backend/contacts/contacts.php
+@@ -80,3 +80,3 @@
+ 	
+-	protected function doGetApiFolders() {
++	protected function doGetApiFolders($throw = false) {
+ 		$logger = $this->getLogger();
+@@ -95,2 +95,3 @@
+ 		} catch (\WT\Client\Contacts\ApiException $ex) {
++			if ($throw) throw $ex;
+ 			$logger->error($ex);
+--- a/backend/tasks/tasks.php
++++ b/backend/tasks/tasks.php
+@@ -26,3 +26,3 @@
+ 	
+-	protected function doGetApiFolders() {
++	protected function doGetApiFolders($throw = false) {
+ 		$logger = $this->getLogger();
+@@ -41,2 +41,3 @@
+ 		} catch (\WT\Client\Tasks\ApiException $ex) {
++			if ($throw) throw $ex;
+ 			$logger->error($ex);
