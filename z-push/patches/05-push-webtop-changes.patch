@@ -1,16 +1,23 @@
 --- a/backend/webtop/AbstractWebTopBackendDiff.php
 +++ b/backend/webtop/AbstractWebTopBackendDiff.php
-@@ -234,3 +234,8 @@
+@@ -234,3 +234,15 @@
  		
 -		$this->sinkFolders[] = $folderid;
 +		// Remember the folder state now: a change made from here on wakes the
 +		// phone. Keep the id Z-Push gave (encoded with legacy folder ids)
-+		$foId = $this->decodeFolderId($folderid);
++		try {
++			$foId = $this->decodeFolderId($folderid);
++		} catch (FatalException $ex) {
++			// a legacy id of a folder renamed or no longer shared: Z-Push then
++			// tells the phone to sync its folder list again
++			$logger->debug('Unknown folder: {}', [$ex->getMessage()]);
++			return false;
++		}
 +		$folder = $this->getApiSyncFolder($foId);
 +		$this->sinkFolders[$folderid] = $foId;
 +		$this->sinkStates[$folderid] = is_null($folder) ? null : $folder->getEtag();
  		return true;
-@@ -242,29 +247,26 @@
+@@ -242,29 +254,26 @@
  		
 +		// Z-Push 2.7 calls this with a 1 second timeout every PING_INTERVAL and
 +		// waits in between: check WebTop once, with fresh folder states
