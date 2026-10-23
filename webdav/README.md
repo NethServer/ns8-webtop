@@ -9,7 +9,7 @@ their package.
 ## Notice
 
 Sonicle's WebTop DAV server is licensed under the GNU Affero General Public
-License v3 (`AGPL-3.0-only`, see `LICENSE`). The patches in `patches/`
+License v3 (`AGPL-3.0-only`). The patches in `patches/`
 modify Sonicle's code and are distributed under the same licence. The
 libraries installed by Composer keep their own licences (sabre/dav:
 BSD-3-Clause).
