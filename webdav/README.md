@@ -74,5 +74,8 @@ problem, with a message naming it:
   done > webdav/sonicle-composer.sha256
   ```
 
+The same patches build both the `wt-5.35.7` release and Sonicle's
+development package of 2026-10-14 (checked on 2026-10-23).
+
 Run `check-tree.sh` on the built tree and the phone sync tests
 (`tests/40_carddav.robot`, `tests/41_caldav.robot`) before releasing.

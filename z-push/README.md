@@ -96,7 +96,7 @@ problem, with a message naming it:
   ```
 
 The same patches build both the `wt-5.35.7` release (EAS 2.4.5.25) and
-Sonicle's development package of 2026-10-14 (checked on 2026-10-22).
+Sonicle's development package of 2026-10-14 (checked on 2026-10-23).
 
 Run `check-tree.sh` on the built tree and the phone sync tests
 (`tests/50_activesync.robot`, `tests/55_activesync_push.robot`,
