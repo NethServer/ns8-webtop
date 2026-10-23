@@ -75,8 +75,7 @@ image after the upgrade is not supported.
 
 Patches change only Sonicle's code. If a library needs a fix, add it as a
 separate patch named `NN-temporary-<library>-<issue>.patch` (paths start with
-`vendor/`; `build.sh` applies it after `composer install`), list it here and
-report it upstream.
+`vendor/`; `build.sh` applies it after `composer install`) and list it here.
 
 ## Refreshing for a new Sonicle release
 

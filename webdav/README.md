@@ -49,8 +49,7 @@ and Alpine keeps the image family used before.
 | `04-report-backend-errors.patch` | report WebTop errors to the phone (400, 403 and 404 as such, other errors as 500) instead of answering 201 or 204 for a contact or event WebTop did not store, change or delete |
 
 Patches change only Sonicle's code. If a library needs a fix, add it as a
-separate patch named `NN-temporary-<library>-<issue>.patch`, list it here and
-report it upstream.
+separate patch named `NN-temporary-<library>-<issue>.patch` and list it here.
 
 ## Refreshing for a new Sonicle release
 
