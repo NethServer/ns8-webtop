@@ -3,7 +3,7 @@
 @@ -86,2 +86,18 @@
  	}
 +	
-+	/*
++	/**
 +	 * A WebTop REST error as the DAV error the phone gets: WebTop's 400, 403
 +	 * and 404 as such, anything else (no answer included) as 500. The message
 +	 * is ours, never WebTop's response.
