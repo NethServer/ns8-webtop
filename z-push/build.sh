@@ -38,16 +38,26 @@ done
 rm -rf "$out/vendor" "$out/php-awl" "$out/backend/imap"
 cp "$here/composer.json" "$here/composer.lock" "$out/"
 
-for p in "${ZPUSH_PATCHES:-$here/patches}"/*.patch; do
-    [ -e "$p" ] || continue
-    echo "applying $(basename "$p")"
-    if ! patch -d "$out" -p1 --forward --batch --no-backup-if-mismatch < "$p"; then
-        echo "patch $(basename "$p") does not apply to $version (see z-push/README.md)" >&2
-        exit 1
-    fi
-done
+# Apply patches in order: Sonicle's code before the libraries are installed,
+# NN-temporary-<library>-*.patch (fixes to a library) after
+apply_patches() {
+    for p in "${ZPUSH_PATCHES:-$here/patches}"/*.patch; do
+        [ -e "$p" ] || continue
+        case "$(basename "$p")" in
+            *-temporary-*) [ "$1" = libraries ] || continue ;;
+            *) [ "$1" = sonicle ] || continue ;;
+        esac
+        echo "applying $(basename "$p")"
+        if ! patch -d "$out" -p1 --forward --batch --no-backup-if-mismatch < "$p"; then
+            echo "patch $(basename "$p") does not apply to $version (see z-push/README.md)" >&2
+            exit 1
+        fi
+    done
+}
 
+apply_patches sonicle
 (cd "$out" && composer install --no-dev --classmap-authoritative --no-interaction --no-progress)
+apply_patches libraries
 
 if ! sh "$here/verify.sh" "$out"; then
     echo "the built ActiveSync server failed its checks (see z-push/README.md)" >&2
