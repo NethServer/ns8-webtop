@@ -81,6 +81,14 @@ Second phone sees first phone's event
     davx5    ios-dav
     ios-dav    davx5
 
+Event WebTop cannot save is reported to the phone
+    ${name} =    Unique name    rejected event
+    ${uid} =    Unique name    rejected
+    ${r} =    Phonesync    dav    discover    davx5
+    ${status} =    Phone puts an event WebTop rejects    ${r['calendars'][0]['href']}${uid}.ics    ${uid}    ${name}
+    Should Not Start With    ${status}    2    WebDAV reported success (${status}) for an event WebTop did not store
+    Event does not exist in WebTop    ${name}
+
 Event edit WebTop cannot save is reported to the phone
     ${name} =    Unique name    rejected edit
     ${r} =    Phonesync    dav    put    davx5    --kind    event    --name    ${name}
@@ -231,7 +239,8 @@ Untitled event from WebTop syncs
 
 Phone puts an event WebTop rejects
     [Arguments]    ${href}    ${uid}    ${name}
-    # a repeat rule with an unknown frequency: sabre accepts it, WebTop refuses to store it
+    # a repeat rule with an unknown frequency: sabre accepts it, WebTop refuses to store it; a new event
+    # at a new ${href}, or a change to the event at ${href}
     ${ics} =    Catenate    SEPARATOR=\r\n    BEGIN:VCALENDAR    VERSION:2.0    PRODID:-//NethServer//phonesync//EN    BEGIN:VEVENT
     ...    UID:${uid}    DTSTAMP:20260101T000000Z    DTSTART:${UTC_START.replace('-', '').replace(':', '')}    DTEND:${UTC_END.replace('-', '').replace(':', '')}
     ...    RRULE:FREQ=FOO    SUMMARY:${name}    END:VEVENT    END:VCALENDAR    ${EMPTY}
