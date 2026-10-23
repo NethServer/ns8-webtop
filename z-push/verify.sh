@@ -48,6 +48,17 @@ else
     echo "ok: php -l on Sonicle code, no deprecations"
 fi
 
+# Z-Push's code that runs here (not its other backends): no deprecations either
+zp="$dir/vendor/z-push/z-push/src"
+lint=$({ find "$zp" -path "$zp/backend" -prune -o -name '*.php' -print
+        ls "$zp"/backend/combined/*.php "$zp"/backend/imap/*.php; } | \
+        xargs -n1 php -d error_reporting=E_ALL -d display_errors=stdout -d log_errors=0 -l 2>&1)
+if printf '%s\n' "$lint" | grep -q 'Deprecated:'; then
+    echo "FAIL: PHP deprecations in Z-Push:"; printf '%s\n' "$lint" | grep 'Deprecated:' | head -20; fail=1
+else
+    echo "ok: no deprecations in the Z-Push code in use"
+fi
+
 # The smoke test and z-push-admin need a config.json and writable state: run
 # them on a scratch copy so the built tree stays as it is
 scratch=$(mktemp -d)
