@@ -1,0 +1,9 @@
+#!/usr/bin/env php
+
+All synchronized devices
+
+Device id                           Synchronized users
+-----------------------------------------------------
+e2eiphone0000001                    u1@example.org
+e2eandroid000001                    u1@example.org
+
