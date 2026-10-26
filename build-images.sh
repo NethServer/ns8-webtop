@@ -124,7 +124,7 @@ buildah rm ${container}
 # it), shared by the builder (its checks run z-push-admin) and the runtime
 # image; apache needs the same tree
 container=$(buildah from ${webdav_php_image})
-buildah copy --from=docker.io/mlocati/php-extension-installer:2.11.34 ${container} /usr/bin/install-php-extensions /usr/local/bin/
+buildah copy --from=docker.io/mlocati/php-extension-installer:2.12.3 ${container} /usr/bin/install-php-extensions /usr/local/bin/
 buildah run ${container} sh -c "install-php-extensions imap intl"
 zpush_php_image=$(buildah commit -q --rm ${container})
 zpush_tree=$(mktemp -d)
