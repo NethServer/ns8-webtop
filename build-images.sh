@@ -163,6 +163,9 @@ buildah add ${container} ${PWD}/php/zz-banner-grabbing.ini /usr/local/etc/php/co
 buildah add ${container} ${PWD}/php/zz-session-upload-progress.ini /usr/local/etc/php/conf.d/zz-session-upload-progress.ini
 buildah add ${container} ${PWD}/php/zz-fpm-mitigations.ini /usr/local/etc/php/conf.d/zz-fpm-mitigations.ini
 buildah add ${container} ${PWD}/php/zz-webdav.ini /usr/local/etc/php/conf.d/zz-webdav.ini
+# Error traces must not carry call arguments, such as passwords (set by
+# php.ini-production)
+buildah run ${container} php -r 'exit(ini_get("zend.exception_ignore_args") ? 0 : 1);' || { echo "zend.exception_ignore_args is off in the webdav image" >&2; exit 1; }
 # Pool sizes, and one request per worker: mitigates CVE-2026-109619 (stale
 # state reused by the next request). Fail if the stock www.conf no longer has
 # the lines we change
@@ -193,6 +196,9 @@ buildah run ${container} sh -c "mv \$PHP_INI_DIR/php.ini-production \$PHP_INI_DI
 buildah add ${container} ${PWD}/php/zz-banner-grabbing.ini /usr/local/etc/php/conf.d/zz-banner-grabbing.ini
 buildah add ${container} ${PWD}/php/zz-session-upload-progress.ini /usr/local/etc/php/conf.d/zz-session-upload-progress.ini
 buildah add ${container} ${PWD}/php/zz-fpm-mitigations.ini /usr/local/etc/php/conf.d/zz-fpm-mitigations.ini
+# Error traces must not carry call arguments, such as passwords (set by
+# php.ini-production)
+buildah run ${container} php -r 'exit(ini_get("zend.exception_ignore_args") ? 0 : 1);' || { echo "zend.exception_ignore_args is off in the z-push image" >&2; exit 1; }
 buildah run ${container} sh -c "mkdir -p /var/log/z-push/state && chown www-data:www-data /var/log/z-push /var/log/z-push/state"
 # Pool sizes, memory, and one request per worker: mitigates CVE-2026-109619
 # (stale state reused by the next request). Fail if the stock files no longer
