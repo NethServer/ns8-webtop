@@ -130,5 +130,34 @@ class PutTest(unittest.TestCase):
         self.assertEqual(details, {"all_day": True, "start": "2026-07-15", "rrule": "FREQ=WEEKLY;COUNT=4", "alarm": 15})
 
 
+class SyncCollectionTest(unittest.TestCase):
+    def setUp(self):
+        import tempfile
+        self.dir = tempfile.TemporaryDirectory()
+        self.path = os.path.join(self.dir.name, "s.json")
+        self.real = dav.transport.request
+        replies = [dav.transport.Response(403, {}, fixture("sync-invalid.xml")),
+                   dav.transport.Response(207, {}, fixture("sync-initial.xml"))]
+        dav.transport.request = lambda method, url, **kw: replies.pop(0)
+
+    def tearDown(self):
+        dav.transport.request = self.real
+        self.dir.cleanup()
+
+    def sync_from(self, token):
+        client = dav.DavClient("http://x", "h", "u", "p", "davx5", self.path)
+        return client._sync_collection({"collection": AB, "items": {}, "sync_token": token})
+
+    def test_refused_token_is_full_resync(self):
+        _, complete, full_resync = self.sync_from("20261026131705000")
+        self.assertTrue(complete)
+        self.assertTrue(full_resync)
+
+    def test_refused_empty_collection_token_is_expected(self):
+        _, complete, full_resync = self.sync_from(dav.EMPTY_COLLECTION_TOKEN)
+        self.assertTrue(complete)
+        self.assertFalse(full_resync)
+
+
 if __name__ == "__main__":
     unittest.main()

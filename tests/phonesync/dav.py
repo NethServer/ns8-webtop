@@ -91,6 +91,13 @@ def sync_result(body):
     return changes, ET.fromstring(body).findtext(D + "sync-token")
 
 
+# WebTop's sync token for a collection with no changes yet. Since 5.36.0
+# (WT-1658) WebTop refuses tokens older than its 1 year history retention,
+# this one included: a phone that synced an empty collection must resync it,
+# but has nothing from WebTop to reload
+EMPTY_COLLECTION_TOKEN = "19700101000000000"
+
+
 def is_invalid_sync_token(status, body):
     return status in (403, 409) and b"valid-sync-token" in body
 
@@ -267,13 +274,13 @@ class DavClient:
             return self.req("REPORT", ks["collection"], body, {"Depth": "1"}, ok=None)
 
         resp = report(ks.get("sync_token"))
-        full_resync = False
-        if is_invalid_sync_token(resp.status, resp.body):
-            full_resync = True
+        refused = is_invalid_sync_token(resp.status, resp.body)
+        if refused:
             resp = report(None)
         if resp.status != 207:
             raise HelperError("sync-collection: HTTP %d %s" % (resp.status, resp.body[:300]), resp.status)
-        complete = full_resync or not ks.get("sync_token")
+        full_resync = refused and ks.get("sync_token") != EMPTY_COLLECTION_TOKEN
+        complete = refused or not ks.get("sync_token")
         listing, ks["sync_token"] = sync_result(resp.body)
         return listing, complete, full_resync
 
