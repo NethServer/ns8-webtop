@@ -91,11 +91,11 @@ def sync_result(body):
     return changes, ET.fromstring(body).findtext(D + "sync-token")
 
 
-# WebTop's sync token for a collection with no changes yet. Since 5.36.0
-# (WT-1658) WebTop refuses tokens older than its 1 year history retention,
-# this one included: a phone that synced an empty collection must resync it,
-# but has nothing from WebTop to reload
-EMPTY_COLLECTION_TOKEN = "19700101000000000"
+# WebTop's sync token for a collection with no changes yet, as Sabre sends
+# it. Since 5.36.0 (WT-1658) WebTop refuses tokens older than its 1 year
+# history retention, this one included: a phone that synced an empty
+# collection must resync it, but has nothing from WebTop to reload
+EMPTY_COLLECTION_TOKEN = "http://sabre.io/ns/sync/19700101000000000"
 
 
 def is_invalid_sync_token(status, body):

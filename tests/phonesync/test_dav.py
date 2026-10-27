@@ -149,7 +149,7 @@ class SyncCollectionTest(unittest.TestCase):
         return client._sync_collection({"collection": AB, "items": {}, "sync_token": token})
 
     def test_refused_token_is_full_resync(self):
-        _, complete, full_resync = self.sync_from("20261026131705000")
+        _, complete, full_resync = self.sync_from("http://sabre.io/ns/sync/20261026131705000")
         self.assertTrue(complete)
         self.assertTrue(full_resync)
 
