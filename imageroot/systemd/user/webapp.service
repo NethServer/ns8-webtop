@@ -19,7 +19,7 @@ ExecStartPre=/usr/local/bin/runagent discover-ldap
 ExecStartPre=/usr/local/bin/runagent mkdir -p webtop-custom-jars
 ExecStart=/usr/bin/podman run \
     --env=CATALINA_OPTS="-server -Xms${WEBAPP_MIN_MEMORY}m -Xmx${WEBAPP_MAX_MEMORY}m \
-                         -Djava.security.egd=file:/dev/./urandom -Dfile.encoding=UTF8 \
+                         -Djava.security.egd=file:/dev/./urandom -Dfile.encoding=UTF-8 \
 			 -Dcom.sun.jndi.ldap.object.disableEndpointIdentification=true \
 			 -Dmail.mime.address.strict=false -Dwebtop.etc.dir=/etc/webtop \
 			 -Duser.timezone=${WEBTOP_TIMEZONE}" \

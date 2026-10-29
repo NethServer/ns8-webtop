@@ -22,30 +22,33 @@ if ! sha256sum -c CHECKSUM; then
 fi
 
 # Reuse existing webtopbuilder container, to speed up builds
-if ! buildah containers --format "{{.ContainerName}}" | grep -q webtopbuilder; then
+# Maven 3.8: minify-maven-plugin relies on the plexus-utils that 3.9 no
+# longer adds to plugins
+builder_tag="3.8.8-eclipse-temurin-21"
+builder="webtopbuilder-${builder_tag}"
+if ! buildah containers --format "{{.ContainerName}}" | grep -qx "${builder}"; then
     echo "Pulling maven runtime..."
-    buildah from --name webtopbuilder-tmp docker.io/library/maven:3.6-openjdk-8
-    buildah run webtopbuilder-tmp  sed -i 's/deb.debian.org\|security.debian.org/archive.debian.org/' /etc/apt/sources.list
-    buildah run webtopbuilder-tmp  apt-get  update
-    buildah run webtopbuilder-tmp  apt-get  install -y  nodejs make
-    buildah commit --rm webtopbuilder-tmp webtopbuilder-image
-    buildah from --name webtopbuilder \
+    buildah from --name "${builder}-tmp" "docker.io/library/maven:${builder_tag}"
+    buildah run "${builder}-tmp"  apt-get  update
+    buildah run "${builder}-tmp"  apt-get  install -y  nodejs make bzip2 wget git
+    buildah commit --rm "${builder}-tmp" "${builder}-image"
+    buildah from --name "${builder}" \
 	    -v "${PWD}/webtop5-build:/webtop5-build:z" \
-	    localhost/webtopbuilder-image
+	    "localhost/${builder}-image"
 fi
 
 if [ ! -e ${PWD}/webtop5-build/webtop-webapp-$webtop_version.war ]; then
-    buildah run webtopbuilder sh -c "mkdir -p ~/.m2"
-    buildah run webtopbuilder sh -c "cp webtop5-build/settings.xml  ~/.m2/"
-    buildah run webtopbuilder sh -c "cd webtop5-build/ && ./prep-sources"
+    buildah run "${builder}" sh -c "mkdir -p ~/.m2"
+    buildah run "${builder}" sh -c "cp webtop5-build/settings.xml  ~/.m2/"
+    buildah run "${builder}" sh -c "cd webtop5-build/ && ./prep-sources"
 fi
 
 if [ ! -e ${PWD}/webtop5-build/ListTimeZones.class ]; then
-    buildah run webtopbuilder sh -c "cd webtop5-build/ && javac ListTimeZones.java"
+    buildah run "${builder}" sh -c "cd webtop5-build/ && javac ListTimeZones.java"
 fi
 
 if [ ! -e ${PWD}/webtop5-build/WebtopPassEncode.class ]; then
-    buildah run webtopbuilder sh -c "cd webtop5-build/ && javac WebtopPassEncode.java"
+    buildah run "${builder}" sh -c "cd webtop5-build/ && javac WebtopPassEncode.java"
 fi
 
 jcharset_tmp_dir=$(mktemp -d)
@@ -69,11 +72,12 @@ tar -C "${pecbridge_tmp_dir}" -x -v -z -f pecbridge-*.tar.gz
 
 #Create webtop-webapp container
 reponame="webtop-webapp"
-container=$(buildah from docker.io/library/tomcat:9.0.123-jre8)
+container=$(buildah from docker.io/library/tomcat:11.0.27-jre25)
 buildah add ${container} ${webapp_tmp_dir}/webtop /usr/local/tomcat/webapps/webtop/
 buildah add ${container} ${PWD}/webtop5-build/context.xml /usr/local/tomcat/webapps/webtop/META-INF/context.xml
 buildah add ${container} ${PWD}/webtop5-build/webtop-login/ /usr/local/tomcat/webapps/webtop/WEB-INF/classes/
-buildah add ${container} ${jcharset_tmp_dir}/jcharset-2.0.jar /opt/java/openjdk/lib/ext/
+# Java 9+ has no lib/ext: setenv.sh puts jcharset on the JVM classpath
+buildah add ${container} ${jcharset_tmp_dir}/jcharset-2.0.jar /usr/local/tomcat/lib/ext-charsets/
 buildah add ${container} ${PWD}/webtop5-build/ListTimeZones.class /usr/share/webtop/
 buildah add ${container} ${PWD}/webtop5-build/WebtopPassEncode.class /usr/share/webtop/
 buildah add ${container} ${PWD}/zfaker/wrappers/php /usr/share/webtop/bin/php

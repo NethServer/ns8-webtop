@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Tomcat: Revert back original Tomcat (< 8.0.30) behaviour in redirects -->
-<Context useRelativeRedirects="false">
+<!-- Tomcat 11: after a forward, close the response through its wrappers (as Tomcat 9 did) -->
+<Context useRelativeRedirects="false" suspendWrappedResponseAfterForward="false">
 	<!-- Tomcat: Disable session persistence across Tomcat restarts -->
 	<Manager pathname="" />
 	<Resources>
