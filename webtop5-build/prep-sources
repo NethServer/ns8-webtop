@@ -26,16 +26,16 @@ webtop_version=$(cat VERSION)
 
 if echo $webtop_version | grep -qE ^development- ; then
     base_branch_type="DEVELOP"
+    # webtop-gate clones sonicle-superpom from GitHub, which is not kept
+    # up to date: develop and feature branches live on Bitbucket
+    setup_args=("MOD_CLONEBASEURL.sonicle-superpom=https://bitbucket.org/sonicle")
+    # webtop-core-api needs the sonicle-commons test-jar, which is not
+    # built with -Dmaven.test.skip=true: compile tests, skip running them
+    build_args=("MVN_ARGS=-T 4 -DskipTests")
     # An optional BRANCH file selects an upstream branch: components
     # without it stay on "develop"
     if [ -s BRANCH ]; then
         branch_name=$(cat BRANCH)
-        # webtop-gate clones sonicle-superpom from GitHub, where only
-        # master and develop exist: feature branches live on Bitbucket
-        setup_args=("MOD_CLONEBASEURL.sonicle-superpom=https://bitbucket.org/sonicle")
-        # webtop-core-api needs the sonicle-commons test-jar, which is not
-        # built with -Dmaven.test.skip=true: compile tests, skip running them
-        build_args=("MVN_ARGS=-T 4 -DskipTests")
     fi
 elif echo $webtop_version | grep -qE ^staging- ; then
     base_branch_type="RELEASE"
