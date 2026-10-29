@@ -84,6 +84,8 @@ buildah add ${container} ${PWD}/zfaker/wrappers/php /usr/share/webtop/bin/php
 buildah add ${container} ${PWD}/zfaker/wrappers/z-push-admin-wapper /usr/share/webtop/bin/z-push-admin-wrapper
 buildah add ${container} ${pecbridge_tmp_dir}/pecbridge /usr/share/pecbridge
 buildah add ${container} ${PWD}/webapp/ /
+# Hide Tomcat version from error pages; fail if the valve was not added
+buildah run ${container} sh -c "sed -i 's|</Host>|  <Valve className=\"org.apache.catalina.valves.ErrorReportValve\" showReport=\"false\" showServerInfo=\"false\" />\\n      </Host>|' /usr/local/tomcat/conf/server.xml && grep -q 'ErrorReportValve' /usr/local/tomcat/conf/server.xml"
 # Commit the image
 buildah commit --rm "${container}" "${repobase}/${reponame}"
 
@@ -126,13 +128,20 @@ reponame="webtop-webdav"
 container=$(buildah from docker.io/library/php:7.3-fpm-alpine)
 buildah add ${container} ${PWD}/webtop5-build/webtop-dav-server-$webtop_version.tgz /usr/share/webtop/webdav/
 buildah run ${container} sh -c "mv \$PHP_INI_DIR/php.ini-production \$PHP_INI_DIR/php.ini"
+buildah add ${container} ${PWD}/php/zz-banner-grabbing.ini /usr/local/etc/php/conf.d/zz-banner-grabbing.ini
+buildah add ${container} ${PWD}/php/zz-session-upload-progress.ini /usr/local/etc/php/conf.d/zz-session-upload-progress.ini
+buildah add ${container} ${PWD}/php/zz-fpm-mitigations.ini /usr/local/etc/php/conf.d/zz-fpm-mitigations.ini
+buildah add ${container} ${PWD}/php/zz-webdav.ini /usr/local/etc/php/conf.d/zz-webdav.ini
 # Drop E_WARNING: bundled sabre/dav floods the logs on PHP >= 7.3
 buildah run ${container} sh -c "sed -i 's/error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE);/error_reporting(E_ALL \& ~E_NOTICE \& ~E_USER_NOTICE \& ~E_WARNING);/' /usr/share/webtop/webdav/server.php"
 buildah run ${container} sh -c "sed -i 's/pm.max_children = 5/pm.max_children = 40/' /usr/local/etc/php-fpm.d/www.conf"
 buildah run ${container} sh -c "sed -i 's/pm.start_servers = 2/pm.start_servers = 5/' /usr/local/etc/php-fpm.d/www.conf"
 buildah run ${container} sh -c "sed -i 's/pm.min_spare_servers = 1/pm.min_spare_servers = 5/' /usr/local/etc/php-fpm.d/www.conf"
 buildah run ${container} sh -c "sed -i 's/pm.max_spare_servers = 3/pm.max_spare_servers = 30/' /usr/local/etc/php-fpm.d/www.conf"
-buildah run ${container} sh -c "sed -i 's/;pm.max_requests = 500/pm.max_requests = 500/' /usr/local/etc/php-fpm.d/www.conf"
+# One request per worker, mitigates CVE-2026-109619 (stale state reused by the next request)
+buildah run ${container} sh -c "sed -i 's/;pm.max_requests = 500/pm.max_requests = 1/' /usr/local/etc/php-fpm.d/www.conf"
+# Hide the per-request "child exited" and "child started" notices
+buildah run ${container} sh -c "sed -i 's/;log_level = notice/log_level = warning/' /usr/local/etc/php-fpm.conf"
 # Commit the image
 buildah commit --rm "${container}" "${repobase}/${reponame}"
 
@@ -142,16 +151,23 @@ images+=("${repobase}/${reponame}")
 #Create webtop-z-push container
 reponame="webtop-z-push"
 container=$(buildah from docker.io/library/php:7.3-fpm-alpine)
-buildah copy --from=docker.io/mlocati/php-extension-installer:2.11.34 ${container} /usr/bin/install-php-extensions /usr/local/bin/
+buildah copy --from=docker.io/mlocati/php-extension-installer:2.12.3 ${container} /usr/bin/install-php-extensions /usr/local/bin/
 buildah run ${container} sh -c "install-php-extensions imap"
 buildah add ${container} ${PWD}/webtop5-build/webtop-eas-server-$webtop_version.tgz /usr/share/webtop/z-push/
 buildah add ${container} ${PWD}/zfaker/src/ /usr/share/webtop/zfacker/
 buildah run ${container} sh -c "mv \$PHP_INI_DIR/php.ini-production \$PHP_INI_DIR/php.ini"
+buildah add ${container} ${PWD}/php/zz-banner-grabbing.ini /usr/local/etc/php/conf.d/zz-banner-grabbing.ini
+buildah add ${container} ${PWD}/php/zz-session-upload-progress.ini /usr/local/etc/php/conf.d/zz-session-upload-progress.ini
+buildah add ${container} ${PWD}/php/zz-fpm-mitigations.ini /usr/local/etc/php/conf.d/zz-fpm-mitigations.ini
 buildah run ${container} sh -c "mkdir -p /var/log/z-push/state && chown www-data:www-data /var/log/z-push /var/log/z-push/state"
 buildah run ${container} sh -c "sed -i 's/pm.max_children = 5/pm.max_children = 50/' /usr/local/etc/php-fpm.d/www.conf"
 buildah run ${container} sh -c "sed -i 's/pm.start_servers = 2/pm.start_servers = 5/' /usr/local/etc/php-fpm.d/www.conf"
 buildah run ${container} sh -c "sed -i 's/pm.min_spare_servers = 1/pm.min_spare_servers = 5/' /usr/local/etc/php-fpm.d/www.conf"
 buildah run ${container} sh -c "sed -i 's/pm.max_spare_servers = 3/pm.max_spare_servers = 35/' /usr/local/etc/php-fpm.d/www.conf"
+# One request per worker, mitigates CVE-2026-109619 (stale state reused by the next request)
+buildah run ${container} sh -c "sed -i 's/;pm.max_requests = 500/pm.max_requests = 1/' /usr/local/etc/php-fpm.d/www.conf"
+# Hide the per-request "child exited" and "child started" notices
+buildah run ${container} sh -c "sed -i 's/;log_level = notice/log_level = warning/' /usr/local/etc/php-fpm.conf"
 buildah run ${container} sh -c "sed -i 's/;php_admin_value\[memory_limit\] = 32M/php_admin_value[memory_limit] = 512M/' /usr/local/etc/php-fpm.d/www.conf"
 buildah run ${container} sh -c "sed -i 's/9000/9001/' /usr/local/etc/php-fpm.d/zz-docker.conf"
 # Commit the image
@@ -162,11 +178,12 @@ images+=("${repobase}/${reponame}")
 
 reponame="webtop-phonebook"
 container=$(buildah from docker.io/library/php:8-cli-alpine)
-buildah copy --from=docker.io/mlocati/php-extension-installer:2.11.34 ${container} /usr/bin/install-php-extensions /usr/local/bin/
+buildah copy --from=docker.io/mlocati/php-extension-installer:2.12.3 ${container} /usr/bin/install-php-extensions /usr/local/bin/
 buildah run ${container} sh -c "install-php-extensions pgsql mysqli"
 buildah add ${container} ${PWD}/phonebook/webtop2phonebook.php /usr/share/phonebooks/scripts/
 buildah add ${container} ${PWD}/phonebook/pbook2webtop.php /usr/share/phonebooks/post_scripts/
 buildah add ${container} ${PWD}/phonebook/start.sh /usr/share/phonebooks/
+buildah add ${container} ${PWD}/php/zz-session-upload-progress.ini /usr/local/etc/php/conf.d/zz-session-upload-progress.ini
 buildah config --cmd /usr/share/phonebooks/start.sh ${container}
 # Commit the image
 buildah commit --rm "${container}" "${repobase}/${reponame}"
@@ -183,7 +200,7 @@ container=$(buildah from scratch)
 # Reuse existing nodebuilder-webtop container, to speed up builds
 if ! buildah containers --format "{{.ContainerName}}" | grep -q nodebuilder-webtop; then
     echo "Pulling NodeJS runtime..."
-    buildah from --name nodebuilder-webtop -v "${PWD}:/usr/src:Z" docker.io/library/node:24.21.0-slim
+    buildah from --name nodebuilder-webtop -v "${PWD}:/usr/src:Z" docker.io/library/node:24.22.1-slim
 fi
 
 echo "Build static UI files with node..."

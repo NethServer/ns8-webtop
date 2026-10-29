@@ -1,0 +1,11 @@
+<!-- Send WebTop auth events to journald, one line each: the typed username may hold CR/LF -->
+<included>
+  <appender name="authlog-stdout" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>webtop-auth: %replace(%replace(%msg){'[\r\n]+',' '}){'\s+$',''}%n</pattern>
+    </encoder>
+  </appender>
+  <logger name="com.sonicle.webtop.AuthLog" level="INFO" additivity="false">
+    <appender-ref ref="authlog-stdout"/>
+  </logger>
+</included>
