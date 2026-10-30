@@ -1,0 +1,213 @@
+--- a/lib/webtop-calendar-client/Api/EasApi.php
++++ b/lib/webtop-calendar-client/Api/EasApi.php
+@@ -71,5 +71,5 @@
+     public function __construct(
+-        ClientInterface $client = null,
+-        Configuration $config = null,
+-        HeaderSelector $selector = null
++        ?ClientInterface $client = null,
++        ?Configuration $config = null,
++        ?HeaderSelector $selector = null
+     ) {
+--- a/lib/webtop-calendar-client/Model/EasSyncEventDataAttendee.php
++++ b/lib/webtop-calendar-client/Model/EasSyncEventDataAttendee.php
+@@ -190,3 +190,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-calendar-client/Model/EasSyncEventData.php
++++ b/lib/webtop-calendar-client/Model/EasSyncEventData.php
+@@ -245,3 +245,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-calendar-client/Model/EasSyncEvent.php
++++ b/lib/webtop-calendar-client/Model/EasSyncEvent.php
+@@ -255,3 +255,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-calendar-client/Model/EasSyncEventStat.php
++++ b/lib/webtop-calendar-client/Model/EasSyncEventStat.php
+@@ -180,3 +180,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-calendar-client/Model/EasSyncEventUpdate.php
++++ b/lib/webtop-calendar-client/Model/EasSyncEventUpdate.php
+@@ -180,3 +180,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-calendar-client/Model/EasSyncFolder.php
++++ b/lib/webtop-calendar-client/Model/EasSyncFolder.php
+@@ -205,3 +205,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-calendar-client/Model/Error.php
++++ b/lib/webtop-calendar-client/Model/Error.php
+@@ -180,3 +180,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-contacts-client/Api/EasApi.php
++++ b/lib/webtop-contacts-client/Api/EasApi.php
+@@ -71,5 +71,5 @@
+     public function __construct(
+-        ClientInterface $client = null,
+-        Configuration $config = null,
+-        HeaderSelector $selector = null
++        ?ClientInterface $client = null,
++        ?Configuration $config = null,
++        ?HeaderSelector $selector = null
+     ) {
+--- a/lib/webtop-contacts-client/Model/EasSyncContact.php
++++ b/lib/webtop-contacts-client/Model/EasSyncContact.php
+@@ -415,3 +415,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-contacts-client/Model/EasSyncContactStat.php
++++ b/lib/webtop-contacts-client/Model/EasSyncContactStat.php
+@@ -180,3 +180,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-contacts-client/Model/EasSyncContactUpdate.php
++++ b/lib/webtop-contacts-client/Model/EasSyncContactUpdate.php
+@@ -405,3 +405,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-contacts-client/Model/EasSyncFolder.php
++++ b/lib/webtop-contacts-client/Model/EasSyncFolder.php
+@@ -205,3 +205,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-contacts-client/Model/Error.php
++++ b/lib/webtop-contacts-client/Model/Error.php
+@@ -180,3 +180,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-core-client/Api/DavPrincipalsApi.php
++++ b/lib/webtop-core-client/Api/DavPrincipalsApi.php
+@@ -72,5 +72,5 @@
+     public function __construct(
+-        ClientInterface $client = null,
+-        Configuration $config = null,
+-        HeaderSelector $selector = null
++        ?ClientInterface $client = null,
++        ?Configuration $config = null,
++        ?HeaderSelector $selector = null
+     ) {
+--- a/lib/webtop-core-client/Api/DefaultApi.php
++++ b/lib/webtop-core-client/Api/DefaultApi.php
+@@ -72,5 +72,5 @@
+     public function __construct(
+-        ClientInterface $client = null,
+-        Configuration $config = null,
+-        HeaderSelector $selector = null
++        ?ClientInterface $client = null,
++        ?Configuration $config = null,
++        ?HeaderSelector $selector = null
+     ) {
+--- a/lib/webtop-core-client/Api/PrincipalsApi.php
++++ b/lib/webtop-core-client/Api/PrincipalsApi.php
+@@ -72,5 +72,5 @@
+     public function __construct(
+-        ClientInterface $client = null,
+-        Configuration $config = null,
+-        HeaderSelector $selector = null
++        ?ClientInterface $client = null,
++        ?Configuration $config = null,
++        ?HeaderSelector $selector = null
+     ) {
+--- a/lib/webtop-core-client/Model/ApiError.php
++++ b/lib/webtop-core-client/Model/ApiError.php
+@@ -183,3 +183,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-core-client/Model/PrincipalInfo.php
++++ b/lib/webtop-core-client/Model/PrincipalInfo.php
+@@ -207,3 +207,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-core-client/Model/User.php
++++ b/lib/webtop-core-client/Model/User.php
+@@ -192,3 +192,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop/EAS/ZPUtil.php
++++ b/lib/webtop/EAS/ZPUtil.php
+@@ -356,3 +356,3 @@
+ 	
+-	public static function messageBodyToNote(\SyncBaseBody $body = null) {
++	public static function messageBodyToNote(?\SyncBaseBody $body = null) {
+ 		if (isset($body) && isset($body->data)) {
+--- a/lib/webtop-tasks-client/Api/EasApi.php
++++ b/lib/webtop-tasks-client/Api/EasApi.php
+@@ -71,5 +71,5 @@
+     public function __construct(
+-        ClientInterface $client = null,
+-        Configuration $config = null,
+-        HeaderSelector $selector = null
++        ?ClientInterface $client = null,
++        ?Configuration $config = null,
++        ?HeaderSelector $selector = null
+     ) {
+--- a/lib/webtop-tasks-client/Model/EasSyncFolder.php
++++ b/lib/webtop-tasks-client/Model/EasSyncFolder.php
+@@ -205,3 +205,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-tasks-client/Model/EasSyncTask.php
++++ b/lib/webtop-tasks-client/Model/EasSyncTask.php
+@@ -220,3 +220,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-tasks-client/Model/EasSyncTaskStat.php
++++ b/lib/webtop-tasks-client/Model/EasSyncTaskStat.php
+@@ -180,3 +180,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-tasks-client/Model/EasSyncTaskUpdate.php
++++ b/lib/webtop-tasks-client/Model/EasSyncTaskUpdate.php
+@@ -205,3 +205,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {
+--- a/lib/webtop-tasks-client/Model/Error.php
++++ b/lib/webtop-tasks-client/Model/Error.php
+@@ -180,3 +180,3 @@
+      */
+-    public function __construct(array $data = null)
++    public function __construct(?array $data = null)
+     {

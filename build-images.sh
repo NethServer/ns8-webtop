@@ -104,13 +104,48 @@ buildah commit --rm "${container}" "${repobase}/${reponame}"
 images+=("${repobase}/${reponame}")
 
 
+# Build Sonicle's WebDAV server for PHP 8.4 (see webdav/README.md); both the
+# apache and the webdav images need the same tree
+webdav_php_image="docker.io/library/php:8.4.27-fpm-alpine"
+webdav_tree=$(mktemp -d)
+cleanup_list+=("${webdav_tree}")
+container=$(buildah from ${webdav_php_image})
+buildah copy --from=docker.io/library/composer:2.10.3 ${container} /usr/bin/composer /usr/local/bin/composer
+buildah run ${container} sh -c "apk add --no-cache patch"
+buildah run \
+    -v "${PWD}/webdav:/webdav:ro,z" \
+    -v "${PWD}/webtop5-build:/webtop5-build:ro,z" \
+    -v "${webdav_tree}:/out:z" \
+    ${container} sh /webdav/build.sh /webtop5-build/webtop-dav-server-$webtop_version.tgz /out
+buildah rm ${container}
+
+# Build Sonicle's ActiveSync server for PHP 8.4 (see z-push/README.md) on a
+# base with the imap extension (mail) and intl (Z-Push 2.7 formats dates with
+# it), shared by the builder (its checks run z-push-admin) and the runtime
+# image; apache needs the same tree
+container=$(buildah from ${webdav_php_image})
+buildah copy --from=docker.io/mlocati/php-extension-installer:2.12.3 ${container} /usr/bin/install-php-extensions /usr/local/bin/
+buildah run ${container} sh -c "install-php-extensions imap intl"
+zpush_php_image=$(buildah commit -q --rm ${container})
+zpush_tree=$(mktemp -d)
+cleanup_list+=("${zpush_tree}")
+container=$(buildah from ${zpush_php_image})
+buildah copy --from=docker.io/library/composer:2.10.3 ${container} /usr/bin/composer /usr/local/bin/composer
+buildah run ${container} sh -c "apk add --no-cache patch"
+buildah run \
+    -v "${PWD}/z-push:/z-push:ro,z" \
+    -v "${PWD}/webtop5-build:/webtop5-build:ro,z" \
+    -v "${zpush_tree}:/out:z" \
+    ${container} sh /z-push/build.sh /webtop5-build/webtop-eas-server-$webtop_version.tgz /out
+buildah rm ${container}
+
 #Create webtop-apache container
 reponame="webtop-apache"
 container=$(buildah from docker.io/library/httpd:2.4.69)
 buildah add ${container} ${PWD}/apache/vhosts/ /usr/local/apache2/conf.d/
 buildah add ${container} ${PWD}/apache/httpd.conf /usr/local/apache2/conf
-buildah add ${container} ${PWD}/webtop5-build/webtop-dav-server-$webtop_version.tgz /usr/share/webtop/webdav/
-buildah add ${container} ${PWD}/webtop5-build/webtop-eas-server-$webtop_version.tgz /usr/share/webtop/z-push/
+buildah add ${container} ${webdav_tree} /usr/share/webtop/webdav/
+buildah add ${container} ${zpush_tree} /usr/share/webtop/z-push/
 buildah add ${container} ${PWD}/zfaker/src/ /usr/share/webtop/zfacker/
 # Commit the image
 buildah commit --rm "${container}" "${repobase}/${reponame}"
@@ -121,23 +156,26 @@ images+=("${repobase}/${reponame}")
 
 #Create webtop-webdav container
 reponame="webtop-webdav"
-container=$(buildah from docker.io/library/php:7.3-fpm-alpine)
-buildah add ${container} ${PWD}/webtop5-build/webtop-dav-server-$webtop_version.tgz /usr/share/webtop/webdav/
+container=$(buildah from ${webdav_php_image})
+buildah add ${container} ${webdav_tree} /usr/share/webtop/webdav/
 buildah run ${container} sh -c "mv \$PHP_INI_DIR/php.ini-production \$PHP_INI_DIR/php.ini"
 buildah add ${container} ${PWD}/php/zz-banner-grabbing.ini /usr/local/etc/php/conf.d/zz-banner-grabbing.ini
 buildah add ${container} ${PWD}/php/zz-session-upload-progress.ini /usr/local/etc/php/conf.d/zz-session-upload-progress.ini
 buildah add ${container} ${PWD}/php/zz-fpm-mitigations.ini /usr/local/etc/php/conf.d/zz-fpm-mitigations.ini
 buildah add ${container} ${PWD}/php/zz-webdav.ini /usr/local/etc/php/conf.d/zz-webdav.ini
-# Drop E_WARNING: bundled sabre/dav floods the logs on PHP >= 7.3
-buildah run ${container} sh -c "sed -i 's/error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE);/error_reporting(E_ALL \& ~E_NOTICE \& ~E_USER_NOTICE \& ~E_WARNING);/' /usr/share/webtop/webdav/server.php"
-buildah run ${container} sh -c "sed -i 's/pm.max_children = 5/pm.max_children = 40/' /usr/local/etc/php-fpm.d/www.conf"
-buildah run ${container} sh -c "sed -i 's/pm.start_servers = 2/pm.start_servers = 5/' /usr/local/etc/php-fpm.d/www.conf"
-buildah run ${container} sh -c "sed -i 's/pm.min_spare_servers = 1/pm.min_spare_servers = 5/' /usr/local/etc/php-fpm.d/www.conf"
-buildah run ${container} sh -c "sed -i 's/pm.max_spare_servers = 3/pm.max_spare_servers = 30/' /usr/local/etc/php-fpm.d/www.conf"
-# One request per worker, mitigates CVE-2026-109619 (stale state reused by the next request)
-buildah run ${container} sh -c "sed -i 's/;pm.max_requests = 500/pm.max_requests = 1/' /usr/local/etc/php-fpm.d/www.conf"
+# Error traces must not carry call arguments, such as passwords (set by
+# php.ini-production)
+buildah run ${container} php -r 'exit(ini_get("zend.exception_ignore_args") ? 0 : 1);' || { echo "zend.exception_ignore_args is off in the webdav image" >&2; exit 1; }
+# Pool sizes, and one request per worker: mitigates CVE-2026-109619 (stale
+# state reused by the next request). Fail if the stock www.conf no longer has
+# the lines we change
+buildah run ${container} sh -c "sed -i 's/pm.max_children = 5/pm.max_children = 40/; s/pm.start_servers = 2/pm.start_servers = 5/; s/pm.min_spare_servers = 1/pm.min_spare_servers = 5/; s/pm.max_spare_servers = 3/pm.max_spare_servers = 30/; s/;pm.max_requests = 500/pm.max_requests = 1/' /usr/local/etc/php-fpm.d/www.conf"
+for setting in 'pm.max_children = 40' 'pm.start_servers = 5' 'pm.min_spare_servers = 5' 'pm.max_spare_servers = 30' '^pm.max_requests = 1$'; do
+    buildah run ${container} grep -q "${setting}" /usr/local/etc/php-fpm.d/www.conf
+done
 # Hide the per-request "child exited" and "child started" notices
 buildah run ${container} sh -c "sed -i 's/;log_level = notice/log_level = warning/' /usr/local/etc/php-fpm.conf"
+buildah run ${container} grep -q '^log_level = warning$' /usr/local/etc/php-fpm.conf
 # Commit the image
 buildah commit --rm "${container}" "${repobase}/${reponame}"
 
@@ -146,34 +184,45 @@ images+=("${repobase}/${reponame}")
 
 #Create webtop-z-push container
 reponame="webtop-z-push"
-container=$(buildah from docker.io/library/php:7.3-fpm-alpine)
-buildah copy --from=docker.io/mlocati/php-extension-installer:2.12.3 ${container} /usr/bin/install-php-extensions /usr/local/bin/
-buildah run ${container} sh -c "install-php-extensions imap"
-buildah add ${container} ${PWD}/webtop5-build/webtop-eas-server-$webtop_version.tgz /usr/share/webtop/z-push/
+container=$(buildah from ${zpush_php_image})
+# The PHP modules the PHP 7.3 image had (but ftp, which nothing calls), and
+# intl: Sonicle's code and Z-Push call into them
+for module in ctype curl date dom fileinfo filter hash iconv imap intl json libxml mbstring mysqlnd openssl pcre PDO pdo_sqlite Phar posix readline Reflection session SimpleXML sodium SPL sqlite3 standard tokenizer xml xmlreader xmlwriter zlib; do
+    buildah run ${container} sh -c "php -m | grep -qx ${module}" || { echo "PHP module ${module} missing from the z-push image" >&2; exit 1; }
+done
+buildah add ${container} ${zpush_tree} /usr/share/webtop/z-push/
 buildah add ${container} ${PWD}/zfaker/src/ /usr/share/webtop/zfacker/
 buildah run ${container} sh -c "mv \$PHP_INI_DIR/php.ini-production \$PHP_INI_DIR/php.ini"
 buildah add ${container} ${PWD}/php/zz-banner-grabbing.ini /usr/local/etc/php/conf.d/zz-banner-grabbing.ini
 buildah add ${container} ${PWD}/php/zz-session-upload-progress.ini /usr/local/etc/php/conf.d/zz-session-upload-progress.ini
 buildah add ${container} ${PWD}/php/zz-fpm-mitigations.ini /usr/local/etc/php/conf.d/zz-fpm-mitigations.ini
+# Error traces must not carry call arguments, such as passwords (set by
+# php.ini-production)
+buildah run ${container} php -r 'exit(ini_get("zend.exception_ignore_args") ? 0 : 1);' || { echo "zend.exception_ignore_args is off in the z-push image" >&2; exit 1; }
 buildah run ${container} sh -c "mkdir -p /var/log/z-push/state && chown www-data:www-data /var/log/z-push /var/log/z-push/state"
-buildah run ${container} sh -c "sed -i 's/pm.max_children = 5/pm.max_children = 50/' /usr/local/etc/php-fpm.d/www.conf"
-buildah run ${container} sh -c "sed -i 's/pm.start_servers = 2/pm.start_servers = 5/' /usr/local/etc/php-fpm.d/www.conf"
-buildah run ${container} sh -c "sed -i 's/pm.min_spare_servers = 1/pm.min_spare_servers = 5/' /usr/local/etc/php-fpm.d/www.conf"
-buildah run ${container} sh -c "sed -i 's/pm.max_spare_servers = 3/pm.max_spare_servers = 35/' /usr/local/etc/php-fpm.d/www.conf"
-# One request per worker, mitigates CVE-2026-109619 (stale state reused by the next request)
-buildah run ${container} sh -c "sed -i 's/;pm.max_requests = 500/pm.max_requests = 1/' /usr/local/etc/php-fpm.d/www.conf"
+# Pool sizes, memory, and one request per worker: mitigates CVE-2026-109619
+# (stale state reused by the next request). Fail if the stock files no longer
+# have the lines we change
+buildah run ${container} sh -c "sed -i 's/pm.max_children = 5/pm.max_children = 50/; s/pm.start_servers = 2/pm.start_servers = 5/; s/pm.min_spare_servers = 1/pm.min_spare_servers = 5/; s/pm.max_spare_servers = 3/pm.max_spare_servers = 35/; s/;pm.max_requests = 500/pm.max_requests = 1/; s/;php_admin_value\[memory_limit\] = 32M/php_admin_value[memory_limit] = 512M/' /usr/local/etc/php-fpm.d/www.conf"
+for setting in 'pm.max_children = 50' 'pm.start_servers = 5' 'pm.min_spare_servers = 5' 'pm.max_spare_servers = 35' '^pm.max_requests = 1$' '^php_admin_value\[memory_limit\] = 512M$'; do
+    buildah run ${container} grep -q "${setting}" /usr/local/etc/php-fpm.d/www.conf
+done
+# Port 9001, as webdav in the same pod has 9000: fail if php-fpm would still
+# listen on 9000 anywhere (the official image moved the setting before)
+buildah run ${container} sh -c "sed -i 's/^listen = 9000$/listen = 9001/' /usr/local/etc/php-fpm.d/docker.conf"
+buildah run ${container} sh -c "grep -q '^listen = 9001$' /usr/local/etc/php-fpm.d/docker.conf && ! grep -rq '^listen = 9000' /usr/local/etc/php-fpm.d/"
 # Hide the per-request "child exited" and "child started" notices
 buildah run ${container} sh -c "sed -i 's/;log_level = notice/log_level = warning/' /usr/local/etc/php-fpm.conf"
-buildah run ${container} sh -c "sed -i 's/;php_admin_value\[memory_limit\] = 32M/php_admin_value[memory_limit] = 512M/' /usr/local/etc/php-fpm.d/www.conf"
-buildah run ${container} sh -c "sed -i 's/9000/9001/' /usr/local/etc/php-fpm.d/zz-docker.conf"
+buildah run ${container} grep -q '^log_level = warning$' /usr/local/etc/php-fpm.conf
 # Commit the image
 buildah commit --rm "${container}" "${repobase}/${reponame}"
+buildah rmi ${zpush_php_image}
 
 # Append the image URL to the images array
 images+=("${repobase}/${reponame}")
 
 reponame="webtop-phonebook"
-container=$(buildah from docker.io/library/php:8-cli-alpine)
+container=$(buildah from docker.io/library/php:8.4.27-cli-alpine)
 buildah copy --from=docker.io/mlocati/php-extension-installer:2.12.3 ${container} /usr/bin/install-php-extensions /usr/local/bin/
 buildah run ${container} sh -c "install-php-extensions pgsql mysqli"
 buildah add ${container} ${PWD}/phonebook/webtop2phonebook.php /usr/share/phonebooks/scripts/

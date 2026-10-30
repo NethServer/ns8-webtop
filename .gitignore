@@ -108,3 +108,6 @@ pecbridge-*.tar.gz
 
 # Test outputs
 tests/outputs/
+
+# Python bytecode of the test helper
+__pycache__/
