@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2026 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+# Write the NethVoice chat settings of WebTop (core.settings) from the NethVoice
+# instance in CHAT_INSTANCE: the chat is on when that instance has the chat
+# enabled. Click-to-call goes to the same instance.
+# Prints {"changed": bool, "pbx_webrest_url": str} on stdout: the caller saves
+# pbx_webrest_url as CHAT_PBX_WEBREST_URL (set_env works only in the action).
+
+import json
+import os
+import subprocess
+import sys
+
+import agent
+
+SERVICE = 'com.sonicle.webtop.core'
+CHAT_KEYS = ('nethvoice.chat.enabled', 'nethvoice.chat.cti.host')
+PBX_KEYS = ('pbx.provider', 'pbx.provider.nethvoice.webrest.url')
+
+def psql(sql, tuples=False):
+    cmd = ['podman', 'exec', '-i', 'postgres', 'psql', '-qU', 'postgres', '-v', 'ON_ERROR_STOP=1', 'webtop5']
+    if tuples:
+        cmd += ['-tA', '-F', '\t']
+    return subprocess.run(cmd, input=sql, text=True, capture_output=True, check=True).stdout
+
+def quote(value):
+    return "'" + str(value).replace("'", "''") + "'"
+
+instance = os.getenv('CHAT_INSTANCE', '')
+wanted = {}
+if instance:
+    rdb = agent.redis_connect() # read-only access on every key
+    env = rdb.hgetall(f'module/{instance}/environment') or {}
+    cti_host = env.get('NETHCTI_UI_HOST', '')
+    if cti_host:
+        # Click-to-call (pbx.*) needs only the CTI, the chat also needs it enabled.
+        wanted['pbx.provider'] = 'nethvoice'
+        wanted['pbx.provider.nethvoice.webrest.url'] = f'https://{cti_host}/webrest'
+        if env.get('CHAT_ENABLED', 'false') == 'true':
+            wanted['nethvoice.chat.enabled'] = 'true'
+            wanted['nethvoice.chat.cti.host'] = cti_host
+    else:
+        print(f'NETHCTI_UI_HOST not found for {instance}', file=sys.stderr)
+
+current = {}
+keys = CHAT_KEYS + PBX_KEYS
+for line in psql(f"SELECT key, value FROM core.settings WHERE service_id = {quote(SERVICE)} AND key IN ({', '.join(map(quote, keys))});\n", tuples=True).splitlines():
+    key, _, value = line.partition('\t')
+    current[key] = value
+
+# The pbx.* settings are removed only when written by us: a PBX configured by hand stays.
+ours = os.getenv('CHAT_PBX_WEBREST_URL', '')
+managed = list(CHAT_KEYS) + [k for k in PBX_KEYS if k in wanted or (ours and current.get('pbx.provider.nethvoice.webrest.url') == ours)]
+
+sql = ''
+for key in managed:
+    if current.get(key) == wanted.get(key):
+        continue
+    sql += f"DELETE FROM core.settings WHERE service_id = {quote(SERVICE)} AND key = {quote(key)};\n"
+    if key in wanted:
+        sql += f"INSERT INTO core.settings (service_id, key, value) VALUES ({quote(SERVICE)}, {quote(key)}, {quote(wanted[key])});\n"
+
+if sql:
+    psql(sql)
+
+json.dump({'changed': bool(sql), 'pbx_webrest_url': wanted.get('pbx.provider.nethvoice.webrest.url', '')}, fp=sys.stdout)
