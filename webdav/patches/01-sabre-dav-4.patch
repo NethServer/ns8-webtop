@@ -1,0 +1,29 @@
+--- a/lib/webtop/DAV/Connector/ExceptionLoggerPlugin.php
++++ b/lib/webtop/DAV/Connector/ExceptionLoggerPlugin.php
+@@ -59,3 +59,3 @@
+ 	
+-	public function logException(\Exception $ex) {
++	public function logException(\Throwable $ex) {
+ 		$exceptionClass = get_class($ex);
+--- a/lib/webtop/DAV/Server.php
++++ b/lib/webtop/DAV/Server.php
+@@ -92,3 +92,3 @@
+ 		*/
+-		$this->server->exec();
++		$this->server->start();
+ 	}
+--- a/lib/webtop/DAV/CardDAV/Plugin.php
++++ b/lib/webtop/DAV/CardDAV/Plugin.php
+@@ -6,2 +6,12 @@
+ 	
++	/**
++	 * sabre/dav 4 leaves the body empty for HEAD requests: there is no vCard to
++	 * convert, and parsing the empty body would answer 500.
++	 */
++	public function httpAfterGet(\Sabre\HTTP\RequestInterface $request, \Sabre\HTTP\ResponseInterface $response) {
++		if ($request->getHeader('X-Sabre-Original-Method') === 'HEAD') {
++			return;
++		}
++		parent::httpAfterGet($request, $response);
++	}
+ }

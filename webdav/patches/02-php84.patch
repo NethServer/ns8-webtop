@@ -1,0 +1,43 @@
+--- a/server.php
++++ b/server.php
+@@ -2,3 +2,3 @@
+ 
+-error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE);
++error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+ 
+--- a/lib/webtop/DAV/Connector/AuthBackend.php
++++ b/lib/webtop/DAV/Connector/AuthBackend.php
+@@ -10,2 +10,3 @@
+ 	protected $bridge;
++	protected $currentUser;
+ 	
+--- a/lib/webtop/DAV/CalDAV/Backend.php
++++ b/lib/webtop/DAV/CalDAV/Backend.php
+@@ -297,3 +297,3 @@
+ 		if (isset($this->cacheCalObjectsByHref) && array_key_exists($hrefKey, $this->cacheCalObjectsByHref)) {
+-			$logger->debug('Returning object from cache [{}]', $objectUri);
++			$logger->debug('Returning object from cache [{}]', [$objectUri]);
+ 			return $this->toSabreCalObject($this->cacheCalObjectsByHref[$hrefKey], 'vevent', true);
+@@ -303,3 +303,3 @@
+ 		if (isset($cacheByHref) && !is_null($cacheByHref) && array_key_exists($objectUri, $cacheByHref)) {
+-			$logger->debug('Returning object from cache [{}]', $objectUri);
++			$logger->debug('Returning object from cache [{}]', [$objectUri]);
+ 			return $this->toSabreCalObject($cacheByHref[$objectUri], 'vevent', true);
+--- a/lib/webtop/DAV/CardDAV/Backend.php
++++ b/lib/webtop/DAV/CardDAV/Backend.php
+@@ -269,3 +269,3 @@
+ 		if (isset($this->cacheCardsByHref) && array_key_exists($hrefKey, $this->cacheCardsByHref)) {
+-			$logger->debug('Returning object from cache [{}]', $cardUri);
++			$logger->debug('Returning object from cache [{}]', [$cardUri]);
+ 			return $this->toSabreCard($this->cacheCardsByHref[$hrefKey], true);
+@@ -275,3 +275,3 @@
+ 		if (isset($cacheByHref) && !is_null($cacheByHref) && array_key_exists($cardUri, $cacheByHref)) {
+-			$logger->debug('Returning object from cache [{}]', $cardUri);
++			$logger->debug('Returning object from cache [{}]', [$cardUri]);
+ 			return $this->toSabreCard($cacheByHref[$cardUri], true);
+--- a/lib/webtop/DAV/Connector/PrincipalBackend.php
++++ b/lib/webtop/DAV/Connector/PrincipalBackend.php
+@@ -142,2 +142,3 @@
+ 		*/
++		return [];
+ 	}

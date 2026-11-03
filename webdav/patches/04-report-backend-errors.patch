@@ -1,0 +1,52 @@
+--- a/lib/webtop/Util.php
++++ b/lib/webtop/Util.php
+@@ -86,2 +86,18 @@
+ 	}
++	
++	/**
++	 * A WebTop REST error as the DAV error the phone gets: WebTop's 400, 403
++	 * and 404 as such, anything else (no answer included) as 500. The message
++	 * is ours, never WebTop's response.
++	 * 
++	 * @return \Sabre\DAV\Exception
++	 */
++	public static function toDavException(\Exception $ex, $message) {
++		switch ($ex->getCode()) {
++			case 400: return new \Sabre\DAV\Exception\BadRequest($message);
++			case 403: return new \Sabre\DAV\Exception\Forbidden($message);
++			case 404: return new \Sabre\DAV\Exception\NotFound($message);
++			default: return new \Sabre\DAV\Exception($message);
++		}
++	}
+ }
+--- a/lib/webtop/DAV/CardDAV/Backend.php
++++ b/lib/webtop/DAV/CardDAV/Backend.php
+@@ -385,2 +385,3 @@
+ 			$logger->error($ex);
++			throw \WT\Util::toDavException($ex, 'Error saving contact to backend');
+ 		}
+@@ -430,2 +431,3 @@
+ 			$logger->error($ex);
++			throw \WT\Util::toDavException($ex, 'Error saving contact to backend');
+ 		}
+@@ -456,3 +458,3 @@
+ 			$logger->error($ex);
+-			return false;
++			throw \WT\Util::toDavException($ex, 'Error deleting contact from backend');
+ 		}
+--- a/lib/webtop/DAV/CalDAV/Backend.php
++++ b/lib/webtop/DAV/CalDAV/Backend.php
+@@ -406,3 +406,3 @@
+ 			$logger->error($ex);
+-			throw new \Sabre\DAV\Exception('Error saving calendar object to backend');
++			throw \WT\Util::toDavException($ex, 'Error saving calendar object to backend');
+ 		}
+@@ -445,2 +445,3 @@
+ 			$logger->error($ex);
++			throw \WT\Util::toDavException($ex, 'Error saving calendar object to backend');
+ 		}
+@@ -473,3 +474,3 @@
+ 			$logger->error($ex);
+-			return false;
++			throw \WT\Util::toDavException($ex, 'Error deleting calendar object from backend');
+ 		}
