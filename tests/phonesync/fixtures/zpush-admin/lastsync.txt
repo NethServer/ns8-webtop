@@ -1,0 +1,9 @@
+#!/usr/bin/env php
+
+All known devices and users and their last synchronization time
+
+Device id                           Synchronized user              Last sync time                   Short Ids
+------------------------------------------------------------------------------------------------------------------
+e2eiphone0000001                    u1@example.org                 2026-10-21 15:45 (  0 days ago)  No
+e2eandroid000001                    u1@example.org                 2026-10-21 15:38 (  0 days ago)  No
+
