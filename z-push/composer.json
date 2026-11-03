@@ -1,0 +1,61 @@
+{
+    "name": "sonicle/webtop-eas-server",
+    "description": "WebTop EAS Server (Exchange ActiveSync), built by NethServer for PHP 8.4",
+    "keywords": [
+        "WebTop",
+        "EAS",
+        "z-push"
+    ],
+    "homepage": "https://github.com/sonicle-webtop/webtop-eas-server",
+    "license": "AGPL-3.0-only",
+    "repositories": [
+        {
+            "type": "package",
+            "package": {
+                "name": "z-push/z-push",
+                "description": "Z-Push, unmodified upstream release (not published on Packagist)",
+                "version": "2.7.7",
+                "license": "AGPL-3.0-only",
+                "dist": {
+                    "type": "zip",
+                    "url": "https://github.com/Z-Hub/Z-Push/archive/refs/tags/2.7.7.zip",
+                    "reference": "c5c8bdde144e70c86fafe6eef9a1c4e6b6d382dc"
+                }
+            }
+        }
+    ],
+    "require": {
+        "php": ">=8.4",
+        "guzzlehttp/guzzle": "^7.9",
+        "hassankhan/config": "^1.0",
+        "html2text/html2text": "^4.2",
+        "lf4php/lf4php": "^4.2.2",
+        "lf4php/lf4php-monolog": "^3.1.2",
+        "monolog/monolog": "^1.27",
+        "z-push/z-push": "2.7.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "WT\\": "lib/webtop/",
+            "WT\\Client\\Core\\": "lib/webtop-core-client/",
+            "WT\\Client\\Calendar\\": "lib/webtop-calendar-client/",
+            "WT\\Client\\Contacts\\": "lib/webtop-contacts-client/",
+            "WT\\Client\\Tasks\\": "lib/webtop-tasks-client/"
+        },
+        "classmap": [
+            "backend/log/",
+            "backend/webtop/"
+        ],
+        "files": [
+            "package-info.php",
+            "vendor/z-push/z-push/src/vendor/autoload.php"
+        ]
+    },
+    "config": {
+        "platform": {
+            "php": "8.4.27"
+        },
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}
