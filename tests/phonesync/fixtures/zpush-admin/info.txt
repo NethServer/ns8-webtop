@@ -1,0 +1,23 @@
+#!/usr/bin/env php
+
+Synchronized by user: u1@example.org
+-----------------------------------------------------
+DeviceId:		e2eiphone0000001
+Device type:		iPhone
+UserAgent:		Apple-iPhone15C2/2107.93
+ActiveSync version:	14.0
+First sync:		2026-10-21 09:33
+Last sync:		2026-10-21 15:45
+Sync Period:		unlimited (0)
+Total folders:		9
+Short folder Ids:	No
+Synchronized folders:	4
+Synchronized data:	Emails Contacts Calendars Tasks 
+Additional Folders:	none
+Status:			OK
+WipeRequest on:		not set
+WipeRequest by:		not set
+Wiped on:		not set
+Policy name:		default
+Attention needed:	No errors known
+

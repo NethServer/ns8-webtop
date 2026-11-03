@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<d:multistatus xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns" xmlns:cal="urn:ietf:params:xml:ns:caldav" xmlns:cs="http://calendarserver.org/ns/" xmlns:card="urn:ietf:params:xml:ns:carddav"><d:response><d:href>/webtop-dav/server.php/addressbooks/u1@example.org/3i2NDaWmqGVd2Q/28c7fd14-2ff8-4cc0-aed6-f7a935f1ae6c.vcf</d:href><d:propstat><d:prop><d:getetag>&quot;20261021071013000&quot;</d:getetag><card:address-data>BEGIN:VCARD&#13;
+VERSION:3.0&#13;
+PRODID:-//Sabre//Sabre VObject 4.2.2//EN&#13;
+UID:28c7fd14-2ff8-4cc0-aed6-f7a935f1ae6c&#13;
+FN:e2e-fixture-Niccolò Ürsula ☕&#13;
+N;DISPLAYNAME=e2e-fixture-Niccolò Ürsula ☕:e2e-fixture-Niccolò Ürsula&#13;
+  ☕;;;;&#13;
+X-WT-HREF:28c7fd14-2ff8-4cc0-aed6-f7a935f1ae6c.vcf&#13;
+END:VCARD&#13;
+</card:address-data></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>
