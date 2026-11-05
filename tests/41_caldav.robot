@@ -86,9 +86,6 @@ Event WebTop cannot save is reported to the phone
     Event does not exist in WebTop    ${name}
 
 Event edit WebTop cannot save is reported to the phone
-    [Documentation]    Known issue: WebDAV reports success when WebTop refuses to save the item.
-    ...                Skipped while it fails; it passes once the server is fixed.
-    [Tags]    known-issue    robot:skip-on-failure
     ${name} =    Unique name    rejected edit
     ${r} =    Phonesync    dav    put    davx5    --kind    event    --name    ${name}
     ...    --start    ${LOCAL_START}    --end    ${LOCAL_END}    --tz    ${TZ}
