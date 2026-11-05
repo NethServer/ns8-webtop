@@ -201,7 +201,7 @@ corepack_version=0.36.0
 # Reuse existing nodebuilder-webtop container, to speed up builds
 if ! buildah containers --format "{{.ContainerName}}" | grep -q nodebuilder-webtop; then
     echo "Pulling NodeJS runtime..."
-    buildah from --name nodebuilder-webtop -v "${PWD}:/usr/src:Z" docker.io/library/node:24.22.2-slim
+    buildah from --name nodebuilder-webtop -v "${PWD}:/usr/src:Z" docker.io/library/node:26.12.1-slim
     buildah run nodebuilder-webtop sh -c "npm install -g corepack@${corepack_version} && corepack enable"
 fi
 
