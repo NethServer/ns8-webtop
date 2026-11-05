@@ -49,7 +49,7 @@ Event change wakes the phone
     Start phonesync    eas    ping    ios-eas    --classes    Calendar    --heartbeat    ${HEARTBEAT}
     Sleep    5s
     ${name} =    Unique name    push event
-    Create event in WebTop    ${name}    2026-07-15T08:00:00Z    2026-07-15T09:00:00Z
+    Create event in WebTop    ${name}    ${UTC_START}    ${UTC_END}
     ${r} =    Finish phonesync
     Should Be Equal As Integers    ${r['status']}    2    the phone was not woken (status ${r['status']} after ${r['seconds']} s)
     Should Be True    5 <= ${r['seconds']} < ${HEARTBEAT}    the phone was woken after ${r['seconds']} s
@@ -62,7 +62,7 @@ Task change wakes the phone
     Start phonesync    eas    ping    ios-eas    --classes    Tasks    --heartbeat    ${HEARTBEAT}
     Sleep    5s
     ${name} =    Unique name    push task
-    Create task in WebTop    ${name}    2026-07-20T08:00:00Z
+    Create task in WebTop    ${name}    ${TASK_DUE}
     ${r} =    Finish phonesync
     Should Be Equal As Integers    ${r['status']}    2    the phone was not woken (status ${r['status']} after ${r['seconds']} s)
     Should Be True    5 <= ${r['seconds']} < ${HEARTBEAT}    the phone was woken after ${r['seconds']} s
