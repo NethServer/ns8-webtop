@@ -6,12 +6,8 @@ Suite Setup       Set up phone suite
 Suite Teardown    Delete all test items in WebTop
 
 *** Variables ***
-# Summer time: 10:00 in Rome is 08:00 UTC
-${LOCAL_START}    2026-07-15T10:00:00
-${LOCAL_END}      2026-07-15T11:00:00
+# Event and task dates come from Set test dates
 ${TZ}             Europe/Rome
-${UTC_START}      2026-07-15T08:00:00Z
-${UTC_END}        2026-07-15T09:00:00Z
 
 *** Test Cases ***
 
@@ -207,13 +203,13 @@ All-day event keeps its day
     Phone DAV sync    ${reader}    event
     ${name} =    Unique name    ${writer} holiday
     Phonesync    dav    put    ${writer}    --kind    event    --name    ${name}
-    ...    --start    2026-07-15    --end    2026-07-16    --all-day
+    ...    --start    ${EVENT_DAY}    --end    ${EVENT_NEXT_DAY}    --all-day
     ${db} =    Event details in WebTop    ${name}
     Should Be True    ${db['all_day']}
-    Should Be Equal    ${db['start_local']}    2026-07-15T00:00:00
+    Should Be Equal    ${db['start_local']}    ${EVENT_DAY}T00:00:00
     ${got} =    Event read by second phone    ${reader}
     Should Be True    ${got['all_day']}
-    Should Be Equal    ${got['start']}    2026-07-15
+    Should Be Equal    ${got['start']}    ${EVENT_DAY}
 
 Recurring event with reminder
     [Arguments]    ${writer}    ${reader}

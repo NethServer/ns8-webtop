@@ -22,6 +22,7 @@ Expected details
 
 Set up phone suite
     Resolve test environment
+    Set test dates
     Mark the start of the phone run
     Upload phonesync helper
     Open WebTop once as phone user

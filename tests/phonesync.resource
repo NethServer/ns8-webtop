@@ -1,6 +1,7 @@
 *** Settings ***
 Library     SSHLibrary
 Library     Collections
+Library     String
 Resource    api.resource
 Resource    webtop.resource
 
@@ -31,6 +32,25 @@ Resolve test environment
         ${route} =    Run task    module/traefik1/get-route    {"instance":"${webtop_module_id}"}
         Set Global Variable    ${backend_url}    ${route['url']}
     END
+
+Set test dates
+    # Events are one week after the run day: phones sync only recent past events
+    # (ActiveSync keeps one month by default). Set once per run, so 21_pre_upgrade
+    # and 23_post_upgrade agree. The node computes them: it has the time zone data
+    ${defined} =    Run Keyword And Return Status    Variable Should Exist    \${EVENT_DAY}
+    IF    ${defined}    RETURN
+    ${out} =    Execute Command
+    ...    d=$(date -u -d '+7 days' +%F) && echo "$d" && date -u -d "$d +1 day" +%F && date -u -d "TZ=\\"Europe/Rome\\" $d 10:00" +%FT%TZ && date -u -d "TZ=\\"Europe/Rome\\" $d 11:00" +%FT%TZ && date -u -d "$d +5 days" +%FT08:00:00Z
+    @{lines} =    Split To Lines    ${out}
+    Length Should Be    ${lines}    5
+    # 10:00 to 11:00 Rome time, the time the phones send
+    Set Global Variable    ${EVENT_DAY}    ${lines}[0]
+    Set Global Variable    ${EVENT_NEXT_DAY}    ${lines}[1]
+    Set Global Variable    ${LOCAL_START}    ${lines}[0]T10:00:00
+    Set Global Variable    ${LOCAL_END}    ${lines}[0]T11:00:00
+    Set Global Variable    ${UTC_START}    ${lines}[2]
+    Set Global Variable    ${UTC_END}    ${lines}[3]
+    Set Global Variable    ${TASK_DUE}    ${lines}[4]
 
 Upload phonesync helper
     Execute Command    rm -rf ${PHONESYNC} && mkdir -p ${PHONESYNC_STATE}

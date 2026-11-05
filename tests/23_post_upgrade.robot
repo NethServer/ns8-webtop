@@ -31,12 +31,12 @@ Pre-upgrade items survive in WebTop
         ${event} =    Pre-upgrade name    ${profile}    event
         Contact exists in WebTop    ${contact}
         ${found} =    Event in WebTop    ${event}
-        Should Be Equal    ${found['start_utc']}    2026-07-15T08:00:00Z
+        Should Be Equal    ${found['start_utc']}    ${UTC_START}
     END
     FOR    ${profile}    IN    ios-eas    android-eas
         ${task} =    Pre-upgrade name    ${profile}    task
         ${found} =    Task in WebTop    ${task}
-        Should Be Equal    ${found['due_utc']}    2026-07-20T08:00:00Z
+        Should Be Equal    ${found['due_utc']}    ${TASK_DUE}
     END
 
 Phones still know every pre-upgrade item once
@@ -118,5 +118,5 @@ ActiveSync phone edits its pre-upgrade event
     ${new} =    Unique name    ${profile} edited after upgrade
     Phonesync    eas    change    ${profile}    --class    Calendar    --server-id    ${r['server_id']}    --name    ${new}
     ${found} =    Event in WebTop    ${new}
-    Should Be Equal    ${found['start_utc']}    2026-07-15T08:00:00Z
+    Should Be Equal    ${found['start_utc']}    ${UTC_START}
     Event does not exist in WebTop    ${name}
