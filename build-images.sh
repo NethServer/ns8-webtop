@@ -121,15 +121,13 @@ images+=("${repobase}/${reponame}")
 
 #Create webtop-webdav container
 reponame="webtop-webdav"
-container=$(buildah from docker.io/library/php:7.3-fpm-alpine)
+container=$(buildah from docker.io/library/php:8.4.27-fpm-alpine)
 buildah add ${container} ${PWD}/webtop5-build/webtop-dav-server-$webtop_version.tgz /usr/share/webtop/webdav/
 buildah run ${container} sh -c "mv \$PHP_INI_DIR/php.ini-production \$PHP_INI_DIR/php.ini"
 buildah add ${container} ${PWD}/php/zz-banner-grabbing.ini /usr/local/etc/php/conf.d/zz-banner-grabbing.ini
 buildah add ${container} ${PWD}/php/zz-session-upload-progress.ini /usr/local/etc/php/conf.d/zz-session-upload-progress.ini
 buildah add ${container} ${PWD}/php/zz-fpm-mitigations.ini /usr/local/etc/php/conf.d/zz-fpm-mitigations.ini
 buildah add ${container} ${PWD}/php/zz-webdav.ini /usr/local/etc/php/conf.d/zz-webdav.ini
-# Drop E_WARNING: bundled sabre/dav floods the logs on PHP >= 7.3
-buildah run ${container} sh -c "sed -i 's/error_reporting(E_ALL & ~E_NOTICE & ~E_USER_NOTICE);/error_reporting(E_ALL \& ~E_NOTICE \& ~E_USER_NOTICE \& ~E_WARNING);/' /usr/share/webtop/webdav/server.php"
 buildah run ${container} sh -c "sed -i 's/pm.max_children = 5/pm.max_children = 40/' /usr/local/etc/php-fpm.d/www.conf"
 buildah run ${container} sh -c "sed -i 's/pm.start_servers = 2/pm.start_servers = 5/' /usr/local/etc/php-fpm.d/www.conf"
 buildah run ${container} sh -c "sed -i 's/pm.min_spare_servers = 1/pm.min_spare_servers = 5/' /usr/local/etc/php-fpm.d/www.conf"
@@ -146,9 +144,9 @@ images+=("${repobase}/${reponame}")
 
 #Create webtop-z-push container
 reponame="webtop-z-push"
-container=$(buildah from docker.io/library/php:7.3-fpm-alpine)
+container=$(buildah from docker.io/library/php:8.4.27-fpm-alpine)
 buildah copy --from=docker.io/mlocati/php-extension-installer:2.13.1 ${container} /usr/bin/install-php-extensions /usr/local/bin/
-buildah run ${container} sh -c "install-php-extensions imap"
+buildah run ${container} sh -c "install-php-extensions imap intl"
 buildah add ${container} ${PWD}/webtop5-build/webtop-eas-server-$webtop_version.tgz /usr/share/webtop/z-push/
 buildah add ${container} ${PWD}/zfaker/src/ /usr/share/webtop/zfacker/
 buildah run ${container} sh -c "mv \$PHP_INI_DIR/php.ini-production \$PHP_INI_DIR/php.ini"
@@ -165,7 +163,10 @@ buildah run ${container} sh -c "sed -i 's/;pm.max_requests = 500/pm.max_requests
 # Hide the per-request "child exited" and "child started" notices
 buildah run ${container} sh -c "sed -i 's/;log_level = notice/log_level = warning/' /usr/local/etc/php-fpm.conf"
 buildah run ${container} sh -c "sed -i 's/;php_admin_value\[memory_limit\] = 32M/php_admin_value[memory_limit] = 512M/' /usr/local/etc/php-fpm.d/www.conf"
-buildah run ${container} sh -c "sed -i 's/9000/9001/' /usr/local/etc/php-fpm.d/zz-docker.conf"
+# Port 9001, as webdav in the same pod has 9000 (PHP 8.4 images set it in
+# docker.conf): fail if php-fpm would still listen on 9000
+buildah run ${container} sh -c "sed -i 's/^listen = 9000$/listen = 9001/' /usr/local/etc/php-fpm.d/docker.conf"
+buildah run ${container} sh -c "grep -q '^listen = 9001$' /usr/local/etc/php-fpm.d/docker.conf && ! grep -rq '^listen = 9000' /usr/local/etc/php-fpm.d/"
 # Commit the image
 buildah commit --rm "${container}" "${repobase}/${reponame}"
 
