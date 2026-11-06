@@ -121,7 +121,7 @@ images+=("${repobase}/${reponame}")
 
 #Create webtop-webdav container
 reponame="webtop-webdav"
-container=$(buildah from docker.io/library/php:8.4.27-fpm-alpine)
+container=$(buildah from docker.io/library/php:8.5.11-fpm-alpine)
 buildah add ${container} ${PWD}/webtop5-build/webtop-dav-server-$webtop_version.tgz /usr/share/webtop/webdav/
 buildah run ${container} sh -c "mv \$PHP_INI_DIR/php.ini-production \$PHP_INI_DIR/php.ini"
 buildah add ${container} ${PWD}/php/zz-banner-grabbing.ini /usr/local/etc/php/conf.d/zz-banner-grabbing.ini
@@ -144,7 +144,7 @@ images+=("${repobase}/${reponame}")
 
 #Create webtop-z-push container
 reponame="webtop-z-push"
-container=$(buildah from docker.io/library/php:8.4.27-fpm-alpine)
+container=$(buildah from docker.io/library/php:8.5.11-fpm-alpine)
 buildah copy --from=docker.io/mlocati/php-extension-installer:2.13.1 ${container} /usr/bin/install-php-extensions /usr/local/bin/
 buildah run ${container} sh -c "install-php-extensions imap intl"
 buildah add ${container} ${PWD}/webtop5-build/webtop-eas-server-$webtop_version.tgz /usr/share/webtop/z-push/
@@ -174,7 +174,7 @@ buildah commit --rm "${container}" "${repobase}/${reponame}"
 images+=("${repobase}/${reponame}")
 
 reponame="webtop-phonebook"
-container=$(buildah from docker.io/library/php:8.4.27-cli-alpine)
+container=$(buildah from docker.io/library/php:8.5.11-cli-alpine)
 buildah copy --from=docker.io/mlocati/php-extension-installer:2.13.1 ${container} /usr/bin/install-php-extensions /usr/local/bin/
 buildah run ${container} sh -c "install-php-extensions pgsql mysqli"
 buildah add ${container} ${PWD}/phonebook/webtop2phonebook.php /usr/share/phonebooks/scripts/
