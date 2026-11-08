@@ -417,6 +417,20 @@
                       $t("settings.chat_instance_tooltip")
                     }}</template>
                   </NsComboBox>
+                  <NsInlineNotification
+                    v-if="chatDomainMismatch"
+                    kind="warning"
+                    :title="$t('settings.chat_user_domain_mismatch_title')"
+                    :description="
+                      $t(
+                        chatDomainMismatch.chat_domain
+                          ? 'settings.chat_user_domain_mismatch_description'
+                          : 'settings.chat_user_domain_missing_description',
+                        chatDomainMismatch
+                      )
+                    "
+                    :showCloseButton="false"
+                  />
                 </template>
               </cv-accordion-item>
             </cv-accordion>
@@ -584,6 +598,24 @@ export default {
         this.loading.getStatus
       );
     },
+    // The chat matches users by name: warn when NethVoice has another user domain than WebTop (its mail server)
+    chatDomainMismatch() {
+      if (!this.chat_instance || this.chat_instance == "-") {
+        return null;
+      }
+      const chat = this.chat_options.find((o) => o.value == this.chat_instance);
+      const mail = (this.mail_modules_id || []).find(
+        (o) => o.value == this.mail_module
+      );
+      if (!chat || !mail || chat.user_domain == mail.user_domain) {
+        return null;
+      }
+      return {
+        instance: chat.name,
+        chat_domain: chat.user_domain,
+        webtop_domain: mail.user_domain || "-",
+      };
+    },
   },
   created() {
     this.getStatus();
@@ -720,9 +752,17 @@ export default {
         value: "-",
       });
       // NethVoice chat instances: the NethVoice instances of the phonebook
-      this.chat_options = config.phonebook_modules_id.filter(
-        (o) => o.value !== "-"
-      );
+      // and their user domain in the label
+      this.chat_options = config.phonebook_modules_id
+        .filter((o) => o.value !== "-")
+        .map((o) => ({
+          ...o,
+          label: o.user_domain
+            ? `${o.label} - ${this.$t("settings.chat_user_domain", {
+                domain: o.user_domain,
+              })}`
+            : o.label,
+        }));
       this.chat_options.unshift({
         name: "-",
         label: this.$t("settings.no_chat_instance"),
