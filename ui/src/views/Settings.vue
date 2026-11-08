@@ -720,7 +720,9 @@ export default {
         value: "-",
       });
       // NethVoice chat instances: the NethVoice instances of the phonebook
-      this.chat_options = config.phonebook_modules_id.filter((o) => o.value !== "-");
+      this.chat_options = config.phonebook_modules_id.filter(
+        (o) => o.value !== "-"
+      );
       this.chat_options.unshift({
         name: "-",
         label: this.$t("settings.no_chat_instance"),
