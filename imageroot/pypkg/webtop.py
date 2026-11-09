@@ -8,7 +8,6 @@
 import json
 import os
 import subprocess
-import agent
 import agent.tasks
 
 def configure_module(mail_module, penv):
@@ -40,6 +39,4 @@ def configure_nethvoice_chat(instance):
     Returns True when a setting changed (the webapp reads them at startup)."""
     script = os.path.join(os.environ['AGENT_INSTALL_DIR'], 'bin', 'configure-nethvoice-chat')
     proc = subprocess.run([script], env=dict(os.environ, CHAT_INSTANCE=instance), stdout=subprocess.PIPE, text=True, check=True)
-    result = json.loads(proc.stdout)
-    agent.set_env('CHAT_PBX_WEBREST_URL', result['pbx_webrest_url'])
-    return result['changed']
+    return json.loads(proc.stdout)['changed']

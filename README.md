@@ -131,18 +131,16 @@ podman run -ti --rm --env-file=./phonebook.env --pod=webtop --replace --name=pho
 
 ## NethVoice chat
 
-WebTop users can chat with the NethVoice users (same user base as the NethVoice CTI) and call from WebTop.
+WebTop users can chat with the NethVoice users (same user base as the NethVoice CTI).
 Set the name of a NethVoice instance in the `chat_instance` field of the `configure-module` API
 (an empty value turns it off):
 ```
 api-cli run module/webtop1/configure-module --data '{..., "chat_instance": "nethvoice1"}'
 ```
 
-The module reads `NETHCTI_UI_HOST` and `CHAT_ENABLED` from the NethVoice instance and writes the WebTop settings:
-
-- `nethvoice.chat.enabled` and `nethvoice.chat.cti.host`, only when the chat is enabled in NethVoice
-- `pbx.provider` and `pbx.provider.nethvoice.webrest.url`, for click-to-call; settings written by hand are
-  not removed
+The module reads `NETHCTI_UI_HOST` and `CHAT_ENABLED` from the NethVoice instance and writes the WebTop settings
+`nethvoice.chat.enabled` and `nethvoice.chat.cti.host`, only when the chat is enabled in NethVoice.
+Click-to-call is not configured: without a PBX provider WebTop calls numbers with `callto://`.
 
 The settings follow the NethVoice instance through the `chat-settings-changed` (chat on/off) and
 `pbx-settings-changed` (CTI host) events: when they change, the webapp is restarted.
