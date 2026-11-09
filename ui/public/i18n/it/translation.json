@@ -79,11 +79,7 @@
         "chat_instances": "Chat NethVoice",
         "choose_chat_instance": "Scegli un'istanza di NethVoice dall'elenco",
         "no_chat_instance": "Disabilita la chat NethVoice",
-        "chat_instance_tooltip": "Gli utenti WebTop chattano con gli utenti NethVoice e chiamano da WebTop (click-to-call). La chat deve essere abilitata in NethVoice.",
-        "chat_user_domain": "utenti: {domain}",
-        "chat_user_domain_mismatch_title": "Dominio utenti diverso",
-        "chat_user_domain_mismatch_description": "Gli utenti di {instance} sono nel dominio utenti {chat_domain}, quelli di WebTop in {webtop_domain} (il dominio del server di posta). La chat trova i colleghi per nome utente: con domini diversi alcuni utenti potrebbero non essere trovati o essere associati alla persona sbagliata.",
-        "chat_user_domain_missing_description": "{instance} non ha ancora un dominio utenti (NethVoice non configurato): gli utenti WebTop di {webtop_domain} potrebbero non trovare i colleghi in chat."
+        "chat_instance_tooltip": "Gli utenti WebTop chattano con gli utenti NethVoice. Sono elencate solo le istanze NethVoice con lo stesso dominio utenti del server di posta. La chat deve essere abilitata in NethVoice."
     },
     "action": {
         "get-name": "Visualizza nome",

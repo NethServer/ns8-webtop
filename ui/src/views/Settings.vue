@@ -417,20 +417,6 @@
                       $t("settings.chat_instance_tooltip")
                     }}</template>
                   </NsComboBox>
-                  <NsInlineNotification
-                    v-if="chatDomainMismatch"
-                    kind="warning"
-                    :title="$t('settings.chat_user_domain_mismatch_title')"
-                    :description="
-                      $t(
-                        chatDomainMismatch.chat_domain
-                          ? 'settings.chat_user_domain_mismatch_description'
-                          : 'settings.chat_user_domain_missing_description',
-                        chatDomainMismatch
-                      )
-                    "
-                    :showCloseButton="false"
-                  />
                 </template>
               </cv-accordion-item>
             </cv-accordion>
@@ -533,7 +519,7 @@ export default {
       phonebook_modules_config: [],
       phonebook_options: [],
       phonebook_instance: "",
-      chat_options: [],
+      chat_modules: [],
       chat_instance: "",
       accepted_timezone_list: [],
       ram_mb: "4096",
@@ -598,23 +584,21 @@ export default {
         this.loading.getStatus
       );
     },
-    // The chat matches users by name: warn when NethVoice has another user domain than WebTop (its mail server)
-    chatDomainMismatch() {
-      if (!this.chat_instance || this.chat_instance == "-") {
-        return null;
-      }
-      const chat = this.chat_options.find((o) => o.value == this.chat_instance);
+    // The chat matches users by name: only NethVoice instances with the user domain of the mail server
+    chat_options() {
       const mail = (this.mail_modules_id || []).find(
         (o) => o.value == this.mail_module
       );
-      if (!chat || !mail || chat.user_domain == mail.user_domain) {
-        return null;
-      }
-      return {
-        instance: chat.name,
-        chat_domain: chat.user_domain,
-        webtop_domain: mail.user_domain || "-",
-      };
+      return [
+        {
+          name: "-",
+          label: this.$t("settings.no_chat_instance"),
+          value: "-",
+        },
+        ...this.chat_modules.filter(
+          (o) => mail && o.user_domain && o.user_domain == mail.user_domain
+        ),
+      ];
     },
   },
   created() {
@@ -752,22 +736,9 @@ export default {
         value: "-",
       });
       // NethVoice chat instances: the NethVoice instances of the phonebook
-      // and their user domain in the label
-      this.chat_options = config.phonebook_modules_id
-        .filter((o) => o.value !== "-")
-        .map((o) => ({
-          ...o,
-          label: o.user_domain
-            ? `${o.label} - ${this.$t("settings.chat_user_domain", {
-                domain: o.user_domain,
-              })}`
-            : o.label,
-        }));
-      this.chat_options.unshift({
-        name: "-",
-        label: this.$t("settings.no_chat_instance"),
-        value: "-",
-      });
+      this.chat_modules = config.phonebook_modules_id.filter(
+        (o) => o.value !== "-"
+      );
 
       this.accepted_timezone_list = config.accepted_timezone_list;
       this.ram_mb = String(config.ram_mb);
@@ -830,7 +801,6 @@ export default {
       this.locale = config.locale;
       this.pecbridge_admin_mail = config.pecbridge_admin_mail;
       this.phonebook_instance = config.phonebook_instance;
-      this.chat_instance = config.chat_instance || "-";
       // force to reload value after dom update
       this.$nextTick(() => {
         const mail_module_tmp = config.mail_module;
@@ -854,6 +824,10 @@ export default {
           // we want to avoid to save the form, there is no users set in the mail domain
           this.mail_module = "";
         }
+        // the chat options depend on the mail server: select the instance once they are updated
+        this.$nextTick(() => {
+          this.chat_instance = config.chat_instance || "-";
+        });
       });
       this.loading.getConfiguration = false;
       this.focusElement("hostname");

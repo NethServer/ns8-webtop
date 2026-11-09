@@ -79,11 +79,7 @@
         "chat_instances": "NethVoice chat",
         "choose_chat_instance": "Choose a NethVoice instance in the list",
         "no_chat_instance": "Disable NethVoice chat",
-        "chat_instance_tooltip": "WebTop users chat with the NethVoice users and call from WebTop (click-to-call). The chat must be enabled in NethVoice.",
-        "chat_user_domain": "users: {domain}",
-        "chat_user_domain_mismatch_title": "Different user domain",
-        "chat_user_domain_mismatch_description": "The users of {instance} are in the {chat_domain} user domain, while WebTop users are in {webtop_domain} (the domain of the mail server). The chat finds colleagues by user name: users of different domains may not be found or may be mismatched.",
-        "chat_user_domain_missing_description": "{instance} has no user domain yet (NethVoice not configured): WebTop users of {webtop_domain} may not find their colleagues in the chat."
+        "chat_instance_tooltip": "WebTop users chat with the NethVoice users. Only the NethVoice instances with the same user domain as the mail server are listed. The chat must be enabled in NethVoice."
     },
     "about": {
         "title": "About"
