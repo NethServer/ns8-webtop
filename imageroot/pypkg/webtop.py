@@ -5,7 +5,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
+import json
 import os
+import subprocess
 import agent.tasks
 
 def configure_module(mail_module, penv):
@@ -31,3 +33,10 @@ def configure_module(mail_module, penv):
         },
         "pecbridge_admin_mail": penv.get('PECBRIDGE_ADMIN_MAIL',''),
     })
+
+def configure_nethvoice_chat(instance):
+    """Write the NethVoice chat settings for a NethVoice instance ('' turns the chat off).
+    Returns True when a setting changed (the webapp reads them at startup)."""
+    script = os.path.join(os.environ['AGENT_INSTALL_DIR'], 'bin', 'configure-nethvoice-chat')
+    proc = subprocess.run([script], env=dict(os.environ, CHAT_INSTANCE=instance), stdout=subprocess.PIPE, text=True, check=True)
+    return json.loads(proc.stdout)['changed']
