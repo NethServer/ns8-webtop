@@ -25,9 +25,20 @@ fi
 webtop_version=$(cat VERSION)
 
 if echo $webtop_version | grep -qE ^development- ; then
-    base_branch="develop"
+    base_branch_type="DEVELOP"
+    # webtop-gate clones sonicle-superpom from GitHub, which is not kept
+    # up to date: develop and feature branches live on Bitbucket
+    setup_args=("MOD_CLONEBASEURL.sonicle-superpom=https://bitbucket.org/sonicle")
+    # webtop-core-api needs the sonicle-commons test-jar, which is not
+    # built with -Dmaven.test.skip=true: compile tests, skip running them
+    build_args=("MVN_ARGS=-T 4 -DskipTests")
+    # An optional BRANCH file selects an upstream branch: components
+    # without it stay on "develop"
+    if [ -s BRANCH ]; then
+        branch_name=$(cat BRANCH)
+    fi
 elif echo $webtop_version | grep -qE ^staging- ; then
-    base_branch="release"
+    base_branch_type="RELEASE"
 else
     tag_name=$webtop_version
     if [ -z $tag_name ]; then
@@ -54,20 +65,27 @@ git pull
 
 echo
 echo "Cleanup local copy... "
-rm -rf components sencha-620  sencha-750  target-servers  target-wars
+rm -rf components modules sencha-620  sencha-750  target-servers  target-wars
 
 echo
 echo "Cloning all repositories..."
 echo
 
-if [ "$base_branch" == "release" -o  "$base_branch" == "develop" ]; then
+if [ -n "$base_branch_type" ]; then
   make setup \
     USE_LFS=0 \
     DEFAULT_CLONE_BASEURL=https://bitbucket.org/sonicle \
     DEFAULT_MVNTOOLS_CLONE_BASEURL=https://bitbucket.org/sonicle \
-    DEFAULT_BASE_BRANCH=$base_branch \
+    DEFAULT_BASE_BRANCH_TYPE=$base_branch_type \
     COMPONENTS_COM=webtop-nethesis-laf \
-    MOD_FLAGS.webtop-nethesis-laf=git-develop,git-release
+    MOD_FLAGS.webtop-nethesis-laf=git-develop,git-release \
+    "${setup_args[@]}"
+  if [ -n "$branch_name" ]; then
+    make checkout-branch \
+      BRANCH="$branch_name" \
+      COMPONENTS_COM=webtop-nethesis-laf \
+      MOD_FLAGS.webtop-nethesis-laf=git-develop,git-release
+  fi
 else
   make setup USE_LFS=0 COMPONENTS_COM=webtop-nethesis-laf MOD_FLAGS.webtop-nethesis-laf=git-develop,git-release
   make checkout-tag TAG=$tag_name
@@ -91,7 +109,8 @@ echo
 make build \
     COMPONENTS_COM=webtop-nethesis-laf \
     MOD_FLAGS.webtop-nethesis-laf=git-develop,git-release \
-    MOD_BUILDS_ARGS.webtop-webapp.default="-P bundle-nethesis-theme"
+    MOD_BUILDS_ARGS.webtop-webapp.default="-P bundle-nethesis-theme" \
+    "${build_args[@]}"
 
 echo
 echo "Extracting sql scripts..."

@@ -1,7 +1,7 @@
-/sql-scripts-wt-*.tar.gz
-/webtop-dav-server-wt-*.tgz
-/webtop-eas-server-wt-*.tgz
-/webtop-webapp-wt-*.war
+/sql-scripts-*.tar.gz
+/webtop-dav-server-*.tgz
+/webtop-eas-server-*.tgz
+/webtop-webapp-*.war
 /ListTimeZones.class
 /WebtopPassEncode.class
 /webtop-gate

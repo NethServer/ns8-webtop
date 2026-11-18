@@ -80,6 +80,9 @@ Drop your custom java files in `/home/webtop1/.config/state/webtop-custom-jars` 
 
     runagent -m webtop1 systemctl --user restart webtop
 
+WebTop runs on Tomcat 11 and Java 25: custom JAR files must use the Jakarta EE
+APIs (`jakarta.*` packages, not `javax.*`) and be built for Java 25 or older.
+
 
 ## Phonebook feature
 
