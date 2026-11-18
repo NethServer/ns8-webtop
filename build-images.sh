@@ -73,6 +73,10 @@ tar -C "${pecbridge_tmp_dir}" -x -v -z -f pecbridge-*.tar.gz
 #Create webtop-webapp container
 reponame="webtop-webapp"
 container=$(buildah from docker.io/library/tomcat:11.0.27-jre25)
+# Temporary mitigation for CVE-2026-114938 (C2 Base64 decoder heap overflow):
+# image-wide so it reaches every JVM started from this image (Tomcat, pecbridge,
+# helper java calls). Remove once the base image ships a Java newer than 25.0.5.
+buildah config --env JAVA_TOOL_OPTIONS=-XX:-UseBASE64Intrinsics ${container}
 buildah add ${container} ${webapp_tmp_dir}/webtop /usr/local/tomcat/webapps/webtop/
 buildah add ${container} ${PWD}/webtop5-build/context.xml /usr/local/tomcat/webapps/webtop/META-INF/context.xml
 buildah add ${container} ${PWD}/webtop5-build/webtop-login/ /usr/local/tomcat/webapps/webtop/WEB-INF/classes/
