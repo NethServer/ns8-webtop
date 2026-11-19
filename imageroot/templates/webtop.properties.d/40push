@@ -1,0 +1,2 @@
+webtop.push-gateway.enabled=true
+webtop.push-gateway.url=wss://webtop-push.sonicle.com/v1/link
