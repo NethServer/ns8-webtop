@@ -129,6 +129,22 @@ You can enter the phonebook container using:
 podman run -ti --rm --env-file=./phonebook.env --pod=webtop --replace --name=phonebook-dev ${WEBTOP_PHONEBOOK_IMAGE} /bin/sh
 ```
 
+## NethVoice chat
+
+WebTop users can chat with the NethVoice users (same user base as the NethVoice CTI).
+Set the name of a NethVoice instance in the `chat_instance` field of the `configure-module` API
+(an empty value turns it off):
+```
+api-cli run module/webtop1/configure-module --data '{..., "chat_instance": "nethvoice1"}'
+```
+
+The module reads `NETHCTI_UI_HOST` and `CHAT_ENABLED` from the NethVoice instance and writes the WebTop settings
+`nethvoice.chat.enabled` and `nethvoice.chat.cti.host`, only when the chat is enabled in NethVoice.
+Click-to-call is not configured: without a PBX provider WebTop calls numbers with `callto://`.
+
+The settings follow the NethVoice instance through the `chat-settings-changed` (chat on/off) and
+`pbx-settings-changed` (CTI host) events: when they change, the webapp is restarted.
+
 ## Uninstall
 
 To uninstall the instance:

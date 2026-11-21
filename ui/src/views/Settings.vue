@@ -393,6 +393,30 @@
                     ref="phonebook_instance"
                   >
                   </NsComboBox>
+                  <!-- NethVoice chat (and click-to-call): same NethVoice instances as the phonebook -->
+                  <NsComboBox
+                    v-model.trim="chat_instance"
+                    :autoFilter="true"
+                    :autoHighlight="true"
+                    :title="$t('settings.chat_instances')"
+                    :label="$t('settings.choose_chat_instance')"
+                    :options="chat_options"
+                    :acceptUserInput="false"
+                    :showItemType="true"
+                    :invalid-message="$t(error.chat_instance)"
+                    :disabled="
+                      loading.getConfiguration ||
+                      loading.configureModule ||
+                      loading.getDefaults
+                    "
+                    tooltipAlignment="start"
+                    tooltipDirection="top"
+                    ref="chat_instance"
+                  >
+                    <template #tooltip>{{
+                      $t("settings.chat_instance_tooltip")
+                    }}</template>
+                  </NsComboBox>
                 </template>
               </cv-accordion-item>
             </cv-accordion>
@@ -495,6 +519,8 @@ export default {
       phonebook_modules_config: [],
       phonebook_options: [],
       phonebook_instance: "",
+      chat_modules: [],
+      chat_instance: "",
       accepted_timezone_list: [],
       ram_mb: "4096",
       locale: "",
@@ -531,6 +557,7 @@ export default {
         limit_min: "",
         limit_max: "",
         phonebook_instance: "",
+        chat_instance: "",
         webapp: {
           min_memory: "",
           max_memory: "",
@@ -556,6 +583,22 @@ export default {
         this.loading.getDefaults ||
         this.loading.getStatus
       );
+    },
+    // The chat matches users by name: only NethVoice instances with the user domain of the mail server
+    chat_options() {
+      const mail = (this.mail_modules_id || []).find(
+        (o) => o.value == this.mail_module
+      );
+      return [
+        {
+          name: "-",
+          label: this.$t("settings.no_chat_instance"),
+          value: "-",
+        },
+        ...this.chat_modules.filter(
+          (o) => mail && o.user_domain && o.user_domain == mail.user_domain
+        ),
+      ];
     },
   },
   created() {
@@ -692,6 +735,10 @@ export default {
         label: this.$t("settings.no_phonebook_instance"),
         value: "-",
       });
+      // NethVoice chat instances: the NethVoice instances of the phonebook
+      this.chat_modules = config.phonebook_modules_id.filter(
+        (o) => o.value !== "-"
+      );
 
       this.accepted_timezone_list = config.accepted_timezone_list;
       this.ram_mb = String(config.ram_mb);
@@ -777,6 +824,10 @@ export default {
           // we want to avoid to save the form, there is no users set in the mail domain
           this.mail_module = "";
         }
+        // the chat options depend on the mail server: select the instance once they are updated
+        this.$nextTick(() => {
+          this.chat_instance = config.chat_instance || "-";
+        });
       });
       this.loading.getConfiguration = false;
       this.focusElement("hostname");
@@ -901,6 +952,7 @@ export default {
             pecbridge_admin_mail: this.pecbridge_admin_mail,
             phonebook_instance:
               this.phonebook_instance == "-" ? "" : this.phonebook_instance,
+            chat_instance: this.chat_instance == "-" ? "" : this.chat_instance,
           },
           extra: {
             title: this.$t("settings.instance_configuration", {

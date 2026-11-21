@@ -70,6 +70,11 @@
         "title": "Phonebook instance module id",
         "description": "The module if of NethVoice instance providing the phonebook service"
     },
+    "chat_instance": {
+        "type": "string",
+        "title": "NethVoice chat instance module id",
+        "description": "The module id of the NethVoice instance providing the chat (and click-to-call) to WebTop users. Empty to disable it."
+    },
 	"mail_module": {
             "type": "string",
 	    "title": "Mail module ID",
