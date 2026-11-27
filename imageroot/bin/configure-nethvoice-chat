@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2026 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+# Write the NethVoice chat settings of WebTop (core.settings) from the NethVoice
+# instance in CHAT_INSTANCE: the chat is on when that instance has the chat
+# enabled. Click-to-call (pbx.*) is not touched: without a PBX provider WebTop uses callto://.
+# Prints {"changed": bool} on stdout.
+
+import json
+import os
+import subprocess
+import sys
+
+import agent
+
+SERVICE = 'com.sonicle.webtop.core'
+CHAT_KEYS = ('nethvoice.chat.enabled', 'nethvoice.chat.cti.host')
+
+def psql(sql, tuples=False):
+    cmd = ['podman', 'exec', '-i', 'postgres', 'psql', '-qU', 'postgres', '-v', 'ON_ERROR_STOP=1', 'webtop5']
+    if tuples:
+        cmd += ['-tA', '-F', '\t']
+    return subprocess.run(cmd, input=sql, text=True, capture_output=True, check=True).stdout
+
+def quote(value):
+    return "'" + str(value).replace("'", "''") + "'"
+
+instance = os.getenv('CHAT_INSTANCE', '')
+wanted = {}
+if instance:
+    rdb = agent.redis_connect() # read-only access on every key
+    env = rdb.hgetall(f'module/{instance}/environment') or {}
+    cti_host = env.get('NETHCTI_UI_HOST', '')
+    if not cti_host:
+        print(f'NETHCTI_UI_HOST not found for {instance}', file=sys.stderr)
+    elif env.get('CHAT_ENABLED', 'false') == 'true':
+        wanted['nethvoice.chat.enabled'] = 'true'
+        wanted['nethvoice.chat.cti.host'] = cti_host
+
+current = {}
+for line in psql(f"SELECT key, value FROM core.settings WHERE service_id = {quote(SERVICE)} AND key IN ({', '.join(map(quote, CHAT_KEYS))});\n", tuples=True).splitlines():
+    key, _, value = line.partition('\t')
+    current[key] = value
+
+sql = ''
+for key in CHAT_KEYS:
+    if current.get(key) == wanted.get(key):
+        continue
+    sql += f"DELETE FROM core.settings WHERE service_id = {quote(SERVICE)} AND key = {quote(key)};\n"
+    if key in wanted:
+        sql += f"INSERT INTO core.settings (service_id, key, value) VALUES ({quote(SERVICE)}, {quote(key)}, {quote(wanted[key])});\n"
+
+if sql:
+    psql(sql)
+
+json.dump({'changed': bool(sql)}, fp=sys.stdout)

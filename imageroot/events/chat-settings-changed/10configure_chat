@@ -1,0 +1,23 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2026 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+# The NethVoice instance of the chat changed (chat on/off, CTI host): write the
+# chat settings again and restart the webapp if they changed.
+
+import json
+import os
+import subprocess
+import sys
+
+import webtop
+
+event = json.load(sys.stdin)
+instance = os.getenv('CHAT_INSTANCE', '')
+
+if instance and event.get('module_id') == instance:
+    if webtop.configure_nethvoice_chat(instance):
+        subprocess.run(['systemctl', '--user', 'restart', 'webapp'], check=False)

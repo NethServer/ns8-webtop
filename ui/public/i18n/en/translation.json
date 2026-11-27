@@ -75,7 +75,11 @@
         "pecbridge_admin_mail_format": "Must be a valid email address",
         "phonebook_instances": "Synchronize Phonebook with NethVoice instance",
         "choose_phonebook_instance": "Choose a NethVoice instance in the list",
-        "no_phonebook_instance": "Disable Phonebook synchronization"
+        "no_phonebook_instance": "Disable Phonebook synchronization",
+        "chat_instances": "NethVoice chat",
+        "choose_chat_instance": "Choose a NethVoice instance in the list",
+        "no_chat_instance": "Disable NethVoice chat",
+        "chat_instance_tooltip": "WebTop users chat with the NethVoice users. Only the NethVoice instances with the same user domain as the mail server are listed. The chat must be enabled in NethVoice."
     },
     "about": {
         "title": "About"

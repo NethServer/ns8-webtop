@@ -10,6 +10,7 @@ import sys
 import os
 import agent
 import subprocess
+import webtop
 
 # Try to parse the stdin as JSON.
 # If parsing fails, output everything to stderr
@@ -246,4 +247,10 @@ else:
         os.remove("phonebook.env")
     except FileNotFoundError:
         pass
+
+# NethVoice chat from a NethVoice instance; '' turns it off.
+# Without chat_instance in the input the saved instance is applied again.
+chat_instance = data.get('chat_instance', os.getenv('CHAT_INSTANCE', ''))
+agent.set_env("CHAT_INSTANCE", chat_instance)
+webtop.configure_nethvoice_chat(chat_instance) # the webapp restarts in 70restart_components
     

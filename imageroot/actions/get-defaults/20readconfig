@@ -28,6 +28,7 @@ for key in agent.list_service_providers(rdb,'imap','tcp'):
                 "name": key['module_id'],
                 "label": f"{kd['domain']} ({key['mail_hostname']})",
                 "value": key['module_id']+','+kd['domain'],
+                "user_domain": key.get('user_domain', ''), # WebTop users come from it
             }
             modules.append(obj)
 # we query about all known timezone and we build a widget
@@ -63,7 +64,9 @@ for key in agent.list_service_providers(rdb,'phonebook','tcp'):
         phonebook.append({
             "name": key['module_id'],
             "label": label,
-            "value": key['module_id']
+            "value": key['module_id'],
+            # the chat matches WebTop and NethVoice users in this user domain
+            "user_domain": rdb.hget(f"module/{key['module_id']}/environment", 'USER_DOMAIN') or '',
         })
     else:
         print(f"Failed to get phonebook credentials for {key['module_id']}: {response['output']}", file=sys.stderr)

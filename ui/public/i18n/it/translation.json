@@ -75,7 +75,11 @@
         "pecbridge_admin_mail_tooltip": "Se è impostato un indirizzo email, PEC Bridge spedirà ad esso una copia delle notifiche.",
         "phonebook_instances": "Sincronizza la rubrica con l'istanza di NethVoice",
         "no_phonebook_instance": "Disabilitare la sincronizzazione della rubrica",
-        "choose_phonebook_instance": "Scegli un'istanza di NethVoice dall'elenco"
+        "choose_phonebook_instance": "Scegli un'istanza di NethVoice dall'elenco",
+        "chat_instances": "Chat NethVoice",
+        "choose_chat_instance": "Scegli un'istanza di NethVoice dall'elenco",
+        "no_chat_instance": "Disabilita la chat NethVoice",
+        "chat_instance_tooltip": "Gli utenti WebTop chattano con gli utenti NethVoice. Sono elencate solo le istanze NethVoice con lo stesso dominio utenti del server di posta. La chat deve essere abilitata in NethVoice."
     },
     "action": {
         "get-name": "Visualizza nome",
